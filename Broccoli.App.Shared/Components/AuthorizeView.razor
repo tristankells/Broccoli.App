@@ -1,0 +1,68 @@
+@using Broccoli.App.Shared.Services
+@inject IAuthenticationStateService AuthStateService
+@inject NavigationManager Navigation
+
+@if (isAuthorized)
+{
+    @ChildContent
+}
+else if (isChecking)
+{
+    <div class="auth-checking">
+        <p><em>Checking authentication...</em></p>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool isAuthorized;
+    private bool isChecking = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthorizationAsync();
+        
+        // Subscribe to auth state changes
+        AuthStateService.OnAuthenticationStateChanged += OnAuthStateChanged;
+    }
+
+    private async Task CheckAuthorizationAsync()
+    {
+        isChecking = true;
+        await Task.Delay(1); // Ensure async context
+        
+        if (AuthStateService.IsAuthenticated)
+        {
+            isAuthorized = true;
+        }
+        else
+        {
+            isAuthorized = false;
+            RedirectToLogin();
+        }
+        
+        isChecking = false;
+    }
+
+    private void OnAuthStateChanged()
+    {
+        InvokeAsync(async () =>
+        {
+            await CheckAuthorizationAsync();
+            StateHasChanged();
+        });
+    }
+
+    private void RedirectToLogin()
+    {
+        var returnUrl = Uri.EscapeDataString(Navigation.ToBaseRelativePath(Navigation.Uri));
+        Navigation.NavigateTo($"/login?returnUrl={returnUrl}");
+    }
+
+    public void Dispose()
+    {
+        AuthStateService.OnAuthenticationStateChanged -= OnAuthStateChanged;
+    }
+}

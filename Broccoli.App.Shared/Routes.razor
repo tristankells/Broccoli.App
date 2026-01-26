@@ -1,0 +1,38 @@
+﻿@using Broccoli.App.Shared.Services
+@inject IAuthenticationStateService AuthStateService
+@inject NavigationManager Navigation
+
+@if (!_isInitialized)
+{
+    <div class="loading-screen">
+        <p><em>Loading...</em></p>
+    </div>
+}
+else
+{
+    <Router AppAssembly="typeof(Layout.MainLayout).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+        <Found Context="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)"/>
+            <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+        </Found>
+    </Router>
+}
+
+@code {
+    private bool _isInitialized;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Wait for authentication state to initialize
+        await AuthStateService.InitializeAsync();
+        
+        _isInitialized = true;
+        
+        // If not authenticated and not on login page, redirect to login
+        var currentPath = new Uri(Navigation.Uri).AbsolutePath;
+        if (!AuthStateService.IsAuthenticated && currentPath != "/login")
+        {
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+    }
+}

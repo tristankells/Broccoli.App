@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App", "Broccoli.App\Broccoli.App.csproj", "{F3016A8E-4715-4EBB-A196-597B71EB00F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Shared", "Broccoli.App.Shared\Broccoli.App.Shared.csproj", "{2547F76A-3CEE-4F09-8C0E-C606CF617584}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Web", "Broccoli.App.Web\Broccoli.App.Web.csproj", "{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F3016A8E-4715-4EBB-A196-597B71EB00F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3016A8E-4715-4EBB-A196-597B71EB00F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3016A8E-4715-4EBB-A196-597B71EB00F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3016A8E-4715-4EBB-A196-597B71EB00F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2547F76A-3CEE-4F09-8C0E-C606CF617584}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2547F76A-3CEE-4F09-8C0E-C606CF617584}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2547F76A-3CEE-4F09-8C0E-C606CF617584}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2547F76A-3CEE-4F09-8C0E-C606CF617584}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

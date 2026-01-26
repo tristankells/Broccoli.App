@@ -1,0 +1,26 @@
+﻿@page "/"
+@using Broccoli.App.Shared.Services
+@using Broccoli.App.Shared.Components
+@inject IFormFactor FormFactor
+@inject IAuthenticationStateService AuthStateService
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <PageTitle>Home</PageTitle>
+
+    <h1>Hello, world!</h1>
+
+    <p>Welcome to your new app running on <em>@factor</em> using <em>@platform</em>.</p>
+
+    <p>You are logged in as <strong>@AuthStateService.CurrentUsername</strong></p>
+    <p>
+        <a href="/counter" class="btn btn-primary">Go to Counter</a>
+        <a href="/weather" class="btn btn-primary">Go to Weather</a>
+    </p>
+
+    @code {
+        private string factor => FormFactor.GetFormFactor();
+        private string platform => FormFactor.GetPlatform();
+
+    }
+</AuthorizeView>

@@ -32,7 +32,7 @@ else
         var currentPath = new Uri(Navigation.Uri).AbsolutePath;
         if (!AuthStateService.IsAuthenticated && currentPath != "/login")
         {
-            Navigation.NavigateTo("/login", forceLoad: true);
+            Navigation.NavigateTo("/login"); // Removed forceLoad
         }
     }
 }

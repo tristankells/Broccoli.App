@@ -152,7 +152,7 @@
     private void NavigateToReturnUrl()
     {
         var url = string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl;
-        Navigation.NavigateTo(url, forceLoad: true);
+        Navigation.NavigateTo(url); // Removed forceLoad - let Blazor handle navigation
     }
 
     public class LoginModel

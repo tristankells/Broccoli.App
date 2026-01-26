@@ -30,12 +30,12 @@ builder.Services.AddSingleton(new CosmosClient(cosmosEndpoint, cosmosKey, cosmos
 
 // Add device-specific services used by the Broccoli.App.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
-builder.Services.AddScoped<ISecureStorageService, SecureStorageService>();
+builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
 
 // Add shared services
 builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
 builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-builder.Services.AddScoped<IAuthenticationStateService, AuthenticationStateService>();
+builder.Services.AddSingleton<IAuthenticationStateService, AuthenticationStateService>();
 
 var app = builder.Build();
 

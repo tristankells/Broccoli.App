@@ -1,6 +1,7 @@
-﻿@using Broccoli.App.Shared.Services
+﻿﻿@using Broccoli.App.Shared.Services
 @inject IAuthenticationStateService AuthStateService
 @inject NavigationManager Navigation
+@using Broccoli.App.Shared.Services
 @implements IDisposable
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -54,7 +55,7 @@
     private async Task Logout()
     {
         await AuthStateService.LogoutAsync();
-        Navigation.NavigateTo("/login", forceLoad: true);
+        Navigation.NavigateTo("/login");
     }
 
     public void Dispose()

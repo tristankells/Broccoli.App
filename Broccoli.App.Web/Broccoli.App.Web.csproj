@@ -10,4 +10,10 @@
         <ProjectReference Include="..\Broccoli.App.Shared\Broccoli.App.Shared.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Content Include="..\Broccoli.App.Shared\Data\FoodDatabase.json" Link="FoodDatabase.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
 </Project>

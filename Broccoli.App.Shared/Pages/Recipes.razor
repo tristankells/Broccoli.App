@@ -1,0 +1,290 @@
+@page "/recipes"
+@using Broccoli.Data.Models
+@using Broccoli.Shared.Services
+@using Broccoli.App.Shared.Components
+@inject IRecipeService RecipeService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<AuthorizeView>
+    <PageTitle>My Recipes</PageTitle>
+
+    <div class="recipes-page">
+        <div class="page-header">
+            <h1>My Recipes</h1>
+            <button class="btn btn-primary add-button" @onclick="NavigateToAddRecipe">
+                <span class="icon">➕</span> Add Recipe
+            </button>
+        </div>
+
+        <div class="filters-section">
+            <div class="search-box">
+                <input type="text" 
+                       class="form-control" 
+                       placeholder="Search recipes..." 
+                       @bind="searchTerm" 
+                       @bind:event="oninput"
+                       @onkeyup="OnSearchChanged" />
+            </div>
+            
+            <div class="tag-filters">
+                @if (availableTags.Any())
+                {
+                    <div class="tag-filter-label">Filter by tags:</div>
+                    <div class="tag-chips">
+                        @foreach (var tag in availableTags)
+                        {
+                            <button class="tag-chip @(selectedTags.Contains(tag) ? "selected" : "")"
+                                    @onclick="() => ToggleTag(tag)">
+                                @tag
+                                @if (selectedTags.Contains(tag))
+                                {
+                                    <span class="tag-remove">×</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                    @if (selectedTags.Any())
+                    {
+                        <button class="btn-link clear-filters" @onclick="ClearFilters">
+                            Clear all filters
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading recipes...</p>
+            </div>
+        }
+        else if (filteredRecipes == null || !filteredRecipes.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📖</div>
+                <h2>No recipes found</h2>
+                @if (selectedTags.Any() || !string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <p>Try adjusting your filters or search terms.</p>
+                    <button class="btn btn-secondary" @onclick="ClearFilters">Clear Filters</button>
+                }
+                else
+                {
+                    <p>Start building your recipe collection!</p>
+                    <button class="btn btn-primary" @onclick="NavigateToAddRecipe">Add Your First Recipe</button>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="recipe-stats">
+                Showing @filteredRecipes.Count() of @allRecipes.Count() recipes
+            </div>
+
+            <div class="recipes-grid">
+                @foreach (var recipe in filteredRecipes)
+                {
+                    <div class="recipe-card" @ondblclick="() => NavigateToEditRecipe(recipe.Id)">
+                        <div class="recipe-image">
+                            @if (recipe.Images.Any())
+                            {
+                                <img src="@recipe.Images.First()" alt="@recipe.Name" />
+                            }
+                            else
+                            {
+                                <div class="recipe-placeholder">
+                                    <span class="placeholder-icon">🍽️</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="recipe-content">
+                            <h3 class="recipe-name">@recipe.Name</h3>
+                            <div class="recipe-meta">
+                                @if (recipe.PrepTimeMinutes.HasValue || recipe.CookTimeMinutes.HasValue)
+                                {
+                                    <div class="recipe-time">
+                                        <span class="icon">⏱️</span>
+                                        @if (recipe.PrepTimeMinutes.HasValue)
+                                        {
+                                            <span>Prep: @recipe.PrepTimeMinutes min</span>
+                                        }
+                                        @if (recipe.CookTimeMinutes.HasValue)
+                                        {
+                                            <span>Cook: @recipe.CookTimeMinutes min</span>
+                                        }
+                                    </div>
+                                }
+                                @if (recipe.Servings.HasValue)
+                                {
+                                    <div class="recipe-servings">
+                                        <span class="icon">👥</span>
+                                        <span>@recipe.Servings servings</span>
+                                    </div>
+                                }
+                            </div>
+                            @if (recipe.Tags.Any())
+                            {
+                                <div class="recipe-tags">
+                                    @foreach (var tag in recipe.Tags.Take(3))
+                                    {
+                                        <span class="recipe-tag">@tag</span>
+                                    }
+                                    @if (recipe.Tags.Count > 3)
+                                    {
+                                        <span class="recipe-tag-more">+@(recipe.Tags.Count - 3)</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="recipe-actions">
+                            <button class="btn-icon" @onclick="() => NavigateToEditRecipe(recipe.Id)" @onclick:stopPropagation="true">
+                                ✏️ Edit
+                            </button>
+                            <button class="btn-icon btn-danger" @onclick="() => DeleteRecipe(recipe)" @onclick:stopPropagation="true">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</AuthorizeView>
+
+@code {
+    private List<Recipe> allRecipes = new();
+    private IEnumerable<Recipe> filteredRecipes = new List<Recipe>();
+    private HashSet<string> availableTags = new();
+    private HashSet<string> selectedTags = new();
+    private string searchTerm = string.Empty;
+    private bool isLoading = true;
+    private System.Threading.Timer? searchDebounceTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRecipes();
+    }
+
+    private async Task LoadRecipes()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var recipes = await RecipeService.GetAllAsync();
+            allRecipes = recipes.OrderByDescending(r => r.CreatedAt).ToList();
+            
+            // Extract all unique tags
+            availableTags = allRecipes
+                .SelectMany(r => r.Tags)
+                .Distinct()
+                .OrderBy(t => t)
+                .ToHashSet();
+
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+            Console.WriteLine($"Error loading recipes: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        var results = allRecipes.AsEnumerable();
+
+        // Apply tag filters
+        if (selectedTags.Any())
+        {
+            results = results.Where(r => r.Tags.Any(t => selectedTags.Contains(t)));
+        }
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var searchLower = searchTerm.ToLower();
+            results = results.Where(r => 
+                r.Name.ToLower().Contains(searchLower) ||
+                (r.Ingredients?.ToLower().Contains(searchLower) ?? false) ||
+                (r.Source?.ToLower().Contains(searchLower) ?? false));
+        }
+
+        filteredRecipes = results.ToList();
+    }
+
+    private void ToggleTag(string tag)
+    {
+        if (selectedTags.Contains(tag))
+        {
+            selectedTags.Remove(tag);
+        }
+        else
+        {
+            selectedTags.Add(tag);
+        }
+        ApplyFilters();
+    }
+
+    private void ClearFilters()
+    {
+        selectedTags.Clear();
+        searchTerm = string.Empty;
+        ApplyFilters();
+    }
+
+    private void OnSearchChanged()
+    {
+        // Debounce search input
+        searchDebounceTimer?.Dispose();
+        searchDebounceTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                ApplyFilters();
+                StateHasChanged();
+            });
+        }, null, 300, Timeout.Infinite);
+    }
+
+    private void NavigateToAddRecipe()
+    {
+        Navigation.NavigateTo("/recipes/new");
+    }
+
+    private void NavigateToEditRecipe(string recipeId)
+    {
+        Navigation.NavigateTo($"/recipes/{recipeId}");
+    }
+
+    private async Task DeleteRecipe(Recipe recipe)
+    {
+        // Simple confirmation - in production, use a proper modal
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{recipe.Name}'?"))
+        {
+            try
+            {
+                await RecipeService.DeleteAsync(recipe.Id);
+                await LoadRecipes();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting recipe: {ex.Message}");
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        searchDebounceTimer?.Dispose();
+    }
+}

@@ -30,22 +30,22 @@ public class CosmosDbService : ICosmosDbService
         {
             _logger.LogInformation("Initializing CosmosDB...");
 
-            // Create database if it doesn't exist
+            // Create database with shared throughput if it doesn't exist
+            // All containers in this database will share the 400 RU/s
             var databaseResponse = await _cosmosClient.CreateDatabaseIfNotExistsAsync(
                 DatabaseId,
-                ThroughputProperties.CreateManualThroughput(400));
+                ThroughputProperties.CreateManualThroughput(600)); // Shared across all containers
 
             var database = databaseResponse.Database;
-            _logger.LogInformation("Database {DatabaseId} ready", DatabaseId);
+            _logger.LogInformation("Database {DatabaseId} ready with shared throughput", DatabaseId);
 
-            // Create container for users if it doesn't exist
+            // Create container for users (no throughput specified - uses shared)
             var containerResponse = await database.CreateContainerIfNotExistsAsync(
                 new ContainerProperties
                 {
                     Id = UserContainerId,
                     PartitionKeyPath = "/partitionKey"
-                },
-                ThroughputProperties.CreateManualThroughput(400));
+                });
 
             _userContainer = containerResponse.Container;
             _logger.LogInformation("Container {ContainerId} ready", UserContainerId);

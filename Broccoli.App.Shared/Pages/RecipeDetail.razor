@@ -1,0 +1,251 @@
+@page "/recipes/new"
+@page "/recipes/{RecipeId}"
+@using Broccoli.Data.Models
+@using Broccoli.Shared.Services
+@using Broccoli.App.Shared.Components
+@inject IRecipeService RecipeService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<AuthorizeView>
+    <PageTitle>@(IsNewRecipe ? "Add Recipe" : "Edit Recipe")</PageTitle>
+
+    <div class="recipe-detail-page">
+        <div class="detail-header">
+            <button class="btn-back" @onclick="NavigateBack">
+                ← Back to Recipes
+            </button>
+            <h1>@(IsNewRecipe ? "Add New Recipe" : "Edit Recipe")</h1>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading recipe...</p>
+            </div>
+        }
+        else if (recipe == null)
+        {
+            <div class="error-message">
+                <p>Recipe not found.</p>
+                <button class="btn btn-primary" @onclick="NavigateBack">Go Back</button>
+            </div>
+        }
+        else
+        {
+            <EditForm Model="@recipe" OnValidSubmit="SaveRecipe">
+                <DataAnnotationsValidator />
+
+                <div class="recipe-form">
+                    <!-- Left Column -->
+                    <div class="form-column">
+                        <!-- Image Section -->
+                        <div class="form-section image-section">
+                            <div class="recipe-image-display">
+                                @if (recipe.Images.Any())
+                                {
+                                    <img src="@recipe.Images.First()" alt="Recipe" />
+                                    <button type="button" class="btn-remove-image" @onclick="RemoveImage">
+                                        Remove Image
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="image-placeholder">
+                                        <span class="placeholder-icon">🖼️</span>
+                                        <p>No image uploaded</p>
+                                    </div>
+                                }
+                            </div>
+                            <div class="form-group">
+                                <label>Image URL</label>
+                                <input type="text" class="form-control" @bind="imageUrl" placeholder="https://..." />
+                                <button type="button" class="btn btn-secondary btn-sm" @onclick="AddImage">
+                                    Add Image
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Basic Info -->
+                        <div class="form-section">
+                            <h2>Basic Information</h2>
+                            
+                            <div class="form-group">
+                                <label>Recipe Name *</label>
+                                <InputText class="form-control" @bind-Value="recipe.Name" placeholder="e.g., Chicken Parmesan" />
+                                <ValidationMessage For="@(() => recipe.Name)" />
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Servings</label>
+                                    <InputNumber class="form-control" @bind-Value="recipe.Servings" placeholder="4" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Prep Time (min)</label>
+                                    <InputNumber class="form-control" @bind-Value="recipe.PrepTimeMinutes" placeholder="15" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Cook Time (min)</label>
+                                    <InputNumber class="form-control" @bind-Value="recipe.CookTimeMinutes" placeholder="30" />
+                                </div>
+                            </div>
+
+                            <div class="total-time">
+                                @if (recipe.PrepTimeMinutes.HasValue || recipe.CookTimeMinutes.HasValue)
+                                {
+                                    <strong>Total Time:</strong>
+                                    <span>@((recipe.PrepTimeMinutes ?? 0) + (recipe.CookTimeMinutes ?? 0)) minutes</span>
+                                }
+                            </div>
+
+                            <div class="form-group">
+                                <label>Source</label>
+                                <InputText class="form-control" @bind-Value="recipe.Source" placeholder="e.g., Grandmas cookbook" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>URL</label>
+                                <InputText class="form-control" @bind-Value="recipe.Url" placeholder="https://..." />
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-section">
+                            <h2>Tags</h2>
+                            <div class="tags-input-container">
+                                <div class="tags-display">
+                                    @foreach (var tag in recipe.Tags)
+                                    {
+                                        <span class="tag-chip">
+                                            @tag
+                                            <button type="button" class="tag-remove" @onclick="() => RemoveTag(tag)">×</button>
+                                        </span>
+                                    }
+                                </div>
+                                <div class="tag-input-row">
+                                    <input type="text" class="form-control" @bind="newTag" @onkeypress="OnTagKeyPress" placeholder="Add tag..." />
+                                    <button type="button" class="btn btn-secondary" @onclick="AddTag">Add Tag</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="form-column">
+                        <!-- Ingredients -->
+                        <div class="form-section">
+                            <h2>Ingredients</h2>
+                            <div class="form-group">
+                                <InputTextArea class="form-control textarea-large" 
+                                              @bind-Value="recipe.Ingredients" 
+                                              placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..." 
+                                              rows="12" />
+                                <small class="form-text">Enter each ingredient on a new line</small>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(recipe.Ingredients))
+                            {
+                                <div class="ingredients-parsed">
+                                    <h3>Ingredients Parsed:</h3>
+                                    <ul>
+                                        @foreach (var ingredient in ParseIngredients(recipe.Ingredients))
+                                        {
+                                            <li>@ingredient</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Directions -->
+                        <div class="form-section">
+                            <h2>Directions</h2>
+                            <div class="form-group">
+                                <InputTextArea class="form-control textarea-large" 
+                                              @bind-Value="recipe.Directions" 
+                                              placeholder="1. Preheat oven to 375°F&#10;2. Mix ingredients&#10;3. Bake for 30 minutes..." 
+                                              rows="12" />
+                                <small class="form-text">Enter cooking instructions</small>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-section">
+                            <h2>Notes</h2>
+                            <div class="form-group">
+                                <InputTextArea class="form-control" 
+                                              @bind-Value="recipe.Notes" 
+                                              placeholder="Any additional notes, tips, or variations..." 
+                                              rows="6" />
+                            </div>
+                        </div>
+
+                        <!-- Nutrition (Optional - for future) -->
+                        <div class="form-section nutrition-section">
+                            <h2>Nutrition (Optional)</h2>
+                            <p class="section-subtitle">Per serving</p>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Protein (g)</label>
+                                    <input type="number" class="form-control" placeholder="12" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Carbs (g)</label>
+                                    <input type="number" class="form-control" placeholder="12" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Fat (g)</label>
+                                    <input type="number" class="form-control" placeholder="13" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Calories</label>
+                                    <input type="number" class="form-control" placeholder="12" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" @onclick="NavigateBack">
+                        Cancel
+                    </button>
+                    @if (!IsNewRecipe)
+                    {
+                        <button type="button" class="btn btn-danger" @onclick="DeleteRecipe">
+                            Delete Recipe
+                        </button>
+                    }
+                    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-small"></span>
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>💾 Save Recipe</span>
+                        }
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(successMessage))
+                {
+                    <div class="alert alert-success">
+                        @successMessage
+                    </div>
+                }
+            </EditForm>
+        }
+    </div>
+</AuthorizeView>

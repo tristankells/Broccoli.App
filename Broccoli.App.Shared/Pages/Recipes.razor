@@ -87,7 +87,7 @@
             <div class="recipes-grid">
                 @foreach (var recipe in filteredRecipes)
                 {
-                    <div class="recipe-card" @ondblclick="() => NavigateToEditRecipe(recipe.Id)">
+                    <div class="recipe-card" @ondblclick="() => NavigateToReadRecipe(recipe.Id)">
                         <div class="recipe-image">
                             @if (recipe.Images.Any())
                             {
@@ -264,6 +264,11 @@
     private void NavigateToEditRecipe(string recipeId)
     {
         Navigation.NavigateTo($"/recipes/{recipeId}");
+    }
+    
+    private void NavigateToReadRecipe(string recipeId)
+    {
+        Navigation.NavigateTo($"/recipes/{recipeId}/read");
     }
 
     private async Task DeleteRecipe(Recipe recipe)

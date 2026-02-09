@@ -1,4 +1,4 @@
-﻿using Broccoli.Data.Models;
+﻿﻿using Broccoli.Data.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -180,5 +180,13 @@ public partial class RecipeDetail
     private void NavigateBack()
     {
         Navigation.NavigateTo("/recipes");
+    }
+
+    private void NavigateToReadRecipe()
+    {
+        if (!string.IsNullOrWhiteSpace(RecipeId))
+        {
+            Navigation.NavigateTo($"/recipes/{RecipeId}/read");
+        }
     }
 }

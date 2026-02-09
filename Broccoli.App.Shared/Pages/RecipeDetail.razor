@@ -16,6 +16,12 @@
                 ← Back to Recipes
             </button>
             <h1>@(IsNewRecipe ? "Add New Recipe" : "Edit Recipe")</h1>
+            @if (!IsNewRecipe && recipe != null)
+            {
+                <button class="btn btn-secondary" @onclick="NavigateToReadRecipe">
+                    📖 View Recipe
+                </button>
+            }
         </div>
 
         @if (isLoading)

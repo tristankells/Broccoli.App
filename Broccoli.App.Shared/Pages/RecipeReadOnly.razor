@@ -1,0 +1,91 @@
+@page "/recipes/{RecipeId}/read"
+@using Broccoli.Shared.Services
+@using Broccoli.App.Shared.Components
+@inject IRecipeService RecipeService
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <PageTitle>@(recipe?.Name ?? "Recipe")</PageTitle>
+
+    <div class="recipe-read-page">
+        <div class="read-header">
+            <button class="btn-back" @onclick="NavigateBack">
+                Back to Recipes
+            </button>
+            <div class="read-header-actions">
+                <button class="btn btn-secondary" @onclick="NavigateToEdit">
+                    View/Edit Recipe
+                </button>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading recipe...</p>
+            </div>
+        }
+        else if (recipe == null)
+        {
+            <div class="error-message">
+                <p>@(errorMessage ?? "Recipe not found.")</p>
+                <button class="btn btn-primary" @onclick="NavigateBack">Go Back</button>
+            </div>
+        }
+        else
+        {
+            <article class="read-article">
+                <header class="recipe-hero">
+                    <h1 class="recipe-title">@recipe.Name</h1>
+                </header>
+
+                <section class="ingredients-section">
+                    <h2>Ingredients</h2>
+                    @if (ingredients.Count > 0)
+                    {
+                        <ul class="ingredients-list">
+                            @for (int i = 0; i < ingredients.Count; i++)
+                            {
+                                <li @key="ingredients[i]+i">@ingredients[i]</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="empty-text">No ingredients listed.</p>
+                    }
+                </section>
+
+                <section class="instructions-section">
+                    <h2>Instructions</h2>
+                    @if (!string.IsNullOrWhiteSpace(directions))
+                    {
+                        <div class="instructions-list">
+                            @directions
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="empty-text">No instructions listed.</p>
+                    }
+                    
+                    @* @if (directions.Count > 0) *@
+                    @* { *@
+                    @*     <div class="instructions-list"> *@
+                    @*         @foreach (var step in directions) *@
+                    @*         { *@
+                    @*             <p class="instruction-step" @key="step">@step</p> *@
+                    @*         } *@
+                    @*     </div> *@
+                    @* } *@
+                    @* else *@
+                    @* { *@
+                    @*     <p class="empty-text">No instructions listed.</p> *@
+                    @* } *@
+                </section>
+            </article>
+        }
+    </div>
+</AuthorizeView>
+

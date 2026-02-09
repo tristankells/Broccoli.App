@@ -58,11 +58,6 @@ public class AuthenticationService : IAuthenticationService
                 return (false, "Username and password are required.", null);
             }
 
-            if (password.Length < 6)
-            {
-                return (false, "Password must be at least 6 characters.", null);
-            }
-
             var existingUser = await GetUserByUsernameAsync(username);
             if (existingUser != null)
             {

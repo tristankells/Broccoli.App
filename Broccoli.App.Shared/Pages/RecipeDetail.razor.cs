@@ -169,18 +169,6 @@ public partial class RecipeDetail
         recipe.Images.RemoveAt(0);
     }
 
-    private IEnumerable<string> ParseIngredients(string ingredients)
-    {
-        return ingredients
-            .Split('\n')
-            .Select(i => i.Trim())
-            .Where(i => !string.IsNullOrWhiteSpace(i));
-    }
-
-    private void NavigateBack()
-    {
-        Navigation.NavigateTo("/recipes");
-    }
 
     private void NavigateToReadRecipe()
     {
@@ -188,5 +176,10 @@ public partial class RecipeDetail
         {
             Navigation.NavigateTo($"/recipes/{RecipeId}/read");
         }
+    }
+
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo($"/recipes");
     }
 }

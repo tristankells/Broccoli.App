@@ -99,6 +99,7 @@ if (string.IsNullOrEmpty(foodDatabasePath))
 }
 
 builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
+builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
 
 WebApplication app = builder.Build();
 

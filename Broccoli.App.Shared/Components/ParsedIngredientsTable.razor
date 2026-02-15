@@ -1,0 +1,220 @@
+@using Broccoli.App.Shared.Services
+@using Broccoli.Shared.Services
+@inject IFoodService FoodService
+
+<div class="parsed-ingredients-container">
+    <!-- Pinned Nutrition Header -->
+    <div class="nutrition-header-pinned">
+        <div class="nutrition-row">
+            <div class="nutrition-label">Recipe Totals</div>
+            <div class="nutrition-values">
+                <div class="nutrition-item">
+                    <span class="nutrition-name">Calories</span>
+                    <span class="nutrition-value">@($"{_totals.Calories:F1}")</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-name">Fat</span>
+                    <span class="nutrition-value">@($"{_totals.Fat:F1}g")</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-name">Protein</span>
+                    <span class="nutrition-value">@($"{_totals.Protein:F1}g")</span>
+                </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-name">Carbs</span>
+                    <span class="nutrition-value">@($"{_totals.Carbohydrates:F1}g")</span>
+                </div>
+            </div>
+        </div>
+
+        @if (Servings.HasValue && Servings.Value > 0)
+        {
+            <div class="nutrition-row">
+                <div class="nutrition-label">Per Serving (@Servings serving@(Servings == 1 ? "" : "s"))</div>
+                <div class="nutrition-values">
+                    <div class="nutrition-item">
+                        <span class="nutrition-name">Calories</span>
+                        <span class="nutrition-value">@($"{_totals.Calories / Servings.Value:F1}")</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-name">Fat</span>
+                        <span class="nutrition-value">@($"{_totals.Fat / Servings.Value:F1}g")</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-name">Protein</span>
+                        <span class="nutrition-value">@($"{_totals.Protein / Servings.Value:F1}g")</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-name">Carbs</span>
+                        <span class="nutrition-value">@($"{_totals.Carbohydrates / Servings.Value:F1}g")</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Scrollable Table Section -->
+    @if (_isLoading)
+    {
+        <div class="loading-spinner">
+            <p>Parsing ingredients...</p>
+        </div>
+    }
+    else if (!_matches.Any())
+    {
+        <p class="no-data">No ingredients to display.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm parsed-ingredients-table">
+                <thead class="table-header">
+                    <tr>
+                        <th class="col-status">Status</th>
+                        <th class="col-ingredient">Ingredient</th>
+                        <th class="col-quantity">Quantity</th>
+                        <th class="col-calories">Calories</th>
+                        <th class="col-fat">Fat (g)</th>
+                        <th class="col-protein">Protein (g)</th>
+                        <th class="col-carbs">Carbs (g)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var match in _matches)
+                    {
+                        if (match.IsMatched)
+                        {
+                            <tr class="row-matched">
+                                <td class="col-status">
+                                    <span class="badge badge-success">✓</span>
+                                    @if (match.MatchDistance > 0)
+                                    {
+                                        <span class="match-distance" title="Fuzzy match with @match.MatchDistance character difference(s)">
+                                            ~
+                                        </span>
+                                    }
+                                </td>
+                                <td class="col-ingredient">
+                                    <span class="matched-food-name">@match.MatchedFood?.Name</span>
+                                    @if (match.MatchDistance > 0)
+                                    {
+                                        <small class="text-muted d-block">searched for: @match.ParsedIngredient.FoodName</small>
+                                    }
+                                </td>
+                                <td class="col-quantity">@($"{match.ParsedIngredient.Quantity:F1} {match.ParsedIngredient.Unit}")</td>
+                                <td class="col-calories">@($"{match.GetCalories():F1}")</td>
+                                <td class="col-fat">@($"{match.GetFat():F1}")</td>
+                                <td class="col-protein">@($"{match.GetProtein():F1}")</td>
+                                <td class="col-carbs">@($"{match.GetCarbohydrates():F1}")</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr class="row-unmatched">
+                                <td class="col-status">
+                                    <span class="badge badge-warning">✗</span>
+                                </td>
+                                <td class="col-ingredient">
+                                    <span class="unmatched-text">@match.ParsedIngredient.FoodName</span>
+                                    <small class="text-muted d-block">Not found in database</small>
+                                </td>
+                                <td class="col-quantity">@($"{match.ParsedIngredient.Quantity:F1} {match.ParsedIngredient.Unit}")</td>
+                                <td class="col-calories">-</td>
+                                <td class="col-fat">-</td>
+                                <td class="col-protein">-</td>
+                                <td class="col-carbs">-</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? IngredientsText { get; set; }
+
+    [Parameter]
+    public int? Servings { get; set; }
+
+    private List<ParsedIngredientMatch> _matches = new();
+    private NutritionTotals _totals = new();
+    private bool _isLoading = false;
+    private string? _lastProcessedIngredients;
+    private int _lastIngredientHash = 0;
+
+    // Component-level cache: (foodName, distance) -> Food
+    private Dictionary<(string, int), ParsedIngredientMatch?> _ingredientCache = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ProcessIngredientsAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reprocess whenever IngredientsText or Servings parameters change
+        await ProcessIngredientsAsync();
+    }
+
+    private async Task ProcessIngredientsAsync()
+    {
+        if (string.IsNullOrWhiteSpace(IngredientsText))
+        {
+            _matches.Clear();
+            _totals = new NutritionTotals();
+            _lastProcessedIngredients = IngredientsText;
+            _lastIngredientHash = (IngredientsText ?? string.Empty).GetHashCode();
+            return;
+        }
+
+        // Skip if we've already processed this exact ingredients text
+        if (IngredientsText == _lastProcessedIngredients)
+        {
+            return;
+        }
+
+        _isLoading = true;
+        _lastIngredientHash = IngredientsText.GetHashCode();
+
+        try
+        {
+
+            // Parse and match ingredients
+            _matches = await IngredientParserService.ParseAndMatchIngredientsAsync(
+                IngredientsText,
+                FoodService);
+
+            _lastProcessedIngredients = IngredientsText;
+
+            // Calculate totals
+            CalculateTotals();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void CalculateTotals()
+    {
+        _totals = new NutritionTotals
+        {
+            Calories = _matches.Where(m => m.IsMatched).Sum(m => m.GetCalories()),
+            Fat = _matches.Where(m => m.IsMatched).Sum(m => m.GetFat()),
+            Protein = _matches.Where(m => m.IsMatched).Sum(m => m.GetProtein()),
+            Carbohydrates = _matches.Where(m => m.IsMatched).Sum(m => m.GetCarbohydrates())
+        };
+    }
+
+    private class NutritionTotals
+    {
+        public double Calories { get; set; }
+        public double Fat { get; set; }
+        public double Protein { get; set; }
+        public double Carbohydrates { get; set; }
+    }
+}
+

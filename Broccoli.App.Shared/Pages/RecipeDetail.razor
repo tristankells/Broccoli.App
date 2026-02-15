@@ -144,24 +144,17 @@
                         <div class="form-section">
                             <h2>Ingredients</h2>
                             <div class="form-group">
-                                <InputTextArea class="form-control textarea-large" 
-                                              @bind-Value="recipe.Ingredients" 
-                                              placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..." 
-                                              rows="12" />
-                                <small class="form-text">Enter each ingredient on a new line</small>
+                                <textarea class="form-control textarea-large" 
+                                          @bind="recipe.Ingredients"
+                                          @onblur="() => StateHasChanged()"
+                                          placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..." 
+                                          rows="12"></textarea>
+                                <small class="form-text">Enter each ingredient on a new line. Parsing updates when you click outside the box.</small>
                             </div>
 
                             @if (!string.IsNullOrWhiteSpace(recipe.Ingredients))
                             {
-                                <div class="ingredients-parsed">
-                                    <h3>Ingredients Parsed:</h3>
-                                    <ul>
-                                        @foreach (var ingredient in ParseIngredients(recipe.Ingredients))
-                                        {
-                                            <li>@ingredient</li>
-                                        }
-                                    </ul>
-                                </div>
+                                <ParsedIngredientsTable IngredientsText="@recipe.Ingredients" Servings="@recipe.Servings" />
                             }
                         </div>
 

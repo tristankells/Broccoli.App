@@ -3,263 +3,12 @@ using Broccoli.Data.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq; // Using Moq for mocking IFoodService
 using Broccoli.Shared.Services; // Added missing using directive
-using Newtonsoft.Json; // Added for JSON deserialization
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System; // Added for StringComparison
 
 namespace Broccoli.App.Tests.Services;
 
 [TestClass]
 public class IngredientParserServiceTests
 {
-    // JSON data representing the full food database
-    private const string FullFoodDatabaseJson = @"
-[
-  {
-    ""Id"": 1,
-    ""Name"": ""Vermicelli"",
-    ""Measure"": ""Serving"",
-    ""GramsPerMeasure"": 100.0,
-    ""Notes"": ""Standard noodles"",
-    ""CaloriesPer100g"": 347.8,
-    ""FatPer100g"": 0.0,
-    ""SaturatedFatPer100g"": 0.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 85.6,
-    ""DietaryFiberPer100g"": 0.0,
-    ""SugarsPer100g"": 0.0,
-    ""ProteinPer100g"": 0.0,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 30.0,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 0.0,
-    ""CalciumMgPer100g"": 0.0,
-    ""IronMgPer100g"": 0.0
-  },
-  {
-    ""Id"": 2,
-    ""Name"": ""Olive Oil"",
-    ""Measure"": ""Tablespoon"",
-    ""GramsPerMeasure"": 13.0,
-    ""Notes"": ""Calculation: (Value/13)*100"",
-    ""CaloriesPer100g"": 917.69,
-    ""FatPer100g"": 103.85,
-    ""SaturatedFatPer100g"": 14.62,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 0.0,
-    ""DietaryFiberPer100g"": 0.0,
-    ""SugarsPer100g"": 0.0,
-    ""ProteinPer100g"": 0.0,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 2.31,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 0.0,
-    ""CalciumMgPer100g"": 0.0,
-    ""IronMgPer100g"": 0.0
-  },
-  {
-    ""Id"": 3,
-    ""Name"": ""Carrots, Raw"",
-    ""Measure"": ""Medium Carrot"",
-    ""GramsPerMeasure"": 61.0,
-    ""Notes"": ""High Vitamin A"",
-    ""CaloriesPer100g"": 45.08,
-    ""FatPer100g"": 0.33,
-    ""SaturatedFatPer100g"": 0.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 10.33,
-    ""DietaryFiberPer100g"": 3.11,
-    ""SugarsPer100g"": 4.75,
-    ""ProteinPer100g"": 0.98,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 87.05,
-    ""VitaminAMcgPer100g"": 501.64,
-    ""VitaminCMgPer100g"": 8.85,
-    ""CalciumMgPer100g"": 42.62,
-    ""IronMgPer100g"": 0.3
-  },
-  {
-    ""Id"": 4,
-    ""Name"": ""Chicken Breast, Skinless, Raw"",
-    ""Measure"": ""Gram"",
-    ""GramsPerMeasure"": 1.0,
-    ""Notes"": ""Lean protein source"",
-    ""CaloriesPer100g"": 120.0,
-    ""FatPer100g"": 0.0,
-    ""SaturatedFatPer100g"": 0.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 0.0,
-    ""DietaryFiberPer100g"": 0.0,
-    ""SugarsPer100g"": 0.0,
-    ""ProteinPer100g"": 20.0,
-    ""CholesterolMgPer100g"": 70.0,
-    ""SodiumMgPer100g"": 50.0,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 0.0,
-    ""CalciumMgPer100g"": 0.0,
-    ""IronMgPer100g"": 0.0
-  },
-  {
-    ""Id"": 5,
-    ""Name"": ""Ayam Brand Malaysian Laksa Paste"",
-    ""Measure"": ""Gram"",
-    ""GramsPerMeasure"": 1.0,
-    ""Notes"": ""Sodium intense"",
-    ""CaloriesPer100g"": 105.16,
-    ""FatPer100g"": 0.0,
-    ""SaturatedFatPer100g"": 0.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 10.0,
-    ""DietaryFiberPer100g"": 0.0,
-    ""SugarsPer100g"": 0.0,
-    ""ProteinPer100g"": 0.0,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 1790.0,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 0.0,
-    ""CalciumMgPer100g"": 0.0,
-    ""IronMgPer100g"": 0.0
-  },
-  {
-    ""Id"": 6,
-    ""Name"": ""Curry Powder"",
-    ""Measure"": ""Teaspoon"",
-    ""GramsPerMeasure"": 2.0,
-    ""Notes"": ""Values scaled from 2g serving"",
-    ""CaloriesPer100g"": 340.0,
-    ""FatPer100g"": 15.0,
-    ""SaturatedFatPer100g"": 0.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 60.0,
-    ""DietaryFiberPer100g"": 55.0,
-    ""SugarsPer100g"": 5.0,
-    ""ProteinPer100g"": 15.0,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 55.0,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 0.0,
-    ""CalciumMgPer100g"": 650.0,
-    ""IronMgPer100g"": 18.0
-  },
-  {
-    ""Id"": 7,
-    ""Name"": ""Thai Kitchen Coconut Milk Lite"",
-    ""Measure"": ""Can"",
-    ""GramsPerMeasure"": 400.0,
-    ""Notes"": ""Calculation: (Value/400)*100"",
-    ""CaloriesPer100g"": 66.67,
-    ""FatPer100g"": 5.83,
-    ""SaturatedFatPer100g"": 5.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 3.33,
-    ""DietaryFiberPer100g"": 0.0,
-    ""SugarsPer100g"": 0.0,
-    ""ProteinPer100g"": 0.68,
-    ""CholesterolMgPer100g"": 8.32,
-    ""SodiumMgPer100g"": 8.32,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 1.58,
-    ""CalciumMgPer100g"": 22.75,
-    ""IronMgPer100g"": 3.29
-  },
-  {
-    ""Id"": 8,
-    ""Name"": ""Chinese Cabbage, Pak-Choi, Raw"",
-    ""Measure"": ""Head"",
-    ""GramsPerMeasure"": 840.0,
-    ""Notes"": ""Massive Vitamin C source"",
-    ""CaloriesPer100g"": 13.0,
-    ""FatPer100g"": 0.2,
-    ""SaturatedFatPer100g"": 0.02,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 2.18,
-    ""DietaryFiberPer100g"": 1.0,
-    ""SugarsPer100g"": 1.18,
-    ""ProteinPer100g"": 1.5,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 65.0,
-    ""VitaminAMcgPer100g"": 133.93,
-    ""VitaminCMgPer100g"": 67.5,
-    ""CalciumMgPer100g"": 136.19,
-    ""IronMgPer100g"": 0.79
-  },
-  {
-    ""Id"": 9,
-    ""Name"": ""Fish Sauce"",
-    ""Measure"": ""Tablespoon"",
-    ""GramsPerMeasure"": 18.0,
-    ""Notes"": ""Very high sodium"",
-    ""CaloriesPer100g"": 35.0,
-    ""FatPer100g"": 0.0,
-    ""SaturatedFatPer100g"": 0.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 3.89,
-    ""DietaryFiberPer100g"": 0.0,
-    ""SugarsPer100g"": 3.89,
-    ""ProteinPer100g"": 5.0,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 7851.11,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 0.0,
-    ""CalciumMgPer100g"": 72.22,
-    ""IronMgPer100g"": 1.0
-  },
-  {
-    ""Id"": 10,
-    ""Name"": ""Mung Bean Sprouts, Raw"",
-    ""Measure"": ""Cup"",
-    ""GramsPerMeasure"": 104.0,
-    ""Notes"": ""Fresh vegetables"",
-    ""CaloriesPer100g"": 30.0,
-    ""FatPer100g"": 0.19,
-    ""SaturatedFatPer100g"": 0.0,
-    ""TransFatPer100g"": 0.0,
-    ""CarbohydratesPer100g"": 5.96,
-    ""DietaryFiberPer100g"": 1.83,
-    ""SugarsPer100g"": 2.12,
-    ""ProteinPer100g"": 3.08,
-    ""CholesterolMgPer100g"": 0.0,
-    ""SodiumMgPer100g"": 5.96,
-    ""VitaminAMcgPer100g"": 0.0,
-    ""VitaminCMgPer100g"": 19.9,
-    ""CalciumMgPer100g"": 12.5,
-    ""IronMgPer100g"": 0.87
-  }
-]
-";
-
-    /// <summary>
-    /// Helper method to create a mock IFoodService with the provided JSON data.
-    /// </summary>
-    private static IFoodService CreateMockFoodService(string jsonData)
-    {
-        var foods = JsonConvert.DeserializeObject<List<Food>>(jsonData) ?? new List<Food>();
-        var mockFoodService = new Mock<IFoodService>();
-
-        mockFoodService.Setup(s => s.TryGetFood(It.IsAny<string>(), out It.Ref<Food?>.IsAny))
-            .Returns((string name, out Food? food) =>
-            {
-                food = foods.FirstOrDefault(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-                return food != null;
-            });
-
-        mockFoodService.Setup(s => s.TryGetFoodFuzzy(It.IsAny<string>(), It.IsAny<int>(), out It.Ref<Food?>.IsAny))
-            .Returns((string name, int maxDistance, out Food? food) =>
-            {
-                food = foods
-                    .Select(f => new { Food = f, Distance = GetLevenshteinDistance(name.ToLowerInvariant(), f.Name.ToLowerInvariant()) })
-                    .Where(x => x.Distance <= maxDistance)
-                    .OrderBy(x => x.Distance)
-                    .Select(x => x.Food)
-                    .FirstOrDefault();
-                return food != null;
-            });
-
-        return mockFoodService.Object;
-    }
-
     #region ParseIngredient Tests
 
     [TestMethod]
@@ -586,8 +335,7 @@ public class IngredientParserServiceTests
         // Arrange
         var mockFoodService = new Mock<IFoodService>();
         var food = new Food { Id = 1, Name = "Flour", Measure = "cup", GramsPerMeasure = 120 };
-        Food? outFood = food; // Declare a nullable Food variable for out parameter
-        mockFoodService.Setup(s => s.TryGetFood("flour", out outFood)).Returns(true);
+        mockFoodService.Setup(s => s.TryGetFood("flour", out food)).Returns(true);
         mockFoodService.Setup(s => s.TryGetFoodFuzzy(It.IsAny<string>(), It.IsAny<int>(), out It.Ref<Food?>.IsAny)).Returns(false);
 
         string ingredientLine = "1 cup flour";
@@ -599,7 +347,7 @@ public class IngredientParserServiceTests
         Assert.IsNotNull(results);
         Assert.AreEqual(1, results.Count);
         Assert.IsTrue(results[0].IsMatched);
-        Assert.AreEqual("Flour", results[0].MatchedFood!.Name); // Use null-forgiving operator as we assert IsMatched is true
+        Assert.AreEqual("Flour", results[0].MatchedFood.Name);
         Assert.AreEqual(0, results[0].MatchDistance);
     }
 
@@ -608,12 +356,11 @@ public class IngredientParserServiceTests
     {
         // Arrange
         var mockFoodService = new Mock<IFoodService>();
-        Food? exactFood = null; // No exact match
+        Food exactFood = null; // No exact match
         mockFoodService.Setup(s => s.TryGetFood("flour", out exactFood)).Returns(false);
 
         var fuzzyFood = new Food { Id = 1, Name = "All-Purpose Flour", Measure = "cup", GramsPerMeasure = 120 };
-        Food? outFuzzyFood = fuzzyFood; // Declare a nullable Food variable for out parameter
-        mockFoodService.Setup(s => s.TryGetFoodFuzzy("flour", 10, out outFuzzyFood)).Returns(true);
+        mockFoodService.Setup(s => s.TryGetFoodFuzzy("flour", 3, out fuzzyFood)).Returns(true);
 
         string ingredientLine = "1 cup flour";
 
@@ -624,15 +371,16 @@ public class IngredientParserServiceTests
         Assert.IsNotNull(results);
         Assert.AreEqual(1, results.Count);
         Assert.IsTrue(results[0].IsMatched);
-        Assert.AreEqual("All-Purpose Flour", results[0].MatchedFood!.Name); // Use null-forgiving operator
+        Assert.AreEqual("All-Purpose Flour", results[0].MatchedFood.Name);
         Assert.IsTrue(results[0].MatchDistance > 0); // Fuzzy match should have a distance > 0
     }
 
-    [TestMethod]    public async Task ParseAndMatchIngredientsAsync_NoMatch_ReturnsUnmatched()
+    [TestMethod]
+    public async Task ParseAndMatchIngredientsAsync_NoMatch_ReturnsUnmatched()
     {
         // Arrange
         var mockFoodService = new Mock<IFoodService>();
-        Food? food = null; // Declare a nullable Food variable for out parameter
+        Food food = null;
         mockFoodService.Setup(s => s.TryGetFood(It.IsAny<string>(), out food)).Returns(false);
         mockFoodService.Setup(s => s.TryGetFoodFuzzy(It.IsAny<string>(), It.IsAny<int>(), out food)).Returns(false);
 
@@ -657,24 +405,19 @@ public class IngredientParserServiceTests
 
         var flourFood = new Food { Id = 1, Name = "Flour", Measure = "cup", GramsPerMeasure = 120 };
         var sugarFood = new Food { Id = 2, Name = "Granulated Sugar", Measure = "cup", GramsPerMeasure = 200 };
-        Food? nullFood = null; // Declare a nullable Food variable for out parameter
+        Food nullFood = null;
 
         // Setup for "flour" (exact match)
-        Food? outFlourFood = flourFood;
-        mockFoodService.Setup(s => s.TryGetFood("flour", out outFlourFood)).Returns(true);
+        mockFoodService.Setup(s => s.TryGetFood("flour", out flourFood)).Returns(true);
         mockFoodService.Setup(s => s.TryGetFoodFuzzy("flour", It.IsAny<int>(), out It.Ref<Food?>.IsAny)).Returns(false);
 
         // Setup for "sugr" (fuzzy match to "Granulated Sugar")
-        Food? outNullFood1 = null;
-        mockFoodService.Setup(s => s.TryGetFood("sugr", out outNullFood1)).Returns(false);
-        Food? outSugarFood = sugarFood;
-        mockFoodService.Setup(s => s.TryGetFoodFuzzy("sugr", 10, out outSugarFood)).Returns(true);
+        mockFoodService.Setup(s => s.TryGetFood("sugr", out nullFood)).Returns(false);
+        mockFoodService.Setup(s => s.TryGetFoodFuzzy("sugr", 3, out sugarFood)).Returns(true);
 
         // Setup for "unknown" (no match)
-        Food? outNullFood2 = null;
-        mockFoodService.Setup(s => s.TryGetFood("unknown", out outNullFood2)).Returns(false);
-        Food? outNullFood3 = null;
-        mockFoodService.Setup(s => s.TryGetFoodFuzzy("unknown", 10, out outNullFood3)).Returns(false);
+        mockFoodService.Setup(s => s.TryGetFood("unknown", out nullFood)).Returns(false);
+        mockFoodService.Setup(s => s.TryGetFoodFuzzy("unknown", 3, out nullFood)).Returns(false);
 
         string ingredientLines = "1 cup flour\n0.5 cup sugr\n2 tsp unknown";
 
@@ -687,12 +430,12 @@ public class IngredientParserServiceTests
 
         // Flour - Exact Match
         Assert.IsTrue(results[0].IsMatched);
-        Assert.AreEqual("Flour", results[0].MatchedFood!.Name);
+        Assert.AreEqual("Flour", results[0].MatchedFood.Name);
         Assert.AreEqual(0, results[0].MatchDistance);
 
         // Sugar - Fuzzy Match
         Assert.IsTrue(results[1].IsMatched);
-        Assert.AreEqual("Granulated Sugar", results[1].MatchedFood!.Name);
+        Assert.AreEqual("Granulated Sugar", results[1].MatchedFood.Name);
         Assert.IsTrue(results[1].MatchDistance > 0);
 
         // Unknown - No Match
@@ -736,7 +479,7 @@ public class IngredientParserServiceTests
     {
         // Arrange
         var mockFoodService = new Mock<IFoodService>();
-        Food? food = null;
+        Food food = null;
         mockFoodService.Setup(s => s.TryGetFood(It.IsAny<string>(), out food)).Returns(false);
         mockFoodService.Setup(s => s.TryGetFoodFuzzy(It.IsAny<string>(), It.IsAny<int>(), out food)).Returns(false);
 
@@ -751,109 +494,9 @@ public class IngredientParserServiceTests
         Assert.AreEqual("flour", results[0].ParsedIngredient.FoodName);
     }
 
-    [TestMethod]
-    public async Task ParseAndMatchIngredientsAsync_WithFullDatabase_ReturnsCorrectMatches()
-    {
-        // Arrange
-        var mockFoodService = CreateMockFoodService(FullFoodDatabaseJson);
-
-        string ingredientLines = @"
-100g Vermicelli
-2 tbsp Olive Oil
-1 medium Carrots, Raw
-200g Chicken Breast, Skinless, Raw
-50g Ayam Brand Malaysian Laksa Paste
-1 tsp Curry Powder
-1 can Thai Kitchen Coconut Milk Lite
-1 head Chinese Cabbage, Pak-Choi, Raw
-1 tbsp Fish Sauce
-1 cup Mung Bean Sprouts, Raw
-2 cups Unknown Item
-";
-
-        // Act
-        var results = await IngredientParserService.ParseAndMatchIngredientsAsync(ingredientLines, mockFoodService);
-
-        // Assert
-        Assert.IsNotNull(results);
-        Assert.AreEqual(11, results.Count);
-
-        // Vermicelli (Exact Match)
-        Assert.IsTrue(results[0].IsMatched, $"Vermicelli should be matched. RawLine: {results[0].ParsedIngredient.RawLine}, FoodName: {results[0].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Vermicelli", results[0].MatchedFood!.Name);
-        Assert.AreEqual(100.0, results[0].ParsedIngredient.Quantity);
-        Assert.AreEqual("g", results[0].ParsedIngredient.Unit);
-
-        // Olive Oil (Exact Match)
-        Assert.IsTrue(results[1].IsMatched, $"Olive Oil should be matched. RawLine: {results[1].ParsedIngredient.RawLine}, FoodName: {results[1].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Olive Oil", results[1].MatchedFood!.Name);
-        Assert.AreEqual(2.0, results[1].ParsedIngredient.Quantity);
-        Assert.AreEqual("tbsp", results[1].ParsedIngredient.Unit);
-
-        // Carrots, Raw (Exact Match)
-        Assert.IsTrue(results[2].IsMatched, $"Carrots, Raw should be matched. RawLine: {results[2].ParsedIngredient.RawLine}, FoodName: {results[2].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Carrots, Raw", results[2].MatchedFood!.Name);
-        Assert.AreEqual(1.0, results[2].ParsedIngredient.Quantity);
-        Assert.AreEqual("medium", results[2].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[2].MatchDistance);
-
-        // Chicken Breast, Skinless, Raw (Exact Match)
-        Assert.IsTrue(results[3].IsMatched, $"Chicken Breast, Skinless, Raw should be matched. RawLine: {results[3].ParsedIngredient.RawLine}, FoodName: {results[3].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Chicken Breast, Skinless, Raw", results[3].MatchedFood!.Name);
-        Assert.AreEqual(200.0, results[3].ParsedIngredient.Quantity);
-        Assert.AreEqual("g", results[3].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[3].MatchDistance);
-
-        // Ayam Brand Malaysian Laksa Paste (Exact Match)
-        Assert.IsTrue(results[4].IsMatched, $"Ayam Brand Malaysian Laksa Paste should be matched. RawLine: {results[4].ParsedIngredient.RawLine}, FoodName: {results[4].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Ayam Brand Malaysian Laksa Paste", results[4].MatchedFood!.Name);
-        Assert.AreEqual(50.0, results[4].ParsedIngredient.Quantity);
-        Assert.AreEqual("g", results[4].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[4].MatchDistance);
-
-        // Curry Powder (Exact Match)
-        Assert.IsTrue(results[5].IsMatched, $"Curry Powder should be matched. RawLine: {results[5].ParsedIngredient.RawLine}, FoodName: {results[5].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Curry Powder", results[5].MatchedFood!.Name);
-        Assert.AreEqual(1.0, results[5].ParsedIngredient.Quantity);
-        Assert.AreEqual("tsp", results[5].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[5].MatchDistance);
-
-        // Thai Kitchen Coconut Milk Lite (Exact Match)
-        Assert.IsTrue(results[6].IsMatched, $"Thai Kitchen Coconut Milk Lite should be matched. RawLine: {results[6].ParsedIngredient.RawLine}, FoodName: {results[6].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Thai Kitchen Coconut Milk Lite", results[6].MatchedFood!.Name);
-        Assert.AreEqual(1.0, results[6].ParsedIngredient.Quantity);
-        Assert.AreEqual("can", results[6].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[6].MatchDistance);
-
-        // Chinese Cabbage, Pak-Choi, Raw (Exact Match)
-        Assert.IsTrue(results[7].IsMatched, $"Chinese Cabbage, Pak-Choi, Raw should be matched. RawLine: {results[7].ParsedIngredient.RawLine}, FoodName: {results[7].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Chinese Cabbage, Pak-Choi, Raw", results[7].MatchedFood!.Name);
-        Assert.AreEqual(1.0, results[7].ParsedIngredient.Quantity);
-        Assert.AreEqual("head", results[7].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[7].MatchDistance);
-
-        // Fish Sauce (Exact Match)
-        Assert.IsTrue(results[8].IsMatched, $"Fish Sauce should be matched. RawLine: {results[8].ParsedIngredient.RawLine}, FoodName: {results[8].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Fish Sauce", results[8].MatchedFood!.Name);
-        Assert.AreEqual(1.0, results[8].ParsedIngredient.Quantity);
-        Assert.AreEqual("tbsp", results[8].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[8].MatchDistance);
-
-        // Mung Bean Sprouts, Raw (Exact Match)
-        Assert.IsTrue(results[9].IsMatched, $"Mung Bean Sprouts, Raw should be matched. RawLine: {results[9].ParsedIngredient.RawLine}, FoodName: {results[9].ParsedIngredient.FoodName}");
-        Assert.AreEqual("Mung Bean Sprouts, Raw", results[9].MatchedFood!.Name);
-        Assert.AreEqual(1.0, results[9].ParsedIngredient.Quantity);
-        Assert.AreEqual("cup", results[9].ParsedIngredient.Unit);
-        Assert.AreEqual(0, results[9].MatchDistance);
-
-        // Unknown Item (No Match)
-        Assert.IsFalse(results[10].IsMatched, $"Unknown Item should not be matched. RawLine: {results[10].ParsedIngredient.RawLine}, FoodName: {results[10].ParsedIngredient.FoodName}");
-        Assert.IsNull(results[10].MatchedFood);
-        Assert.AreEqual(-1, results[10].MatchDistance);
-    }
-
     #endregion
 
+    // Levenshtein Distance Tests (moved from ParsedIngredientsTableTests)
     #region Levenshtein Distance Tests
 
     [TestMethod]
@@ -950,6 +593,7 @@ public class IngredientParserServiceTests
 
     #endregion
 
+    // Nutrition Calculation Tests (moved from ParsedIngredientsTableTests)
     #region Nutrition Calculation Tests
 
     [TestMethod]

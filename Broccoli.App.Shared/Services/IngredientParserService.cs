@@ -12,7 +12,7 @@ public static class IngredientParserService
 {
     // Simplified parsing: try to extract quantity and unit, rest is food name
     private static readonly Regex QuantityUnitPattern = new(
-        @"^([\d\.]+(?:\s*/\s*[\d\.]+)?\s*\d*\s*\d*/\d+|[\d\.]+\s*/\s*[\d\.]+|[\d\.]+|\d+\s+\d+/\d+)?\s*(\w+)?\s*(.*)$",
+        @"^\s*(?:(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?)\s*)?(?:([a-zA-Z\.]+)\s*)?(.*)$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled
     );
 
@@ -82,62 +82,64 @@ public static class IngredientParserService
         }
 
         string trimmed = ingredientLine.Trim();
-        
-        // Split by spaces and try to identify: quantity, unit, and food name
-        var tokens = trimmed.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-        
-        if (tokens.Count == 0)
+        Match match = QuantityUnitPattern.Match(trimmed);
+
+        if (!match.Success)
         {
             return null;
         }
 
         double quantity = 1.0;
-        int quantityTokens = 0;
-        string unit = string.Empty;
-        int unitTokens = 0;
-
-        // Try to parse quantity from first token(s)
-        if (tokens.Count > 0 && TryParseQuantity(tokens[0], out var parsedQty))
+        string quantityGroup = match.Groups[1].Value;
+        if (!string.IsNullOrWhiteSpace(quantityGroup))
         {
-            quantity = parsedQty;
-            quantityTokens = 1;
-
-            // Handle mixed fractions like "1 1/2"
-            if (tokens.Count > 1 && tokens[1].Contains('/'))
+            if (TryParseFraction(quantityGroup, out double fractionResult))
             {
-                var fractionParts = tokens[1].Split('/');
-                if (fractionParts.Length == 2 &&
-                    double.TryParse(fractionParts[0], out var numerator) &&
-                    double.TryParse(fractionParts[1], out var denominator) &&
-                    denominator != 0)
-                {
-                    quantity += numerator / denominator;
-                    quantityTokens = 2;
-                }
+                quantity = fractionResult;
+            }
+            else if (quantityGroup.Contains(" ") && quantityGroup.Split(' ').Length == 2 &&
+                     double.TryParse(quantityGroup.Split(' ')[0], out double wholePart) &&
+                     TryParseFraction(quantityGroup.Split(' ')[1], out double fractionalPart))
+            {
+                quantity = wholePart + fractionalPart;
+            }
+            else if (double.TryParse(quantityGroup, out double simpleQty))
+            {
+                quantity = simpleQty;
             }
         }
 
-        // Try to parse unit from next token(s)
-        int unitStartIdx = quantityTokens;
-        if (unitStartIdx < tokens.Count)
+        string unit = match.Groups[2].Value.Trim();
+        string foodName = match.Groups[3].Value.Trim();
+
+        // Special handling for cases where the regex might misinterpret parts
+        // If only a quantity was parsed, and no unit or food name, it's likely a food name
+        if (string.IsNullOrWhiteSpace(foodName) && string.IsNullOrWhiteSpace(unit) && quantity == 1.0 && !string.IsNullOrWhiteSpace(quantityGroup))
         {
-            string potentialUnit = tokens[unitStartIdx];
-            if (IsUnit(potentialUnit))
-            {
-                unit = potentialUnit;
-                unitTokens = 1;
-            }
+            foodName = quantityGroup;
+            quantity = 1.0;
+        }
+        // If only quantity and unit were parsed, and no food name, it's likely a food name
+        else if (string.IsNullOrWhiteSpace(foodName) && !string.IsNullOrWhiteSpace(unit) && quantity == 1.0 && !string.IsNullOrWhiteSpace(quantityGroup))
+        {
+            foodName = quantityGroup + " " + unit;
+            quantity = 1.0;
+            unit = string.Empty;
+        }
+        // If only unit was parsed, and no food name or quantity, it's likely a food name
+        else if (string.IsNullOrWhiteSpace(foodName) && !string.IsNullOrWhiteSpace(unit) && string.IsNullOrWhiteSpace(quantityGroup))
+        {
+            foodName = unit;
+            unit = string.Empty;
+            quantity = 1.0;
+        }
+        // If nothing was parsed, but the original line was not empty, it's the food name
+        else if (string.IsNullOrWhiteSpace(foodName) && string.IsNullOrWhiteSpace(unit) && string.IsNullOrWhiteSpace(quantityGroup))
+        {
+            foodName = trimmed;
+            quantity = 1.0;
         }
 
-        // Everything else is the food name
-        int nameStartIdx = quantityTokens + unitTokens;
-        if (nameStartIdx >= tokens.Count)
-        {
-            // No food name found
-            return null;
-        }
-
-        string foodName = string.Join(" ", tokens.Skip(nameStartIdx));
 
         if (string.IsNullOrWhiteSpace(foodName))
         {
@@ -156,26 +158,11 @@ public static class IngredientParserService
         };
     }
 
-    /// <summary>
-    /// Tries to parse a quantity from a string that may contain a number or fraction.
-    /// </summary>
-    private static bool TryParseQuantity(string token, out double result)
+    
+
+    private static bool TryParseFraction(string token, out double result)
     {
         result = 0;
-
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return false;
-        }
-
-        // Try simple double parse
-        if (double.TryParse(token, out var doubleResult))
-        {
-            result = doubleResult;
-            return true;
-        }
-
-        // Try fraction format "numerator/denominator"
         if (token.Contains('/'))
         {
             var parts = token.Split('/');
@@ -188,7 +175,6 @@ public static class IngredientParserService
                 return true;
             }
         }
-
         return false;
     }
 

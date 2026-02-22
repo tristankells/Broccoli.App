@@ -852,6 +852,42 @@ public class IngredientParserServiceTests
         Assert.AreEqual(-1, results[10].MatchDistance);
     }
 
+    [TestMethod]
+    public async Task ParseAndMatchIngredientsAsync_FailingTest_WithRealData()
+    {
+        // Arrange
+        var mockFoodService = CreateMockFoodService(FullFoodDatabaseJson);
+
+        string ingredientLines = @"
+250g vermicelli noodles
+1 drizzle of oil 
+1 drizzle of oil 
+600g carrot, grated
+1400g diced free range chicken breast
+150g Singapore laksa paste
+1 1/2 pack Malaysian curry powder
+400g lite coconut milk
+1/2 cup water 
+1 twin pack baby bok choy, sliced 3cm
+1 tsp fish sauce, optional 
+200g mung bean sprouts
+1 pinch of chilli flakes, optional
+";
+
+        // Act
+        var results = await IngredientParserService.ParseAndMatchIngredientsAsync(ingredientLines, mockFoodService);
+
+        // Assert - This test is designed to fail.
+        // We expect 13 results, but many will not match due to parsing or fuzzy matching limitations.
+        Assert.AreEqual(13, results.Count, "Expected 13 parsed ingredient lines.");
+
+        // Assert that each item is matched (this is where it's expected to fail for some items)
+        for (int i = 0; i < results.Count; i++)
+        {
+            Assert.IsTrue(results[i].IsMatched, $"Ingredient at index {i} should be matched. RawLine: {results[i].ParsedIngredient.RawLine}, FoodName: {results[i].ParsedIngredient.FoodName}");
+        }
+    }
+
     #endregion
 
     #region Levenshtein Distance Tests

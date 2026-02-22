@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Shared", "Broc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Web", "Broccoli.App.Web\Broccoli.App.Web.csproj", "{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Tests", "Broccoli.App.Tests\Broccoli.App.Tests.csproj", "{F6D88FE3-5E49-433A-9937-856BD23FDAE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6D88FE3-5E49-433A-9937-856BD23FDAE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6D88FE3-5E49-433A-9937-856BD23FDAE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6D88FE3-5E49-433A-9937-856BD23FDAE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6D88FE3-5E49-433A-9937-856BD23FDAE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -234,8 +234,8 @@ public static class IngredientParserService
             }
             else
             {
-                // Try fuzzy match with Levenshtein distance threshold of 3
-                bool foundFuzzy = foodService.TryGetFoodFuzzy(parsed.FoodName, maxDistance: 3, out var fuzzyFood);
+                // Try fuzzy match with Levenshtein distance threshold of 10
+                bool foundFuzzy = foodService.TryGetFoodFuzzy(parsed.FoodName, maxDistance: 10, out var fuzzyFood);
                 
                 if (foundFuzzy && fuzzyFood != null)
                 {

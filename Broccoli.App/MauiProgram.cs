@@ -1,11 +1,11 @@
-﻿﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using Broccoli.App.Shared.Services;
 using Broccoli.App.Shared.Configuration;
 using Broccoli.App.Services;
+using Broccoli.App.Shared.Services.IngredientParsing;
 using Broccoli.Shared.Services;
-using Ginger.Data.Services;
 using Microsoft.Azure.Cosmos;
 
 namespace Broccoli.App;
@@ -99,8 +99,11 @@ public static class MauiProgram
             // Fallback for different deployment scenarios
             foodDatabasePath = Path.Combine(AppContext.BaseDirectory, "FoodDatabase.json");
         }
-        builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
-
+        builder.Services.AddSingleton<IFoodService>(sp =>
+            new LocalJsonFoodService(
+                foodDatabasePath,
+                sp.GetRequiredService<ILogger<LocalJsonFoodService>>()));
+        builder.Services.AddSingleton<IngredientParserService>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

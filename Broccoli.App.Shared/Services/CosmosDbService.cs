@@ -24,7 +24,9 @@ public class CosmosDbService : ICosmosDbService
     public async Task InitializeAsync()
     {
         if (_initialized)
+        {
             return;
+        }
 
         try
         {
@@ -76,7 +78,9 @@ public class CosmosDbService : ICosmosDbService
                 var response = await iterator.ReadNextAsync();
                 var user = response.FirstOrDefault();
                 if (user != null)
+                {
                     return user;
+                }
             }
 
             return null;

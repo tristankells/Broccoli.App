@@ -1,4 +1,4 @@
-﻿﻿using Broccoli.Data.Models;
+﻿using Broccoli.Data.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -68,7 +68,10 @@ public partial class RecipeDetail
 
     private async Task SaveRecipe()
     {
-        if (recipe == null) return;
+        if (recipe == null)
+        {
+            return;
+        }
 
         isSaving = true;
         errorMessage = null;
@@ -107,12 +110,18 @@ public partial class RecipeDetail
 
     private async Task DeleteRecipe()
     {
-        if (recipe == null || IsNewRecipe) return;
+        if (recipe == null || IsNewRecipe)
+        {
+            return;
+        }
 
         var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
             $"Are you sure you want to delete '{recipe.Name}'? This action cannot be undone.");
 
-        if (!confirmed) return;
+        if (!confirmed)
+        {
+            return;
+        }
 
         try
         {
@@ -127,7 +136,10 @@ public partial class RecipeDetail
 
     private void AddTag()
     {
-        if (string.IsNullOrWhiteSpace(newTag) || recipe == null) return;
+        if (string.IsNullOrWhiteSpace(newTag) || recipe == null)
+        {
+            return;
+        }
 
         var tag = newTag.Trim();
         if (!recipe.Tags.Contains(tag))
@@ -153,7 +165,10 @@ public partial class RecipeDetail
 
     private void AddImage()
     {
-        if (string.IsNullOrWhiteSpace(imageUrl) || recipe == null) return;
+        if (string.IsNullOrWhiteSpace(imageUrl) || recipe == null)
+        {
+            return;
+        }
 
         if (!recipe.Images.Contains(imageUrl))
         {
@@ -165,7 +180,11 @@ public partial class RecipeDetail
 
     private void RemoveImage()
     {
-        if (recipe == null || !recipe.Images.Any()) return;
+        if (recipe == null || !recipe.Images.Any())
+        {
+            return;
+        }
+
         recipe.Images.RemoveAt(0);
     }
 

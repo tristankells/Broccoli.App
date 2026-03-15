@@ -1,9 +1,9 @@
 using Broccoli.App.Web.Components;
 using Broccoli.App.Shared.Services;
 using Broccoli.App.Shared.Configuration;
+using Broccoli.App.Shared.Services.IngredientParsing;
 using Broccoli.App.Web.Services;
 using Broccoli.Shared.Services;
-using Ginger.Data.Services;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Azure.Cosmos;
 
@@ -98,8 +98,11 @@ if (string.IsNullOrEmpty(foodDatabasePath))
     foodDatabasePath = Path.Combine(builder.Environment.ContentRootPath, "FoodDatabase.json");
 }
 
-builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
-builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
+builder.Services.AddSingleton<IFoodService>(sp =>
+    new LocalJsonFoodService(
+        foodDatabasePath,
+        sp.GetRequiredService<ILogger<LocalJsonFoodService>>()));
+builder.Services.AddSingleton<IngredientParserService>();
 
 WebApplication app = builder.Build();
 

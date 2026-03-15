@@ -10,20 +10,20 @@
           "ASPNETCORE_ENVIRONMENT": "Development"
         }
       },
-      "https": {
+      "https (Development)": {
         "commandName": "Project",
         "dotnetRunMessages": true,
         "launchBrowser": true,
-        "applicationUrl": "https://localhost:7280;http://localhost:5176",
+        "applicationUrl": "https://localhost:7281;http://localhost:5177",
         "environmentVariables": {
           "ASPNETCORE_ENVIRONMENT": "Development"
         }
       },
-      "Production": {
+      "https (Production)": {
         "commandName": "Project",
         "dotnetRunMessages": true,
         "launchBrowser": true,
-        "applicationUrl": "https://localhost:7280;http://localhost:5176",
+        "applicationUrl": "https://localhost:7281;http://localhost:5177",
         "environmentVariables": {
           "ASPNETCORE_ENVIRONMENT": "Production"
         }

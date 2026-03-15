@@ -38,7 +38,9 @@ public class CosmosRecipeService : IRecipeService
         EnsureAuthenticated();
 
         if (_initialized)
+        {
             return;
+        }
 
         try
         {

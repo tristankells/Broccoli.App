@@ -39,8 +39,10 @@ public class CosmosDbSettings
     public string GetConnectionString()
     {
         if (!string.IsNullOrEmpty(ConnectionString))
+        {
             return ConnectionString;
-            
+        }
+
         return $"AccountEndpoint={EndpointUri};AccountKey={PrimaryKey};";
     }
     

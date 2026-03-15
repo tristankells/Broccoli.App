@@ -6,7 +6,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Shared", "Broc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Web", "Broccoli.App.Web\Broccoli.App.Web.csproj", "{6F39F54F-B6C8-4793-98A0-5C988B71C0FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.Tests", "Broccoli.App.Tests\Broccoli.App.Tests.csproj", "{F6D88FE3-5E49-433A-9937-856BD23FDAE7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.UnitTests", "Broccoli.App.UnitTests\Broccoli.App.UnitTests.csproj", "{F6D88FE3-5E49-433A-9937-856BD23FDAE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.App.IntegrationTests", "Broccoli.App.IntegrationTests\Broccoli.App.IntegrationTests.csproj", "{6878E148-B2B9-4FC8-A2F7-11902255B4C3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E3B6188E-C757-4F04-84D1-E9A744BB5969}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +34,13 @@ Global
 		{F6D88FE3-5E49-433A-9937-856BD23FDAE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6D88FE3-5E49-433A-9937-856BD23FDAE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6D88FE3-5E49-433A-9937-856BD23FDAE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6878E148-B2B9-4FC8-A2F7-11902255B4C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6878E148-B2B9-4FC8-A2F7-11902255B4C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6878E148-B2B9-4FC8-A2F7-11902255B4C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6878E148-B2B9-4FC8-A2F7-11902255B4C3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6878E148-B2B9-4FC8-A2F7-11902255B4C3} = {E3B6188E-C757-4F04-84D1-E9A744BB5969}
+		{F6D88FE3-5E49-433A-9937-856BD23FDAE7} = {E3B6188E-C757-4F04-84D1-E9A744BB5969}
 	EndGlobalSection
 EndGlobal

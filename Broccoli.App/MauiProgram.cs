@@ -94,6 +94,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<IMacroTargetService, CosmosMacroTargetService>();
         builder.Services.AddSingleton<MacroCalculatorService>();
 
+        // Recipe import
+        builder.Services.AddSingleton<IImportFormat, PaprikaHtmlImportFormat>();
+        builder.Services.AddSingleton<RecipeImportService>();
+
         builder.Services.AddMauiBlazorWebView();
         
         // Register FoodService

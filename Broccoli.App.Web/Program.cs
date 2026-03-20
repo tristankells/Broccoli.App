@@ -75,6 +75,10 @@ builder.Services.AddSingleton<IGroceryListService, GroceryListService>();
 builder.Services.AddSingleton<IMacroTargetService, CosmosMacroTargetService>();
 builder.Services.AddSingleton<MacroCalculatorService>();
 
+// Recipe import
+builder.Services.AddSingleton<IImportFormat, PaprikaHtmlImportFormat>();
+builder.Services.AddSingleton<RecipeImportService>();
+
 // Register FoodService
 // Try multiple paths for the FoodDatabase.json file
 string foodDatabasePath = string.Empty;

@@ -1,0 +1,290 @@
+﻿@using Broccoli.Data.Models
+@using Broccoli.App.Shared.Services
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="HandleBackdropClick"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="import-dialog-title">
+        <div class="modal-content-box import-modal">
+
+            <!-- ── Header ─────────────────────────────────────────────── -->
+            <div class="modal-header-bar">
+                <h2 id="import-dialog-title" class="modal-title-text">
+                    📥 Import Recipes
+                </h2>
+                <button class="modal-close-btn" @onclick="HandleCancel" title="Close">&times;</button>
+            </div>
+
+            <!-- ── Step indicator ─────────────────────────────────────── -->
+            <div class="step-indicator">
+                <span class="step-pill @(_currentStep == 1 ? "step-active" : "step-complete")">
+                    1. Select Format &amp; Upload
+                </span>
+                <span class="step-arrow">›</span>
+                <span class="step-pill @(_currentStep == 2 ? "step-active" : "")">
+                    2. Preview &amp; Confirm
+                </span>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 STEP 1 — Format selection + instructions + file drop zone
+                 ═══════════════════════════════════════════════════════════ -->
+            @if (_currentStep == 1)
+            {
+                <div class="modal-body-scroll">
+
+                    <!-- Format dropdown -->
+                    <div class="form-group">
+                        <label class="form-label fw-semibold">Import Format</label>
+                        <select class="form-select" @onchange="OnFormatChanged">
+                            @foreach (var fmt in ImportFormats)
+                            {
+                                <option value="@fmt.DisplayName">@fmt.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Export instructions (collapsible) -->
+                    @if (_activeFormat is not null)
+                    {
+                        <details class="instructions-panel" open>
+                            <summary class="instructions-summary">
+                                📋 How to export from @_activeFormat.DisplayName
+                            </summary>
+                            <ol class="instructions-list">
+                                @foreach (var step in _activeFormat.ExportInstructions)
+                                {
+                                    <li>@step</li>
+                                }
+                            </ol>
+                        </details>
+                    }
+
+                    <!-- Drop zone -->
+                    <div class="drop-zone @(_selectedFileCount > 0 ? "drop-zone-filled" : "")">
+                        <InputFile multiple
+                                   accept="@(_activeFormat?.FileExtension ?? ".html")"
+                                   class="drop-zone-input"
+                                   OnChange="HandleFilesChanged" />
+                        <div class="drop-zone-content">
+                            @if (_selectedFileCount > 0)
+                            {
+                                <span class="drop-icon">✅</span>
+                                <p class="drop-label">
+                                    <strong>@_selectedFileCount file@(_selectedFileCount == 1 ? "" : "s") selected</strong>
+                                </p>
+                                <p class="drop-sublabel">Click to change selection</p>
+                            }
+                            else
+                            {
+                                <span class="drop-icon">📂</span>
+                                <p class="drop-label">
+                                    Drag &amp; drop <strong>@(_activeFormat?.FileExtension ?? ".html")</strong> files here
+                                </p>
+                                <p class="drop-sublabel">or click to browse</p>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Step 1 footer -->
+                <div class="modal-footer-bar">
+                    <button class="btn btn-secondary" @onclick="HandleCancel">Cancel</button>
+                    <button class="btn btn-primary"
+                            @onclick="AdvanceToPreview"
+                            disabled="@(_selectedFileCount == 0 || _isParsing)">
+                        @if (_isParsing)
+                        {
+                            <span class="btn-spinner"></span>
+                            <span>Parsing…</span>
+                        }
+                        else
+                        {
+                            <span>Next →</span>
+                        }
+                    </button>
+                </div>
+            }
+
+            <!-- ═══════════════════════════════════════════════════════════
+                 STEP 2 — Preview table + confirm
+                 ═══════════════════════════════════════════════════════════ -->
+            else if (_currentStep == 2)
+            {
+                <div class="modal-body-scroll">
+
+                    <!-- Summary badges -->
+                    @{
+                        var readyCount = _importResults.Count(r => r.Status == ImportStatus.ReadyToImport);
+                        var dupCount   = _importResults.Count(r => r.Status == ImportStatus.Duplicate);
+                        var errorCount = _importResults.Count(r => r.Status == ImportStatus.ParseError);
+                    }
+                    <div class="preview-summary">
+                        <span class="summary-badge badge-ready-sm">✅ @readyCount ready</span>
+                        @if (dupCount > 0)
+                        {
+                            <span class="summary-badge badge-dup-sm">⚠️ @dupCount duplicate@(dupCount == 1 ? "" : "s")</span>
+                        }
+                        @if (errorCount > 0)
+                        {
+                            <span class="summary-badge badge-err-sm">❌ @errorCount error@(errorCount == 1 ? "" : "s")</span>
+                        }
+                    </div>
+
+                    <!-- Preview table -->
+                    <div class="table-responsive-wrap">
+                        <table class="import-preview-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-check"></th>
+                                    <th class="col-file">File</th>
+                                    <th class="col-name">Recipe Name</th>
+                                    <th class="col-tags">Tags</th>
+                                    <th class="col-servings">Servings</th>
+                                    <th class="col-status">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var result in _importResults)
+                                {
+                                    <tr class="preview-row @GetRowClass(result)">
+
+                                        <!-- Checkbox -->
+                                        <td class="col-check">
+                                            @if (result.Status != ImportStatus.ParseError)
+                                            {
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       checked="@result.IsSelected"
+                                                       disabled="@_isSaving"
+                                                       @onchange="e => result.IsSelected = (bool)(e.Value ?? false)" />
+                                            }
+                                        </td>
+
+                                        <!-- File name -->
+                                        <td class="col-file">
+                                            <span class="file-name-text">@result.FileName</span>
+                                        </td>
+
+                                        <!-- Recipe name -->
+                                        <td class="col-name">
+                                            @if (result.Recipe is not null)
+                                            {
+                                                <strong>@result.Recipe.Name</strong>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+
+                                        <!-- Tags -->
+                                        <td class="col-tags">
+                                            @if (result.Recipe?.Tags is { Count: > 0 } tags)
+                                            {
+                                                @foreach (var tag in tags.Take(3))
+                                                {
+                                                    <span class="tag-chip-sm">@tag</span>
+                                                }
+                                                @if (tags.Count > 3)
+                                                {
+                                                    <span class="tag-chip-sm tag-more">+@(tags.Count - 3)</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+
+                                        <!-- Servings -->
+                                        <td class="col-servings">
+                                            @(result.Recipe?.Servings?.ToString() ?? "—")
+                                        </td>
+
+                                        <!-- Status / save progress -->
+                                        <td class="col-status">
+                                            @if (_isSaving && result.IsSelected || _saveComplete && result.IsSelected)
+                                            {
+                                                @if (result.SaveSuccess == true)
+                                                {
+                                                    <span class="status-badge badge-saved">✅ Saved</span>
+                                                }
+                                                else if (result.SaveSuccess == false)
+                                                {
+                                                    <span class="status-badge badge-failed">❌ Failed</span>
+                                                    <small class="save-error-text">@result.SaveError</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-badge badge-saving">⏳ Saving…</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                switch (result.Status)
+                                                {
+                                                    case ImportStatus.ReadyToImport:
+                                                        <span class="status-badge badge-ready">✅ Ready</span>
+                                                        break;
+
+                                                    case ImportStatus.Duplicate:
+                                                        <span class="status-badge badge-duplicate">⚠️ Duplicate</span>
+                                                        @if (!result.IsSelected)
+                                                        {
+                                                            <small class="dup-hint">
+                                                                A recipe with this name already exists.<br />Check to import anyway.
+                                                            </small>
+                                                        }
+                                                        break;
+
+                                                    case ImportStatus.ParseError:
+                                                        <span class="status-badge badge-error">❌ Error</span>
+                                                        <small class="save-error-text">@result.ErrorMessage</small>
+                                                        break;
+                                                }
+                                            }
+                                        </td>
+
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <!-- Step 2 footer -->
+                <div class="modal-footer-bar">
+                    @if (_saveComplete)
+                    {
+                        <button class="btn btn-primary" @onclick="HandleClose">Close</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary" @onclick="GoBack" disabled="@_isSaving">
+                            ← Back
+                        </button>
+                        <button class="btn btn-primary"
+                                @onclick="HandleConfirm"
+                                disabled="@(SelectedCount == 0 || _isSaving)">
+                            @if (_isSaving)
+                            {
+                                <span class="btn-spinner"></span>
+                                <span>Importing…</span>
+                            }
+                            else
+                            {
+                                <span>Import @SelectedCount recipe@(SelectedCount == 1 ? "" : "s")</span>
+                            }
+                        </button>
+                    }
+                </div>
+            }
+
+        </div>
+    </div>
+}
+

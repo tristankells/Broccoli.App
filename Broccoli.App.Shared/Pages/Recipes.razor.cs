@@ -15,6 +15,7 @@ public partial class Recipes
     private bool showIngredientDialog;
     private Recipe? selectedRecipe;
     private List<PantryItem> userPantryItems = new();
+    private bool showImportDialog;
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,6 +114,24 @@ public partial class Recipes
     private void NavigateToAddRecipe()
     {
         Navigation.NavigateTo("/recipes/new");
+    }
+
+    private void OpenImportDialog()
+    {
+        showImportDialog = true;
+        StateHasChanged();
+    }
+
+    private void CloseImportDialog()
+    {
+        showImportDialog = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleImportConfirm()
+    {
+        showImportDialog = false;
+        await LoadRecipes(); // Refresh the list to include newly imported recipes
     }
 
     private void NavigateToEditRecipe(string recipeId)

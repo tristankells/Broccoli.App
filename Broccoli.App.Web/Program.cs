@@ -70,6 +70,8 @@ builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
 builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
 builder.Services.AddSingleton<IAuthenticationStateService, AuthenticationStateService>();
 builder.Services.AddSingleton<IRecipeService, CosmosRecipeService>();
+builder.Services.AddSingleton<IPantryService, PantryService>();
+builder.Services.AddSingleton<IGroceryListService, GroceryListService>();
 
 // Register FoodService
 // Try multiple paths for the FoodDatabase.json file
@@ -109,6 +111,12 @@ WebApplication app = builder.Build();
 // Initialize CosmosDB
 var cosmosDbService = app.Services.GetRequiredService<ICosmosDbService>();
 await cosmosDbService.InitializeAsync();
+
+// Initialize Pantry and GroceryList containers
+var pantryService = app.Services.GetRequiredService<IPantryService>();
+await pantryService.InitializeAsync();
+var groceryListService = app.Services.GetRequiredService<IGroceryListService>();
+await groceryListService.InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

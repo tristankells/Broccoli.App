@@ -1,0 +1,217 @@
+﻿.pantry-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+/* Add Item Form */
+.add-item-form {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.add-item-form .form-control {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.add-item-form .form-control:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.category-select {
+    width: auto;
+    min-width: 160px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+.add-item-form .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+/* Category Sections */
+.category-section {
+    margin-bottom: 2rem;
+}
+
+.category-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.always-have-badge {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.check-if-have-badge {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.category-count {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: normal;
+}
+
+/* Pantry List */
+.pantry-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.pantry-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.15s ease;
+}
+
+.pantry-item:last-child {
+    border-bottom: none;
+}
+
+.pantry-item:hover {
+    background-color: #f8f9fa;
+}
+
+.pantry-item.always-have {
+    border-left: 4px solid #28a745;
+}
+
+.pantry-item.check-if-have {
+    border-left: 4px solid #ffc107;
+}
+
+.pantry-name {
+    flex: 1;
+    font-size: 1rem;
+    color: #212529;
+    font-weight: 500;
+}
+
+.pantry-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.category-dropdown {
+    font-size: 0.85rem;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    border-color: #dee2e6;
+    color: #495057;
+    min-width: 140px;
+}
+
+.delete-btn {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #dc3545;
+    flex-shrink: 0;
+}
+
+.pantry-item:hover .delete-btn {
+    opacity: 1;
+}
+
+/* Loading */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid #dee2e6;
+    border-top-color: #0066cc;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+    font-size: 1.5rem;
+    color: #495057;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+    font-size: 1rem;
+    max-width: 480px;
+    margin: 0 auto;
+}
+

@@ -1,8 +1,13 @@
+@page "/"
 @page "/recipes"
 @using Broccoli.Data.Models
 @using Broccoli.Shared.Services
+@using Broccoli.App.Shared.Services
 @using Broccoli.App.Shared.Components
 @inject IRecipeService RecipeService
+@inject IGroceryListService GroceryListService
+@inject IPantryService PantryService
+@inject IAuthenticationStateService AuthStateService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
@@ -146,6 +151,9 @@
                             <button class="btn-icon btn-danger" @onclick="() => DeleteRecipe(recipe)" @onclick:stopPropagation="true">
                                 🗑️ Delete
                             </button>
+                            <button class="btn-icon btn-success" @onclick="() => OpenAddIngredientsDialog(recipe)" @onclick:stopPropagation="true">
+                                🛒 Add to List
+                            </button>
                         </div>
                     </div>
                 }
@@ -153,6 +161,13 @@
         }
     </div>
 </AuthorizeView>
+
+<AddIngredientsDialog IsVisible="showIngredientDialog"
+                      RecipeName="@selectedRecipe?.Name"
+                      IngredientsText="@selectedRecipe?.Ingredients"
+                      PantryItems="@userPantryItems"
+                      OnCancel="CloseIngredientDialog"
+                      OnConfirm="HandleAddIngredientsConfirm" />
 
 @code {
     private List<Recipe> allRecipes = new();
@@ -162,6 +177,11 @@
     private string searchTerm = string.Empty;
     private bool isLoading = true;
     private System.Threading.Timer? searchDebounceTimer;
+
+    // Add Ingredients Dialog state
+    private bool showIngredientDialog;
+    private Recipe? selectedRecipe;
+    private List<PantryItem> userPantryItems = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -285,6 +305,65 @@
             {
                 Console.WriteLine($"Error deleting recipe: {ex.Message}");
             }
+        }
+    }
+
+    private async Task OpenAddIngredientsDialog(Recipe recipe)
+    {
+        selectedRecipe = recipe;
+
+        // Load pantry items so the dialog can pre-check/uncheck appropriately
+        try
+        {
+            var userId = AuthStateService.CurrentUserId!;
+            userPantryItems = await PantryService.GetAllAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading pantry for dialog: {ex.Message}");
+            userPantryItems = new();
+        }
+
+        showIngredientDialog = true;
+        StateHasChanged();
+    }
+
+    private void CloseIngredientDialog()
+    {
+        showIngredientDialog = false;
+        selectedRecipe = null;
+        StateHasChanged();
+    }
+
+    private async Task HandleAddIngredientsConfirm(List<string> selectedLines)
+    {
+        showIngredientDialog = false;
+
+        if (!selectedLines.Any())
+        {
+            return;
+        }
+
+        try
+        {
+            var userId = AuthStateService.CurrentUserId!;
+            var items = selectedLines.Select(line => new GroceryListItem
+            {
+                Name = line,
+                UserId = userId,
+                IsChecked = false
+            }).ToList();
+
+            await GroceryListService.AddMultipleAsync(items);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding ingredients to grocery list: {ex.Message}");
+        }
+        finally
+        {
+            selectedRecipe = null;
+            StateHasChanged();
         }
     }
 

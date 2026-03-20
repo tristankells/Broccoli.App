@@ -1,0 +1,173 @@
+﻿.grocery-list-page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.reset-button {
+    font-size: 0.9rem;
+}
+
+/* Add Item Form */
+.add-item-form {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.add-item-form .form-control {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.add-item-form .form-control:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.add-item-form .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+/* Stats */
+.grocery-stats {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* Grocery List */
+.grocery-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.grocery-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 8px;
+    transition: background-color 0.15s ease;
+}
+
+.grocery-item:hover {
+    background-color: #f8f9fa;
+}
+
+.grocery-item.checked .grocery-name {
+    text-decoration: line-through;
+    color: #adb5bd;
+}
+
+.grocery-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+}
+
+.grocery-checkbox {
+    width: 1.2rem;
+    height: 1.2rem;
+    flex-shrink: 0;
+    cursor: pointer;
+    accent-color: #28a745;
+}
+
+.grocery-name {
+    font-size: 1rem;
+    color: #212529;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.delete-btn {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #dc3545;
+    flex-shrink: 0;
+}
+
+.grocery-item:hover .delete-btn {
+    opacity: 1;
+}
+
+/* Loading */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid #dee2e6;
+    border-top-color: #0066cc;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+    font-size: 1.5rem;
+    color: #495057;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+    font-size: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+

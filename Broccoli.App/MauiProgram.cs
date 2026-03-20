@@ -89,6 +89,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
         builder.Services.AddSingleton<IAuthenticationStateService, AuthenticationStateService>();
         builder.Services.AddSingleton<IRecipeService, CosmosRecipeService>();
+        builder.Services.AddSingleton<IPantryService, PantryService>();
+        builder.Services.AddSingleton<IGroceryListService, GroceryListService>();
 
         builder.Services.AddMauiBlazorWebView();
         

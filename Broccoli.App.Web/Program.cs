@@ -72,6 +72,8 @@ builder.Services.AddSingleton<IAuthenticationStateService, AuthenticationStateSe
 builder.Services.AddSingleton<IRecipeService, CosmosRecipeService>();
 builder.Services.AddSingleton<IPantryService, PantryService>();
 builder.Services.AddSingleton<IGroceryListService, GroceryListService>();
+builder.Services.AddSingleton<IMacroTargetService, CosmosMacroTargetService>();
+builder.Services.AddSingleton<MacroCalculatorService>();
 
 // Register FoodService
 // Try multiple paths for the FoodDatabase.json file
@@ -117,6 +119,8 @@ var pantryService = app.Services.GetRequiredService<IPantryService>();
 await pantryService.InitializeAsync();
 var groceryListService = app.Services.GetRequiredService<IGroceryListService>();
 await groceryListService.InitializeAsync();
+var macroTargetService = app.Services.GetRequiredService<IMacroTargetService>();
+await macroTargetService.InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

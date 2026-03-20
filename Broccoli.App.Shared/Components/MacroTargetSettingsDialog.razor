@@ -1,0 +1,244 @@
+﻿@using Broccoli.Data.Models
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="HandleCancel"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title">
+        <div class="settings-modal-box">
+
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="settings-dialog-title" class="modal-title-text">⚙️ Macro Target Settings</h2>
+                <button class="modal-close-btn" @onclick="HandleCancel" title="Close">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body-scroll">
+
+                <!-- Unit System -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Unit System</h3>
+                    <div class="toggle-group">
+                        <button class="toggle-btn @(draft.UnitSystem == UnitSystem.Metric ? "active" : "")"
+                                @onclick="() => draft.UnitSystem = UnitSystem.Metric">
+                            Metric (kg / cm)
+                        </button>
+                        <button class="toggle-btn @(draft.UnitSystem == UnitSystem.Imperial ? "active" : "")"
+                                @onclick="() => draft.UnitSystem = UnitSystem.Imperial">
+                            Imperial (lbs / in)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BMR Formula -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">BMR Formula</h3>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio"
+                                   name="bmr-formula"
+                                   checked="@(draft.BmrFormula == BmrFormula.MifflinStJeor)"
+                                   @onchange="() => draft.BmrFormula = BmrFormula.MifflinStJeor" />
+                            <span>
+                                <strong>Mifflin-St Jeor</strong>
+                                <span class="radio-hint">Recommended — most accurate for general use (1990)</span>
+                            </span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio"
+                                   name="bmr-formula"
+                                   checked="@(draft.BmrFormula == BmrFormula.HarrisBenedict)"
+                                   @onchange="() => draft.BmrFormula = BmrFormula.HarrisBenedict" />
+                            <span>
+                                <strong>Harris-Benedict</strong>
+                                <span class="radio-hint">Classic revised formula (Roza &amp; Shizgal, 1984)</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Goal -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Goal</h3>
+                    <div class="goal-row">
+                        <select class="form-select" @onchange="OnGoalChanged">
+                            <option value="@MacroGoal.Maintain" selected="@(draft.Goal == MacroGoal.Maintain)">Maintain weight</option>
+                            <option value="@MacroGoal.Lose"     selected="@(draft.Goal == MacroGoal.Lose)">Lose weight</option>
+                            <option value="@MacroGoal.Gain"     selected="@(draft.Goal == MacroGoal.Gain)">Gain weight / muscle</option>
+                        </select>
+                        <div class="delta-field">
+                            <label class="delta-label">Calorie adjustment</label>
+                            <div class="delta-input-row">
+                                <input type="number"
+                                       class="form-control delta-input"
+                                       @bind="draft.GoalCalorieDelta"
+                                       step="50" />
+                                <span class="delta-unit">kcal / day</span>
+                            </div>
+                            <p class="settings-hint">Negative = deficit, positive = surplus. Applied on top of TDEE.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Protein Method -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Protein Calculation Method</h3>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio"
+                                   name="protein-method"
+                                   checked="@(draft.ProteinMethod == ProteinMethod.RatioPercent)"
+                                   @onchange="() => draft.ProteinMethod = ProteinMethod.RatioPercent" />
+                            <span>
+                                <strong>% of Calories</strong>
+                                <span class="radio-hint">Split total calories across all three macros by percentage</span>
+                            </span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio"
+                                   name="protein-method"
+                                   checked="@(draft.ProteinMethod == ProteinMethod.GramsPerKg)"
+                                   @onchange="() => draft.ProteinMethod = ProteinMethod.GramsPerKg" />
+                            <span>
+                                <strong>g per kg of bodyweight</strong>
+                                <span class="radio-hint">Protein fixed by weight; carbs &amp; fat share remaining calories</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- % of Calories controls -->
+                    @if (draft.ProteinMethod == ProteinMethod.RatioPercent)
+                    {
+                        <div class="macro-split-grid">
+                            <div class="macro-split-field">
+                                <label>Protein %</label>
+                                <input type="number" class="form-control" min="0" max="100" step="1"
+                                       value="@draft.ProteinPercent"
+                                       @oninput="e => { if (double.TryParse(e.Value?.ToString(), out var v)) draft.ProteinPercent = v; }" />
+                            </div>
+                            <div class="macro-split-field">
+                                <label>Carbs %</label>
+                                <input type="number" class="form-control" min="0" max="100" step="1"
+                                       value="@draft.CarbPercent"
+                                       @oninput="e => { if (double.TryParse(e.Value?.ToString(), out var v)) draft.CarbPercent = v; }" />
+                            </div>
+                            <div class="macro-split-field">
+                                <label>Fat %</label>
+                                <input type="number" class="form-control" min="0" max="100" step="1"
+                                       value="@draft.FatPercent"
+                                       @oninput="e => { if (double.TryParse(e.Value?.ToString(), out var v)) draft.FatPercent = v; }" />
+                            </div>
+                        </div>
+                        <div class="macro-sum-indicator @(MacroSumValid ? "sum-valid" : "sum-invalid")">
+                            Total: @MacroSum% @(MacroSumValid ? "✓" : $"— must equal 100%")
+                        </div>
+                    }
+
+                    <!-- g per kg controls -->
+                    @if (draft.ProteinMethod == ProteinMethod.GramsPerKg)
+                    {
+                        <div class="grams-per-kg-row">
+                            <div class="macro-split-field">
+                                <label>Protein (g/kg)</label>
+                                <input type="number" class="form-control" min="0.5" max="4" step="0.1"
+                                       @bind="draft.ProteinGramsPerKg" />
+                                <span class="field-hint">Typical: 1.6–2.2 g/kg for active individuals</span>
+                            </div>
+                        </div>
+                        <p class="settings-hint">Carbs &amp; fat split the remaining calories using the ratio below.</p>
+                        <div class="macro-split-grid">
+                            <div class="macro-split-field">
+                                <label>Carbs %</label>
+                                <input type="number" class="form-control" min="0" max="100" step="1"
+                                       @bind="draft.CarbPercent" />
+                            </div>
+                            <div class="macro-split-field">
+                                <label>Fat %</label>
+                                <input type="number" class="form-control" min="0" max="100" step="1"
+                                       @bind="draft.FatPercent" />
+                            </div>
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer-bar">
+                <button class="btn btn-secondary" @onclick="HandleCancel">Cancel</button>
+                <button class="btn btn-primary"
+                        @onclick="HandleSave"
+                        disabled="@(!CanSave)">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public MacroTargetSettings Settings { get; set; } = new();
+    [Parameter] public EventCallback<MacroTargetSettings> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private MacroTargetSettings draft = new();
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            // Deep-copy settings into a draft so changes don't leak until Save is clicked
+            draft = new MacroTargetSettings
+            {
+                Id                 = Settings.Id,
+                UserId             = Settings.UserId,
+                PartitionKey       = Settings.PartitionKey,
+                BmrFormula         = Settings.BmrFormula,
+                ProteinMethod      = Settings.ProteinMethod,
+                ProteinPercent     = Settings.ProteinPercent,
+                CarbPercent        = Settings.CarbPercent,
+                FatPercent         = Settings.FatPercent,
+                ProteinGramsPerKg  = Settings.ProteinGramsPerKg,
+                Goal               = Settings.Goal,
+                GoalCalorieDelta   = Settings.GoalCalorieDelta,
+                UnitSystem         = Settings.UnitSystem
+            };
+        }
+    }
+
+    private double MacroSum => draft.ProteinPercent + draft.CarbPercent + draft.FatPercent;
+    private bool MacroSumValid => Math.Abs(MacroSum - 100) < 0.01;
+
+    private bool CanSave =>
+        draft.ProteinMethod == ProteinMethod.GramsPerKg || MacroSumValid;
+
+    private void OnGoalChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<MacroGoal>(e.Value?.ToString(), out var goal))
+        {
+            draft.Goal = goal;
+            // Auto-suggest calorie delta based on goal (user can still override)
+            draft.GoalCalorieDelta = goal switch
+            {
+                MacroGoal.Lose  => -500,
+                MacroGoal.Gain  =>  250,
+                _               =>    0
+            };
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (!CanSave) return;
+        await OnSave.InvokeAsync(draft);
+    }
+
+    private async Task HandleCancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}
+
+
+

@@ -91,6 +91,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IRecipeService, CosmosRecipeService>();
         builder.Services.AddSingleton<IPantryService, PantryService>();
         builder.Services.AddSingleton<IGroceryListService, GroceryListService>();
+        builder.Services.AddSingleton<IMacroTargetService, CosmosMacroTargetService>();
+        builder.Services.AddSingleton<MacroCalculatorService>();
 
         builder.Services.AddMauiBlazorWebView();
         

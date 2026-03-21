@@ -19,7 +19,7 @@ public class IngredientParserService(IFoodService foodService)
     //   "carrots"                   → qty=1    unit=""  food=carrots
     private static readonly Regex s_ingredientPattern = new(
         @"^(?<qty>\d[\d\s]*(?:[./]\d+)?)\s*" +
-        @"(?<unit>g|kg|ml|l|cups?|tbsp|tsp|tablespoons?|teaspoons?|oz|lbs?|pounds?|kilograms?|grams?|liters?|litres?|milliliters?|millilitres?|drizzle|pack|pinch|twin\s*pack|medium|large|small|head|can|clove|bunch|stalk|slice|piece|sheet)?\s*" +
+        @"(?:(?<unit>g|kg|ml|l|cups?|tbsp|tsp|tablespoons?|teaspoons?|oz|lbs?|pounds?|kilograms?|grams?|liters?|litres?|milliliters?|millilitres?|drizzle|pack|pinch|twin\s*pack|medium|large|small|head|can|clove|bunch|stalk|slice|piece|sheet)\b)?\s*" +
         @"(?:of\s+)?" +
         @"(?<food>.+)$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled
@@ -83,7 +83,13 @@ public class IngredientParserService(IFoodService foodService)
 
             if (match.Score >= MinimumMatchThreshold)
             {
-                ParsedIngredientMatch? duplicateMatch = results.FirstOrDefault(ingredientMatch => ingredientMatch.MatchedFood is not null && ingredientMatch.MatchedFood.Id == match.Food.Id);
+                ParsedIngredientMatch? duplicateMatch = results.FirstOrDefault(ingredientMatch =>
+                    ingredientMatch.MatchedFood is not null &&
+                    ingredientMatch.MatchedFood.Id == match.Food.Id &&
+                    string.Equals(
+                        ingredientMatch.ParsedIngredient.CanonicalUnit,
+                        parsed.CanonicalUnit,
+                        StringComparison.OrdinalIgnoreCase));
                 if (duplicateMatch is not null)
                 {
                     duplicateMatch.ParsedIngredient.Quantity += parsed.Quantity;

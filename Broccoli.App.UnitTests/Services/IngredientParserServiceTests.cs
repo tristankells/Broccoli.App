@@ -588,6 +588,83 @@ public class IngredientParserServiceTests
         }
     }
 
+    /// <summary>
+    /// Regression tests for word-boundary enforcement on single-letter units.
+    /// Before the fix, inputs like "2 lemon" were mis-parsed as qty=2, unit=l (liter),
+    /// food=emon — because the unit regex had no word-boundary anchor.
+    /// </summary>
+    [TestMethod]
+    public async Task ParseAndMatchIngredientsAsync_UnitWordBoundary_ParsesCorrectly()
+    {
+        // Arrange — use a mock that always returns "no match" so we can focus on parsing
+        var mockFoodService = new Mock<IFoodService>();
+        mockFoodService
+            .Setup(s => s.FindBestMatch(It.IsAny<string>()))
+            .Returns(new FoodMatchResult { Food = null, Score = 0, Method = "None" });
+
+        IngredientParserService parser = CreateIngredientParserService(mockFoodService.Object);
+
+        // --- Cases where a single-letter unit must NOT be stolen from the food word ---
+
+        // "2 lemon"  →  qty=2, unit="", food="lemon"   (was: unit=l, food=emon)
+        var r = await parser.ParseAndMatchIngredientsAsync("2 lemon");
+        Assert.AreEqual(1, r.Count, "2 lemon: expected 1 result");
+        Assert.AreEqual(2.0, r[0].ParsedIngredient.Quantity, "2 lemon: wrong quantity");
+        Assert.AreEqual("", r[0].ParsedIngredient.Unit, "2 lemon: unit should be empty, not 'l'");
+        Assert.AreEqual("lemon", r[0].ParsedIngredient.FoodDescription, "2 lemon: wrong food description");
+
+        // "3 lemons"  →  qty=3, unit="", food="lemons"
+        r = await parser.ParseAndMatchIngredientsAsync("3 lemons");
+        Assert.AreEqual(1, r.Count, "3 lemons: expected 1 result");
+        Assert.AreEqual(3.0, r[0].ParsedIngredient.Quantity, "3 lemons: wrong quantity");
+        Assert.AreEqual("", r[0].ParsedIngredient.Unit, "3 lemons: unit should be empty, not 'l'");
+        Assert.AreEqual("lemons", r[0].ParsedIngredient.FoodDescription, "3 lemons: wrong food description");
+
+        // "1 lime"  →  qty=1, unit="", food="lime"  (l must not match)
+        r = await parser.ParseAndMatchIngredientsAsync("1 lime");
+        Assert.AreEqual(1, r.Count, "1 lime: expected 1 result");
+        Assert.AreEqual(1.0, r[0].ParsedIngredient.Quantity, "1 lime: wrong quantity");
+        Assert.AreEqual("", r[0].ParsedIngredient.Unit, "1 lime: unit should be empty, not 'l'");
+        Assert.AreEqual("lime", r[0].ParsedIngredient.FoodDescription, "1 lime: wrong food description");
+
+        // "2 garlic cloves"  →  qty=2, unit="", food="garlic cloves"  (g must not match)
+        r = await parser.ParseAndMatchIngredientsAsync("2 garlic cloves");
+        Assert.AreEqual(1, r.Count, "2 garlic cloves: expected 1 result");
+        Assert.AreEqual(2.0, r[0].ParsedIngredient.Quantity, "2 garlic cloves: wrong quantity");
+        Assert.AreEqual("", r[0].ParsedIngredient.Unit, "2 garlic cloves: unit should be empty, not 'g'");
+        Assert.AreEqual("garlic cloves", r[0].ParsedIngredient.FoodDescription, "2 garlic cloves: wrong food description");
+
+        // "4 small onions"  →  qty=4, unit="small", food="onions"  (legitimate word unit)
+        r = await parser.ParseAndMatchIngredientsAsync("4 small onions");
+        Assert.AreEqual(1, r.Count, "4 small onions: expected 1 result");
+        Assert.AreEqual(4.0, r[0].ParsedIngredient.Quantity, "4 small onions: wrong quantity");
+        Assert.AreEqual("small", r[0].ParsedIngredient.Unit, "4 small onions: wrong unit");
+        Assert.AreEqual("onions", r[0].ParsedIngredient.FoodDescription, "4 small onions: wrong food description");
+
+        // --- Cases where a single-letter unit MUST still be captured correctly ---
+
+        // "1 l water"  →  qty=1, unit="l", food="water"  (l followed by space is a word boundary)
+        r = await parser.ParseAndMatchIngredientsAsync("1 l water");
+        Assert.AreEqual(1, r.Count, "1 l water: expected 1 result");
+        Assert.AreEqual(1.0, r[0].ParsedIngredient.Quantity, "1 l water: wrong quantity");
+        Assert.AreEqual("l", r[0].ParsedIngredient.Unit, "1 l water: wrong unit");
+        Assert.AreEqual("water", r[0].ParsedIngredient.FoodDescription, "1 l water: wrong food description");
+
+        // "250g flour"  →  qty=250, unit="g", food="flour"  (g attached to number)
+        r = await parser.ParseAndMatchIngredientsAsync("250g flour");
+        Assert.AreEqual(1, r.Count, "250g flour: expected 1 result");
+        Assert.AreEqual(250.0, r[0].ParsedIngredient.Quantity, "250g flour: wrong quantity");
+        Assert.AreEqual("g", r[0].ParsedIngredient.Unit, "250g flour: wrong unit");
+        Assert.AreEqual("flour", r[0].ParsedIngredient.FoodDescription, "250g flour: wrong food description");
+
+        // "500 ml water"  →  qty=500, unit="ml", food="water"
+        r = await parser.ParseAndMatchIngredientsAsync("500 ml water");
+        Assert.AreEqual(1, r.Count, "500 ml water: expected 1 result");
+        Assert.AreEqual(500.0, r[0].ParsedIngredient.Quantity, "500 ml water: wrong quantity");
+        Assert.AreEqual("ml", r[0].ParsedIngredient.Unit, "500 ml water: wrong unit");
+        Assert.AreEqual("water", r[0].ParsedIngredient.FoodDescription, "500 ml water: wrong food description");
+    }
+
     [TestMethod]
     public void LevenshteinDistance_IdenticalStrings_ReturnsZero()
     {

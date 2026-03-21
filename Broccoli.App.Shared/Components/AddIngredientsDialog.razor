@@ -1,4 +1,6 @@
 ﻿@using Broccoli.Data.Models
+@using Broccoli.App.Shared.Services
+@inject IngredientParserService IngredientParserService
 
 @if (IsVisible)
 {
@@ -53,6 +55,12 @@
                                         @GetPantryStatusLabel(row.PantryStatus)
                                     </span>
                                 }
+                                @if (row.IsMerged)
+                                {
+                                    <span class="merged-badge" title="Quantities combined from duplicate lines">
+                                        combined
+                                    </span>
+                                }
                             </li>
                         }
                     </ul>
@@ -76,128 +84,11 @@
 }
 
 @code {
-    /// <summary>Whether the dialog is visible.</summary>
-    [Parameter] public bool IsVisible { get; set; }
-
-    /// <summary>Display name of the recipe (shown in the dialog subtitle).</summary>
-    [Parameter] public string? RecipeName { get; set; }
-
-    /// <summary>Newline-separated ingredient string from the recipe.</summary>
-    [Parameter] public string? IngredientsText { get; set; }
-
-    /// <summary>All pantry items for the current user (injected by parent).</summary>
-    [Parameter] public List<PantryItem> PantryItems { get; set; } = new();
-
-    /// <summary>Callback raised when the user cancels.</summary>
-    [Parameter] public EventCallback OnCancel { get; set; }
-
-    /// <summary>Callback raised with the list of checked GroceryListItems to add.</summary>
-    [Parameter] public EventCallback<List<string>> OnConfirm { get; set; }
 
     // -------------------------------------------------------
-    private List<IngredientRow> ingredientRows = new();
-    private bool isLoading = true;
 
-    protected override void OnParametersSet()
-    {
-        if (IsVisible)
-        {
-            BuildRows();
-        }
-    }
-
-    private void BuildRows()
-    {
-        isLoading = true;
-        ingredientRows.Clear();
-
-        if (string.IsNullOrWhiteSpace(IngredientsText))
-        {
-            isLoading = false;
-            return;
-        }
-
-        var lines = IngredientsText
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Select(l => l.Trim())
-            .Where(l => !string.IsNullOrWhiteSpace(l))
-            .ToList();
-
-        foreach (var line in lines)
-        {
-            var (status, isChecked) = GetPantryStatus(line);
-            ingredientRows.Add(new IngredientRow
-            {
-                IngredientLine = line,
-                PantryStatus = status,
-                IsChecked = isChecked
-            });
-        }
-
-        isLoading = false;
-    }
-
-    private (PantryMatchStatus status, bool isChecked) GetPantryStatus(string line)
-    {
-        var lineLower = line.ToLowerInvariant();
-
-        foreach (var pantryItem in PantryItems)
-        {
-            var nameLower = pantryItem.Name.ToLowerInvariant();
-            if (lineLower.Contains(nameLower) || nameLower.Contains(lineLower))
-            {
-                return pantryItem.Category == PantryCategory.AlwaysHave
-                    ? (PantryMatchStatus.AlwaysHave, false)   // auto-uncheck staples
-                    : (PantryMatchStatus.CheckIfHave, true);  // keep checked, but flag it
-            }
-        }
-
-        return (PantryMatchStatus.NotInPantry, true); // not in pantry → default checked
-    }
-
-    private async Task Cancel()
-    {
-        await OnCancel.InvokeAsync();
-    }
-
-    private async Task Confirm()
-    {
-        var selectedLines = ingredientRows
-            .Where(r => r.IsChecked)
-            .Select(r => r.IngredientLine)
-            .ToList();
-
-        await OnConfirm.InvokeAsync(selectedLines);
-    }
-
-    private static string GetPantryStatusLabel(PantryMatchStatus status) => status switch
-    {
-        PantryMatchStatus.AlwaysHave => "in pantry: Always Have",
-        PantryMatchStatus.CheckIfHave => "in pantry: Check If Have",
-        _ => string.Empty
-    };
-
-    private static string GetPantryBadgeClass(PantryMatchStatus status) => status switch
-    {
-        PantryMatchStatus.AlwaysHave => "badge-always-have",
-        PantryMatchStatus.CheckIfHave => "badge-check-if-have",
-        _ => string.Empty
-    };
+    // ── Formatting ────────────────────────────────────────────────────────────
 
     // -------------------------------------------------------
-    private class IngredientRow
-    {
-        public string IngredientLine { get; set; } = string.Empty;
-        public PantryMatchStatus PantryStatus { get; set; }
-        public bool IsChecked { get; set; }
-    }
 
-    private enum PantryMatchStatus
-    {
-        NotInPantry,
-        AlwaysHave,
-        CheckIfHave
-    }
 }
-
-

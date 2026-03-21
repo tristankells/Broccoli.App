@@ -14,6 +14,9 @@
             <h1>🛒 Grocery List</h1>
             @if (groceryItems.Any())
             {
+                <button class="btn btn-outline-secondary copy-button" @onclick="CopyToClipboard" title="Copy all items to clipboard">
+                    📋 Copy to Clipboard
+                </button>
                 <button class="btn btn-outline-danger reset-button" @onclick="ResetList">
                     🗑️ Reset List
                 </button>

@@ -1,0 +1,171 @@
+﻿@page "/meal-prep"
+@using Broccoli.Data.Models
+@using Broccoli.Shared.Services
+@using Broccoli.App.Shared.Services
+@using Broccoli.App.Shared.Components
+@inject IMealPrepPlanService MealPrepPlanService
+@inject IRecipeService RecipeService
+@inject IGroceryListService GroceryListService
+@inject IPantryService PantryService
+@inject IAuthenticationStateService AuthStateService
+@inject IJSRuntime JSRuntime
+@inject IngredientCartService IngredientCartService
+
+<AuthorizeView>
+    <PageTitle>Meal Prep Plans</PageTitle>
+
+    <div class="meal-prep-page">
+
+        <!-- Page header -->
+        <div class="page-header">
+            <h1>Meal Prep Plans</h1>
+            <button class="btn btn-primary add-button" @onclick="CreateNewPlan">
+                <span class="icon">➕</span> New Plan
+            </button>
+        </div>
+
+        <!-- Loading -->
+        @if (_isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading plans...</p>
+            </div>
+        }
+
+        <!-- Empty state -->
+        else if (!_plans.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <h2>No meal prep plans yet</h2>
+                <p>Create a plan to organise your weekly recipes and add all ingredients to your cart in one go.</p>
+                <button class="btn btn-primary" @onclick="CreateNewPlan">Create Your First Plan</button>
+            </div>
+        }
+
+        <!-- Plans list -->
+        else
+        {
+            <div class="plans-list">
+                @foreach (var plan in _plans)
+                {
+                    var isExpanded = _expandedPlanIds.Contains(plan.Id);
+                    var isEditing  = _editingPlanId == plan.Id;
+
+                    <div class="plan-card @(isExpanded ? "is-expanded" : "") @(_draggingId == plan.Id ? "is-dragging" : "") @(_dragOverId == plan.Id ? "drag-over" : "")"
+                         draggable="true"
+                         @ondragstart="() => OnDragStart(plan.Id)"
+                         @ondragend="OnDragEnd"
+                         @ondragover:preventDefault="true"
+                         @ondragover="() => OnDragOver(plan.Id)"
+                         @ondragleave="OnDragLeave"
+                         @ondrop="() => OnDrop(plan.Id)">
+
+                        <!-- Plan header row -->
+                        <div class="plan-header" @onclick="() => ToggleExpand(plan.Id)">
+                            <span class="drag-handle" title="Drag to reorder">⠿</span>
+                            <span class="expand-toggle">@(isExpanded ? "▼" : "▶")</span>
+
+                            @if (isEditing)
+                            {
+                                <input class="plan-name-input"
+                                       @ref="_renameInputRef"
+                                       value="@_editingName"
+                                       @oninput="e => _editingName = e.Value?.ToString() ?? string.Empty"
+                                       @onkeydown="OnRenameKeyDown"
+                                       @onblur="() => InvokeAsync(SaveRename)"
+                                       @onclick:stopPropagation="true" />
+                            }
+                            else
+                            {
+                                <span class="plan-name">@plan.Name</span>
+                                <button class="btn-icon-sm"
+                                        title="Rename plan"
+                                        @onclick="() => StartRename(plan)"
+                                        @onclick:stopPropagation="true">
+                                    ✏️
+                                </button>
+                            }
+
+                            <div class="plan-header-actions">
+                                <button class="btn btn-secondary btn-sm"
+                                        title="Add all plan ingredients to grocery cart"
+                                        @onclick="() => OpenCartDialog(plan)"
+                                        @onclick:stopPropagation="true"
+                                        disabled="@(!plan.RecipeIds.Any())">
+                                    🛒 Add to Cart
+                                </button>
+                                <button class="btn btn-danger btn-sm"
+                                        title="Delete plan"
+                                        @onclick="() => DeletePlan(plan)"
+                                        @onclick:stopPropagation="true">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Collapsible plan body -->
+                        @if (isExpanded)
+                        {
+                            <div class="plan-body">
+                                @if (!plan.RecipeIds.Any())
+                                {
+                                    <p class="no-plan-recipes">No recipes added yet.</p>
+                                }
+                                else
+                                {
+                                    <ul class="plan-recipe-list">
+                                        @foreach (var recipeId in plan.RecipeIds)
+                                        {
+                                            var recipe = _allRecipes.FirstOrDefault(r => r.Id == recipeId);
+                                            if (recipe is not null)
+                                            {
+                                                <li class="plan-recipe-item">
+                                                    <span class="plan-recipe-icon">🍽️</span>
+                                                    <span class="plan-recipe-name">@recipe.Name</span>
+                                                    @if (recipe.Tags.Any())
+                                                    {
+                                                        <div class="plan-recipe-tags">
+                                                            @foreach (var tag in recipe.Tags.Take(2))
+                                                            {
+                                                                <span class="plan-recipe-tag">@tag</span>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                }
+
+                                <button class="btn btn-secondary btn-sm add-recipes-btn"
+                                        @onclick="() => OpenAddRecipesDialog(plan)">
+                                    ➕ Add / Edit Recipes
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</AuthorizeView>
+
+<!-- Add Recipes to Plan dialog -->
+<AddRecipesToPlanDialog IsVisible="_showAddRecipesDialog"
+                        PlanName="@_targetPlan?.Name"
+                        AllRecipes="_allRecipes"
+                        AlreadySelectedIds="@(_targetPlan?.RecipeIds ?? new())"
+                        OnCancel="HandleAddRecipesCancel"
+                        OnConfirm="HandleAddRecipesConfirm" />
+
+<!-- Add to Cart dialog (reuses existing AddIngredientsDialog) -->
+<AddIngredientsDialog IsVisible="_showCartDialog"
+                      RecipeName="@_combinedPlanName"
+                      IngredientsText="@_combinedIngredients"
+                      PantryItems="@_pantryItems"
+                      OnCancel="HandleCartCancel"
+                      OnConfirm="HandleCartConfirm" />
+
+

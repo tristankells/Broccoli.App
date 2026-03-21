@@ -9,6 +9,7 @@
 @inject IJSRuntime JSRuntime
 @inject IngredientParserService IngredientParserService
 @inject ISeasonalityService SeasonalityService
+@inject IRecipeImageService RecipeImageService
 
 <AuthorizeView>
     <PageTitle>@(IsNewRecipe ? "Add Recipe" : "Edit Recipe")</PageTitle>
@@ -51,29 +52,52 @@
                     <div class="form-column">
                         <!-- Image Section -->
                         <div class="form-section image-section">
-                            <div class="recipe-image-display">
+                            <div class="recipe-image-drop-zone @(recipe.Images.Any() ? "has-image" : "")"
+                                 id="recipe-drop-zone">
+
                                 @if (recipe.Images.Any())
                                 {
+                                    <!-- Image present: show it with a drag-to-replace overlay -->
                                     <img src="@recipe.Images.First()" alt="Recipe" />
-                                    <button type="button" class="btn-remove-image" @onclick="RemoveImage">
-                                        Remove Image
+                                    <div class="drop-zone-overlay">
+                                        <span>🔄 Drop to replace</span>
+                                    </div>
+                                    <button type="button" class="btn-remove-image"
+                                            @onclick="RemoveImage"
+                                            disabled="@isUploadingImage">
+                                        ✕ Remove
                                     </button>
+                                }
+                                else if (isUploadingImage)
+                                {
+                                    <div class="drop-zone-placeholder">
+                                        <div class="drop-zone-spinner"></div>
+                                        <span>Uploading…</span>
+                                    </div>
                                 }
                                 else
                                 {
-                                    <div class="image-placeholder">
-                                        <span class="placeholder-icon">🖼️</span>
-                                        <p>No image uploaded</p>
-                                    </div>
+                                    <!-- No image: clicking anywhere opens the file picker -->
+                                    <label class="drop-zone-placeholder" for="recipe-image-input">
+                                        <span class="drop-zone-icon">🖼️</span>
+                                        <strong>Drop image here</strong>
+                                        <span class="drop-zone-hint">or click to browse · JPG / PNG · max 5 MB</span>
+                                    </label>
                                 }
+
+                                <!-- Always in the DOM so JS can reference it as a drop target.
+                                     Transparent overlay — covers the zone when no image is present. -->
+                                <InputFile id="recipe-image-input"
+                                           OnChange="HandleImageUpload"
+                                           accept=".jpg,.jpeg,.png"
+                                           class="drop-zone-input"
+                                           disabled="@isUploadingImage" />
                             </div>
-                            <div class="form-group">
-                                <label>Image URL</label>
-                                <input type="text" class="form-control" @bind="imageUrl" placeholder="https://..." />
-                                <button type="button" class="btn btn-secondary btn-sm" @onclick="AddImage">
-                                    Add Image
-                                </button>
-                            </div>
+
+                            @if (!string.IsNullOrEmpty(imageUploadError))
+                            {
+                                <div class="alert alert-danger mt-2">@imageUploadError</div>
+                            }
                         </div>
 
                         <!-- Basic Info -->

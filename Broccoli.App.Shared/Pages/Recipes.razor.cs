@@ -212,14 +212,7 @@ public partial class Recipes
         try
         {
             var userId = AuthStateService.CurrentUserId!;
-            var items = selectedLines.Select(line => new GroceryListItem
-            {
-                Name = line,
-                UserId = userId,
-                IsChecked = false
-            }).ToList();
-
-            await GroceryListService.AddMultipleAsync(items);
+            await IngredientCartService.AddToCartAsync(selectedLines, userId);
         }
         catch (Exception ex)
         {

@@ -1,0 +1,142 @@
+﻿@using Broccoli.Data.Models
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="Cancel"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="atr-dialog-title">
+        <div class="modal-content-box">
+
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="atr-dialog-title" class="modal-title-text">
+                    📋 Add Recipes to Plan
+                </h2>
+                <button class="modal-close-btn" @onclick="Cancel" title="Close">&times;</button>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(PlanName))
+            {
+                <p class="plan-name-subtitle">@PlanName</p>
+            }
+
+            <!-- Search -->
+            <div class="recipe-search-bar">
+                <input type="text"
+                       class="recipe-search-input"
+                       placeholder="🔍  Search recipes..."
+                       @bind="searchTerm"
+                       @bind:event="oninput" />
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body-scroll">
+                @{
+                    var filtered = AllRecipes
+                        .Where(r => string.IsNullOrWhiteSpace(searchTerm)
+                                 || r.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+
+                @if (!AllRecipes.Any())
+                {
+                    <p class="no-recipes">No recipes found. Add some recipes first.</p>
+                }
+                else if (!filtered.Any())
+                {
+                    <p class="no-recipes">No recipes match "@searchTerm".</p>
+                }
+                else
+                {
+                    <ul class="recipe-check-list">
+                        @foreach (var recipe in filtered)
+                        {
+                            var isChecked = _selectedIds.Contains(recipe.Id);
+                            <li class="recipe-check-row @(isChecked ? "row-selected" : "")">
+                                <label class="recipe-check-label">
+                                    <input type="checkbox"
+                                           class="recipe-checkbox"
+                                           checked="@isChecked"
+                                           @onchange="() => ToggleRecipe(recipe.Id)" />
+                                    <span class="recipe-check-name">@recipe.Name</span>
+                                </label>
+                                @if (recipe.Tags.Any())
+                                {
+                                    <div class="recipe-check-tags">
+                                        @foreach (var tag in recipe.Tags.Take(2))
+                                        {
+                                            <span class="recipe-check-tag">@tag</span>
+                                        }
+                                    </div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer-bar">
+                <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                <button class="btn btn-primary"
+                        @onclick="Confirm"
+                        disabled="@(!AllRecipes.Any())">
+                    @if (_selectedIds.Any())
+                    {
+                        <span>Save (@_selectedIds.Count recipe@(_selectedIds.Count == 1 ? "" : "s"))</span>
+                    }
+                    else
+                    {
+                        <span>Save (none selected)</span>
+                    }
+                </button>
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>Whether the dialog is visible.</summary>
+    [Parameter] public bool IsVisible { get; set; }
+
+    /// <summary>Plan name shown in the dialog subtitle.</summary>
+    [Parameter] public string? PlanName { get; set; }
+
+    /// <summary>Full list of the user's recipes to choose from.</summary>
+    [Parameter] public List<Recipe> AllRecipes { get; set; } = new();
+
+    /// <summary>Recipe IDs already in the plan (pre-checked on open).</summary>
+    [Parameter] public List<string> AlreadySelectedIds { get; set; } = new();
+
+    /// <summary>Raised when the user cancels.</summary>
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    /// <summary>
+    /// Raised on confirm with the full list of currently-selected recipe IDs.
+    /// The parent should replace plan.RecipeIds with this list.
+    /// </summary>
+    [Parameter] public EventCallback<List<string>> OnConfirm { get; set; }
+
+    private HashSet<string> _selectedIds = new();
+    private string searchTerm = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            // Rebuild selection from the parent's current list each time the dialog opens
+            _selectedIds = AlreadySelectedIds.ToHashSet();
+            searchTerm   = string.Empty;
+        }
+    }
+
+    private void ToggleRecipe(string recipeId)
+    {
+        if (!_selectedIds.Remove(recipeId))
+            _selectedIds.Add(recipeId);
+    }
+
+    private async Task Cancel()  => await OnCancel.InvokeAsync();
+    private async Task Confirm() => await OnConfirm.InvokeAsync(_selectedIds.ToList());
+}
+

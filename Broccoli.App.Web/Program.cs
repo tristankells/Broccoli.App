@@ -61,6 +61,12 @@ builder.Services.AddSingleton(new CosmosClient(
     cosmosSettings.GetConnectionString(),
     cosmosClientOptions));
 
+// Cloudinary image storage
+var cloudinarySettings = new CloudinarySettings();
+builder.Configuration.GetSection(CloudinarySettings.SectionName).Bind(cloudinarySettings);
+builder.Services.AddSingleton(cloudinarySettings);
+builder.Services.AddSingleton<IRecipeImageService, CloudinaryImageService>();
+
 // Add device-specific services used by the Broccoli.App.Shared project
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
@@ -113,6 +119,8 @@ builder.Services.AddSingleton<IFoodService>(sp =>
 builder.Services.AddSingleton<IngredientParserService>();
 builder.Services.AddSingleton<ISeasonalityService>(sp =>
     new LocalJsonSeasonalityService(sp.GetRequiredService<ILogger<LocalJsonSeasonalityService>>()));
+builder.Services.AddSingleton<IngredientCartService>();
+builder.Services.AddSingleton<IMealPrepPlanService, CosmosMealPrepPlanService>();
 
 WebApplication app = builder.Build();
 
@@ -127,6 +135,8 @@ var groceryListService = app.Services.GetRequiredService<IGroceryListService>();
 await groceryListService.InitializeAsync();
 var macroTargetService = app.Services.GetRequiredService<IMacroTargetService>();
 await macroTargetService.InitializeAsync();
+var mealPrepPlanService = app.Services.GetRequiredService<IMealPrepPlanService>();
+await mealPrepPlanService.InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

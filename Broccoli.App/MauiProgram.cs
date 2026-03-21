@@ -80,6 +80,12 @@ public static class MauiProgram
             cosmosSettings.GetConnectionString(), 
             cosmosClientOptions));
 
+        // Cloudinary image storage
+        var cloudinarySettings = new CloudinarySettings();
+        config.GetSection(CloudinarySettings.SectionName).Bind(cloudinarySettings);
+        builder.Services.AddSingleton(cloudinarySettings);
+        builder.Services.AddSingleton<IRecipeImageService, CloudinaryImageService>();
+
         // Add device-specific services used by the Broccoli.App.Shared project
         builder.Services.AddSingleton<IFormFactor, FormFactor>();
         builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
@@ -114,6 +120,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IngredientParserService>();
         builder.Services.AddSingleton<ISeasonalityService>(sp =>
             new LocalJsonSeasonalityService(sp.GetRequiredService<ILogger<LocalJsonSeasonalityService>>()));
+        builder.Services.AddSingleton<IngredientCartService>();
+        builder.Services.AddSingleton<IMealPrepPlanService, CosmosMealPrepPlanService>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

@@ -37,6 +37,12 @@
         {
             <article class="read-article">
                 <header class="recipe-hero">
+                    @if (recipe.Images.Any())
+                    {
+                        <div class="recipe-hero-image">
+                            <img src="@recipe.Images.First()" alt="@recipe.Name" />
+                        </div>
+                    }
                     <h1 class="recipe-title">@recipe.Name</h1>
                 </header>
 

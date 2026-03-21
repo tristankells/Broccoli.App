@@ -121,6 +121,21 @@ public partial class GroceryList
         }
     }
 
+    private async Task CopyToClipboard()
+    {
+        try
+        {
+            var text = string.Join("\n", groceryItems.Select(i => i.Name));
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error copying to clipboard: {ex.Message}";
+            Console.WriteLine($"Error copying grocery list to clipboard: {ex}");
+            StateHasChanged();
+        }
+    }
+
     private async Task ResetList()
     {
         if (!await JSRuntime.InvokeAsync<bool>("confirm",

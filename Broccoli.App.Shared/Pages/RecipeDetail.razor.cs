@@ -1,5 +1,6 @@
 ﻿using Broccoli.Data.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
@@ -12,10 +13,12 @@ public partial class RecipeDetail
     private Recipe? recipe;
     private bool isLoading = true;
     private bool isSaving = false;
+    private bool isUploadingImage = false;
+    private bool _jsInitialized;
     private string? errorMessage;
     private string? successMessage;
+    private string? imageUploadError;
     private string newTag = string.Empty;
-    private string imageUrl = string.Empty;
 
     private SeasonalityResult? _seasonality;
     private bool _seasonalityLoading;
@@ -35,9 +38,29 @@ public partial class RecipeDetail
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Initialise the JS drop zone once the recipe form is visible.
+        // _jsInitialized is reset to false by LoadRecipe() each time the recipe changes,
+        // so the listener is always bound to the current DOM element.
+        if (!isLoading && recipe != null && !_jsInitialized)
+        {
+            _jsInitialized = true;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("imageDropZone.init", "recipe-drop-zone", "recipe-image-input");
+            }
+            catch
+            {
+                // imageDropZone.js is only loaded in the web host; silently ignore in MAUI.
+            }
+        }
+    }
+
     private async Task LoadRecipe()
     {
         isLoading = true;
+        _jsInitialized = false;
         errorMessage = null;
 
         try
@@ -170,6 +193,13 @@ public partial class RecipeDetail
 
         try
         {
+            // Delete any uploaded images from Supabase Storage first
+            foreach (var imageUrl in recipe.Images.ToList())
+            {
+                try { await RecipeImageService.DeleteAsync(imageUrl); }
+                catch (Exception ex) { Console.WriteLine($"Failed to delete image during recipe deletion: {ex.Message}"); }
+            }
+
             await RecipeService.DeleteAsync(recipe.Id);
             Navigation.NavigateTo("/recipes");
         }
@@ -208,29 +238,54 @@ public partial class RecipeDetail
         }
     }
 
-    private void AddImage()
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(imageUrl) || recipe == null)
-        {
-            return;
-        }
+        if (recipe == null) return;
 
-        if (!recipe.Images.Contains(imageUrl))
-        {
-            recipe.Images.Add(imageUrl);
-        }
+        isUploadingImage = true;
+        imageUploadError = null;
+        StateHasChanged();
 
-        imageUrl = string.Empty;
+        try
+        {
+            const long MaxBytes = 5 * 1024 * 1024; // 5 MB
+            var file = e.File;
+
+            await using var stream = file.OpenReadStream(MaxBytes);
+            var url = await RecipeImageService.UploadAsync(stream, file.Name, recipe.Id);
+
+            // Replace any existing image with the new one
+            recipe.Images.Clear();
+            recipe.Images.Add(url);
+        }
+        catch (Exception ex)
+        {
+            imageUploadError = $"Upload failed: {ex.Message}";
+            Console.WriteLine($"Image upload error: {ex}");
+        }
+        finally
+        {
+            isUploadingImage = false;
+            StateHasChanged();
+        }
     }
 
-    private void RemoveImage()
+    private async Task RemoveImage()
     {
-        if (recipe == null || !recipe.Images.Any())
-        {
-            return;
-        }
+        if (recipe == null || !recipe.Images.Any()) return;
 
+        var url = recipe.Images[0];
         recipe.Images.RemoveAt(0);
+
+        try
+        {
+            await RecipeImageService.DeleteAsync(url);
+        }
+        catch (Exception ex)
+        {
+            // Log but don't surface — image is already removed from the recipe
+            Console.WriteLine($"Failed to delete image from storage: {ex.Message}");
+        }
     }
 
 

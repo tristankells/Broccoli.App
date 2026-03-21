@@ -122,6 +122,7 @@ public static class MauiProgram
             new LocalJsonSeasonalityService(sp.GetRequiredService<ILogger<LocalJsonSeasonalityService>>()));
         builder.Services.AddSingleton<IngredientCartService>();
         builder.Services.AddSingleton<IMealPrepPlanService, CosmosMealPrepPlanService>();
+        builder.Services.AddSingleton<IDailyFoodPlanService, CosmosDailyFoodPlanService>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

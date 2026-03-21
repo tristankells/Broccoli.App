@@ -121,6 +121,7 @@ builder.Services.AddSingleton<ISeasonalityService>(sp =>
     new LocalJsonSeasonalityService(sp.GetRequiredService<ILogger<LocalJsonSeasonalityService>>()));
 builder.Services.AddSingleton<IngredientCartService>();
 builder.Services.AddSingleton<IMealPrepPlanService, CosmosMealPrepPlanService>();
+builder.Services.AddSingleton<IDailyFoodPlanService, CosmosDailyFoodPlanService>();
 
 WebApplication app = builder.Build();
 
@@ -137,6 +138,8 @@ var macroTargetService = app.Services.GetRequiredService<IMacroTargetService>();
 await macroTargetService.InitializeAsync();
 var mealPrepPlanService = app.Services.GetRequiredService<IMealPrepPlanService>();
 await mealPrepPlanService.InitializeAsync();
+var dailyFoodPlanService = app.Services.GetRequiredService<IDailyFoodPlanService>();
+await dailyFoodPlanService.InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

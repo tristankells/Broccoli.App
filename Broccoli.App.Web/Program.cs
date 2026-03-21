@@ -111,6 +111,8 @@ builder.Services.AddSingleton<IFoodService>(sp =>
         foodDatabasePath,
         sp.GetRequiredService<ILogger<LocalJsonFoodService>>()));
 builder.Services.AddSingleton<IngredientParserService>();
+builder.Services.AddSingleton<ISeasonalityService>(sp =>
+    new LocalJsonSeasonalityService(sp.GetRequiredService<ILogger<LocalJsonSeasonalityService>>()));
 
 WebApplication app = builder.Build();
 

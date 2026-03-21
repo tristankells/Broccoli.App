@@ -2,10 +2,13 @@
 @page "/recipes/{RecipeId}"
 @using Broccoli.Data.Models
 @using Broccoli.Shared.Services
+@using Broccoli.App.Shared.Services
 @using Broccoli.App.Shared.Components
 @inject IRecipeService RecipeService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IngredientParserService IngredientParserService
+@inject ISeasonalityService SeasonalityService
 
 <AuthorizeView>
     <PageTitle>@(IsNewRecipe ? "Add Recipe" : "Edit Recipe")</PageTitle>
@@ -146,7 +149,7 @@
                             <div class="form-group">
                                 <textarea class="form-control textarea-large" 
                                           @bind="recipe.Ingredients"
-                                          @onblur="() => StateHasChanged()"
+                                          @onblur="OnIngredientsChanged"
                                           placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..." 
                                           rows="12"></textarea>
                                 <small class="form-text">Enter each ingredient on a new line. Parsing updates when you click outside the box.</small>
@@ -155,6 +158,9 @@
                             @if (!string.IsNullOrWhiteSpace(recipe.Ingredients))
                             {
                                 <ParsedIngredientsTable IngredientsText="@recipe.Ingredients" Servings="@recipe.Servings" />
+                                <div class="seasonality-section-detail">
+                                    <SeasonalityPanel Result="@_seasonality" IsLoading="@_seasonalityLoading" />
+                                </div>
                             }
                         </div>
 

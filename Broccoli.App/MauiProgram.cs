@@ -112,6 +112,8 @@ public static class MauiProgram
                 foodDatabasePath,
                 sp.GetRequiredService<ILogger<LocalJsonFoodService>>()));
         builder.Services.AddSingleton<IngredientParserService>();
+        builder.Services.AddSingleton<ISeasonalityService>(sp =>
+            new LocalJsonSeasonalityService(sp.GetRequiredService<ILogger<LocalJsonSeasonalityService>>()));
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

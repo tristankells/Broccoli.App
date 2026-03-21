@@ -17,6 +17,9 @@ public partial class RecipeDetail
     private string newTag = string.Empty;
     private string imageUrl = string.Empty;
 
+    private SeasonalityResult? _seasonality;
+    private bool _seasonalityLoading;
+
     private bool IsNewRecipe => string.IsNullOrEmpty(RecipeId) || RecipeId == "new";
 
     protected override async Task OnInitializedAsync()
@@ -63,6 +66,48 @@ public partial class RecipeDetail
         finally
         {
             isLoading = false;
+        }
+
+        // Score seasonality for existing recipes once the recipe is loaded.
+        if (recipe is not null && !string.IsNullOrWhiteSpace(recipe.Ingredients))
+        {
+            _ = ScoreSeasonalityAsync(recipe.Ingredients);
+        }
+    }
+
+    private async Task OnIngredientsChanged()
+    {
+        // Re-render so ParsedIngredientsTable sees the new value, then rescore.
+        StateHasChanged();
+        if (!string.IsNullOrWhiteSpace(recipe?.Ingredients))
+        {
+            _ = ScoreSeasonalityAsync(recipe.Ingredients);
+        }
+        else
+        {
+            _seasonality = null;
+        }
+    }
+
+    private async Task ScoreSeasonalityAsync(string ingredientsText)
+    {
+        _seasonalityLoading = true;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            var matches = await IngredientParserService.ParseAndMatchIngredientsAsync(ingredientsText);
+            _seasonality = SeasonalityService.Score(matches);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Seasonality scoring error: {ex.Message}");
+            _seasonality = null;
+        }
+        finally
+        {
+            _seasonalityLoading = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 

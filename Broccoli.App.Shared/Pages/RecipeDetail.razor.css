@@ -4,6 +4,12 @@
     padding: 2rem;
 }
 
+.seasonality-section-detail {
+    margin-top: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
 .detail-header {
     margin-bottom: 2rem;
     display: flex;

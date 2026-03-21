@@ -17,6 +17,9 @@ public partial class Recipes
     private List<PantryItem> userPantryItems = new();
     private bool showImportDialog;
 
+    // Keyed by recipe.Id — populated progressively by the background scoring pass.
+    private Dictionary<string, SeasonalityResult?> _seasonalityScores = new();
+
     protected override async Task OnInitializedAsync()
     {
         await LoadRecipes();
@@ -25,6 +28,7 @@ public partial class Recipes
     private async Task LoadRecipes()
     {
         isLoading = true;
+        _seasonalityScores.Clear();
         StateHasChanged();
 
         try
@@ -50,6 +54,13 @@ public partial class Recipes
         {
             isLoading = false;
             StateHasChanged();
+        }
+
+        // Fire scoring as a background task so the page paints immediately,
+        // then badges appear progressively as each batch completes.
+        if (allRecipes.Any())
+        {
+            _ = ScoreAllRecipesAsync();
         }
     }
 
@@ -131,6 +142,7 @@ public partial class Recipes
     private async Task HandleImportConfirm()
     {
         showImportDialog = false;
+        _seasonalityScores.Clear();
         await LoadRecipes(); // Refresh the list to include newly imported recipes
     }
 
@@ -217,6 +229,40 @@ public partial class Recipes
         {
             selectedRecipe = null;
             StateHasChanged();
+        }
+    }
+
+    private async Task ScoreAllRecipesAsync()
+    {
+        const int batchSize = 10;
+
+        for (int i = 0; i < allRecipes.Count; i += batchSize)
+        {
+            var batch = allRecipes.Skip(i).Take(batchSize);
+
+            foreach (var recipe in batch)
+            {
+                if (string.IsNullOrWhiteSpace(recipe.Ingredients))
+                {
+                    _seasonalityScores[recipe.Id] = null;
+                    continue;
+                }
+
+                try
+                {
+                    var matches = await IngredientParserService.ParseAndMatchIngredientsAsync(recipe.Ingredients);
+                    _seasonalityScores[recipe.Id] = SeasonalityService.Score(matches);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Seasonality scoring error for recipe '{recipe.Name}': {ex.Message}");
+                    _seasonalityScores[recipe.Id] = null;
+                }
+            }
+
+            // Marshal StateHasChanged back onto the renderer's synchronisation context
+            // so Blazor actually repaints after each batch.
+            await InvokeAsync(StateHasChanged);
         }
     }
 

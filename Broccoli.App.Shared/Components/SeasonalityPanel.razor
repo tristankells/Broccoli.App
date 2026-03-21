@@ -1,0 +1,104 @@
+﻿@using Broccoli.Data.Models
+
+<div class="seasonality-panel">
+
+    <!-- Pinned header: score summary -->
+    <div class="seasonality-header">
+        <h2>Seasonality</h2>
+
+        @if (IsLoading)
+        {
+            <p class="seasonality-loading">Calculating seasonality…</p>
+        }
+        else if (Result is null || Result.Label == SeasonalityLabel.Unavailable)
+        {
+            <p class="seasonality-unavailable">
+                No produce ingredients could be matched to the NZ seasonal dataset.
+            </p>
+        }
+        else
+        {
+            <div class="seasonality-score-row">
+                <SeasonalityBadge Result="@Result" />
+                <span class="seasonality-score">@($"{Result.Score:F0}") / 100</span>
+                @if (!string.IsNullOrEmpty(Result.BestSeasons))
+                {
+                    <span class="seasonality-best">@Result.BestSeasons</span>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Per-ingredient breakdown table -->
+    @if (!IsLoading && Result is not null && Result.Breakdown.Any())
+    {
+        <div class="table-responsive">
+            <table class="seasonality-table">
+                <thead>
+                    <tr>
+                        <th>Ingredient</th>
+                        <th class="col-center">In Season</th>
+                        <th class="col-right">Weight</th>
+                        <th class="col-right">Scarcity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var detail in Result.Breakdown.OrderByDescending(d => d.ScarcityWeight))
+                    {
+                        <tr class="@(detail.IsInSeason ? "row-in-season" : "row-out-season")">
+                            <td class="col-name">@detail.Name</td>
+                            <td class="col-center">
+                                @if (detail.IsInSeason)
+                                {
+                                    <span class="badge-in">✓</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-out">✗</span>
+                                }
+                            </td>
+                            <td class="col-right">@($"{detail.WeightInGrams:F0} g")</td>
+                            <td class="col-right">
+                                <span class="scarcity-label scarcity-@ScarcityCss(detail.ScarcityWeight)">
+                                    @ScarcityText(detail.ScarcityWeight)
+                                </span>
+                            </td>
+                        </tr>
+                        @if (detail.IsLimitedSeason && !detail.IsInSeason)
+                        {
+                            <tr class="row-callout">
+                                <td colspan="4" class="callout-cell">
+                                    ⚠️ Limited season — consider substituting
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>Scoring result to display. Null renders the unavailable state.</summary>
+    [Parameter] public SeasonalityResult? Result { get; set; }
+
+    /// <summary>When true, shows a loading placeholder instead of results.</summary>
+    [Parameter] public bool IsLoading { get; set; }
+
+    private static string ScarcityText(double w) => w switch
+    {
+        >= 1.0  => "High",
+        >= 0.75 => "High",
+        >= 0.5  => "Medium",
+        _       => "Low"
+    };
+
+    private static string ScarcityCss(double w) => w switch
+    {
+        >= 0.75 => "high",
+        >= 0.5  => "medium",
+        _       => "low"
+    };
+}
+

@@ -10,6 +10,8 @@
 @inject IAuthenticationStateService AuthStateService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject IngredientParserService IngredientParserService
+@inject ISeasonalityService SeasonalityService
 
 <AuthorizeView>
     <PageTitle>My Recipes</PageTitle>
@@ -146,6 +148,12 @@
                                     {
                                         <span class="recipe-tag-more">+@(recipe.Tags.Count - 3)</span>
                                     }
+                                </div>
+                            }
+                            @if (_seasonalityScores.TryGetValue(recipe.Id, out var seasonality))
+                            {
+                                <div class="recipe-seasonality">
+                                    <SeasonalityBadge Result="@seasonality" />
                                 </div>
                             }
                         </div>

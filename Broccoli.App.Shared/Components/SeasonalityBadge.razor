@@ -1,0 +1,41 @@
+﻿@using Broccoli.Data.Models
+
+@if (Result is not null)
+{
+    <span class="seasonality-badge seasonality-badge--@CssClass" title="@TooltipText">
+        @Emoji @LabelText
+    </span>
+}
+
+@code {
+    [Parameter] public SeasonalityResult? Result { get; set; }
+
+    private string Emoji => Result?.Label switch
+    {
+        SeasonalityLabel.PeakSeason          => "🌿",
+        SeasonalityLabel.PartiallyInSeason   => "🌤️",
+        SeasonalityLabel.OffSeason           => "❄️",
+        _                                    => "—"
+    };
+
+    private string LabelText => Result?.Label switch
+    {
+        SeasonalityLabel.PeakSeason          => "Peak season",
+        SeasonalityLabel.PartiallyInSeason   => "Partial season",
+        SeasonalityLabel.OffSeason           => "Off season",
+        _                                    => "Not scored"
+    };
+
+    private string CssClass => Result?.Label switch
+    {
+        SeasonalityLabel.PeakSeason          => "peak",
+        SeasonalityLabel.PartiallyInSeason   => "partial",
+        SeasonalityLabel.OffSeason           => "off",
+        _                                    => "unavailable"
+    };
+
+    private string TooltipText => Result?.Score is double s
+        ? $"Seasonality score: {s:F0}/100"
+        : "No produce ingredients matched";
+}
+

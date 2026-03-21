@@ -1,0 +1,31 @@
+﻿.seasonality-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.seasonality-badge--peak {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.seasonality-badge--partial {
+    background: #fff8e1;
+    color: #f57f17;
+}
+
+.seasonality-badge--off {
+    background: #eceff1;
+    color: #546e7a;
+}
+
+.seasonality-badge--unavailable {
+    background: #f5f5f5;
+    color: #9e9e9e;
+}
+

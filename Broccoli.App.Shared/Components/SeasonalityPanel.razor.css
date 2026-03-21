@@ -1,0 +1,190 @@
+﻿.seasonality-panel {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.seasonality-header {
+    background: #ffffff;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem;
+}
+
+.seasonality-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0 0 0.75rem 0;
+}
+
+.seasonality-loading {
+    color: #6c757d;
+    font-style: italic;
+    margin: 0;
+}
+
+.seasonality-unavailable {
+    color: #6c757d;
+    font-style: italic;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.seasonality-score-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.seasonality-score {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+.seasonality-best {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* ── Table ──────────────────────────────────────────── */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.seasonality-table {
+    width: 100%;
+    background: white;
+    font-size: 0.9rem;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.seasonality-table thead th {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.seasonality-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.col-name {
+    font-weight: 500;
+    color: #1a1a1a;
+}
+
+.col-center {
+    text-align: center;
+}
+
+.col-right {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* ── Row states ─────────────────────────────────────── */
+.row-in-season {
+    background: #ffffff;
+}
+
+.row-in-season:hover {
+    background: #f0f8f0;
+}
+
+.row-out-season {
+    background: #fff8e1;
+}
+
+.row-out-season:hover {
+    background: #fff3cd;
+}
+
+/* ── Status badges ──────────────────────────────────── */
+.badge-in {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background: #28a745;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-out {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background: #dc3545;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* ── Scarcity labels ────────────────────────────────── */
+.scarcity-label {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.scarcity-high {
+    background: #fce4ec;
+    color: #880e4f;
+}
+
+.scarcity-medium {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.scarcity-low {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* ── Limited-season callout ─────────────────────────── */
+.row-callout {
+    background: #fff3cd;
+}
+
+.callout-cell {
+    font-size: 0.85rem;
+    color: #856404;
+    padding: 0.4rem 0.75rem !important;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 768px) {
+    .seasonality-score-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .seasonality-table {
+        font-size: 0.8rem;
+    }
+
+    .seasonality-table thead th,
+    .seasonality-table td {
+        padding: 0.5rem;
+    }
+}
+

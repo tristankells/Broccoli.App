@@ -34,5 +34,16 @@ namespace Broccoli.Shared.Services
         /// and returns the best candidate with a normalised score and method label.
         /// </summary>
         FoodMatchResult FindBestMatch(string foodDescription);
+
+        // ── Write operations ────────────────────────────────────────────────
+
+        /// <summary>Adds a new food, assigns the next available Id, and persists to disk.</summary>
+        Task<Food> AddAsync(Food food);
+
+        /// <summary>Updates an existing food (matched by Id) and persists to disk.</summary>
+        Task UpdateAsync(Food food);
+
+        /// <summary>Deletes the food with the given Id and persists to disk.</summary>
+        Task DeleteAsync(int id);
     }
 }

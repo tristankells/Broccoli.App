@@ -16,6 +16,8 @@ public class LocalJsonFoodService : IFoodService
 {
     private readonly Dictionary<string, Food> _foodByName;
     private readonly ILogger<LocalJsonFoodService> _logger;
+    private readonly string _databasePath;
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     // Stopwords stripped before token matching so they don't skew similarity scores.
     private static readonly HashSet<string> s_stopwords = new(StringComparer.OrdinalIgnoreCase)
@@ -41,6 +43,7 @@ public class LocalJsonFoodService : IFoodService
     public LocalJsonFoodService(string databasePath, ILogger<LocalJsonFoodService> logger)
     {
         _logger = logger;
+        _databasePath = databasePath;
         _logger.LogTrace("LocalJsonFoodService initialising. DatabasePath={DatabasePath}", databasePath);
 
         if (!File.Exists(databasePath))
@@ -108,6 +111,62 @@ public class LocalJsonFoodService : IFoodService
         _logger.LogTrace("GetAllAsync called. Returning {Count} food items", _foodByName.Count);
         return Task.FromResult<IEnumerable<Food>>(_foodByName.Values);
     }
+
+    /// <inheritdoc />
+    public async Task<Food> AddAsync(Food food)
+    {
+        int nextId = _foodByName.Count > 0 ? _foodByName.Values.Max(f => f.Id) + 1 : 1;
+        food.Id = nextId;
+        _foodByName[food.Name] = food;
+        _logger.LogInformation("AddAsync: added food Id={Id} Name='{Name}'", food.Id, food.Name);
+        await PersistAsync();
+        return food;
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateAsync(Food food)
+    {
+        // If the name changed, remove the old key first
+        var existing = _foodByName.Values.FirstOrDefault(f => f.Id == food.Id);
+        if (existing != null && !string.Equals(existing.Name, food.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            _foodByName.Remove(existing.Name);
+        }
+        _foodByName[food.Name] = food;
+        _logger.LogInformation("UpdateAsync: updated food Id={Id} Name='{Name}'", food.Id, food.Name);
+        await PersistAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteAsync(int id)
+    {
+        var food = _foodByName.Values.FirstOrDefault(f => f.Id == id);
+        if (food != null)
+        {
+            _foodByName.Remove(food.Name);
+            _logger.LogInformation("DeleteAsync: deleted food Id={Id} Name='{Name}'", food.Id, food.Name);
+            await PersistAsync();
+        }
+    }
+
+    /// <summary>Serialises the in-memory dictionary to disk under a write lock.</summary>
+    private async Task PersistAsync()
+    {
+        await _writeLock.WaitAsync();
+        try
+        {
+            var ordered = _foodByName.Values.OrderBy(f => f.Id).ToList();
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string json = JsonSerializer.Serialize(ordered, options);
+            await File.WriteAllTextAsync(_databasePath, json);
+            _logger.LogDebug("PersistAsync: wrote {Count} foods to '{Path}'", ordered.Count, _databasePath);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
 
     /// <summary>
     /// Legacy fuzzy helper — delegates to <see cref="FindBestMatch"/> and applies the

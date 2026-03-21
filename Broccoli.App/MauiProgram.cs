@@ -105,7 +105,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<RecipeImportService>();
 
         builder.Services.AddMauiBlazorWebView();
-        
+
+        // Food database editing is not supported on MAUI — register the flag as permanently off
+        // so Foods.razor can inject it without error; the USDA services are not registered.
+        builder.Services.AddSingleton(new FeatureFlagsSettings { FoodDatabaseEditing = false });
+
         // Register FoodService
         string foodDatabasePath = Path.Combine(FileSystem.AppDataDirectory, "..", "..", "..", "..", "..", "..", "Ginger.Data", "Data", "FoodDatabase.json");
         if (!File.Exists(foodDatabasePath))

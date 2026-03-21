@@ -1,0 +1,127 @@
+﻿@using Broccoli.App.Shared.Services
+@using Broccoli.Data.Models
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="Cancel"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="usda-dialog-title">
+        <div class="modal-content-box usda-dialog">
+
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="usda-dialog-title" class="modal-title-text">
+                    🔍 Search USDA FoodData Central
+                </h2>
+                <button class="modal-close-btn" @onclick="Cancel" title="Close">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body-scroll">
+
+                <!-- Search bar -->
+                <div class="search-bar mb-3">
+                    <input class="form-control"
+                           placeholder="Search foods…"
+                           @bind="_query"
+                           @bind:event="oninput"
+                           @onkeypress="HandleSearchKeyPress"
+                           disabled="@_isSearching" />
+                    <button class="btn btn-primary ms-2"
+                            @onclick="Search"
+                            disabled="@(_isSearching || string.IsNullOrWhiteSpace(_query))">
+                        @if (_isSearching)
+                        {
+                            <span>Searching…</span>
+                        }
+                        else
+                        {
+                            <span>Search</span>
+                        }
+                    </button>
+                </div>
+
+                @if (_error != null)
+                {
+                    <div class="alert alert-danger">@_error</div>
+                }
+
+                @if (_result != null)
+                {
+                    <!-- Results table -->
+                    <div class="results-table-wrapper">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="sticky-top bg-light">
+                            <tr>
+                                <th style="width:2rem;"></th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Cal</th>
+                                <th>Fat g</th>
+                                <th>Sat.Fat g</th>
+                                <th>Carbs g</th>
+                                <th>Fiber g</th>
+                                <th>Sugars g</th>
+                                <th>Protein g</th>
+                                <th>Na mg</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (UsdaFoodItem item in _result.Foods)
+                            {
+                                <tr class="@(_selectedIds.Contains(item.FdcId) ? "table-primary" : "")">
+                                    <td>
+                                        <input type="checkbox"
+                                               checked="@_selectedIds.Contains(item.FdcId)"
+                                               @onchange="e => ToggleSelection(item.FdcId, (bool)e.Value!)" />
+                                    </td>
+                                    <td>@item.Description</td>
+                                    <td><span class="badge bg-secondary">@item.DataType</span></td>
+                                    <td>@item.Calories.ToString("F1")</td>
+                                    <td>@item.Fat.ToString("F2")</td>
+                                    <td>@item.SaturatedFat.ToString("F2")</td>
+                                    <td>@item.Carbohydrates.ToString("F2")</td>
+                                    <td>@item.DietaryFiber.ToString("F2")</td>
+                                    <td>@item.Sugars.ToString("F2")</td>
+                                    <td>@item.Protein.ToString("F2")</td>
+                                    <td>@item.SodiumMg.ToString("F1")</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (_result.TotalPages > 1)
+                    {
+                        <div class="pagination-bar mt-2">
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    @onclick="() => GoToPage(_currentPage - 1)"
+                                    disabled="@(_currentPage <= 1 || _isSearching)">
+                                ← Prev
+                            </button>
+                            <span class="page-info">Page @_result.CurrentPage of @_result.TotalPages</span>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    @onclick="() => GoToPage(_currentPage + 1)"
+                                    disabled="@(_currentPage >= _result.TotalPages || _isSearching)">
+                                Next →
+                            </button>
+                        </div>
+                    }
+
+                    <p class="mt-2 mb-0 text-muted small">@_result.TotalHits total results</p>
+                }
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer-bar">
+                <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                <button class="btn btn-primary"
+                        @onclick="Import"
+                        disabled="@(_selectedIds.Count == 0)">
+                    Import Selected (@_selectedIds.Count)
+                </button>
+            </div>
+        </div>
+    </div>
+}
+

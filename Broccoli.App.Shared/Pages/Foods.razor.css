@@ -1,0 +1,74 @@
+﻿/* ---- Food table typography ---- */
+.food-table th,
+.food-table td {
+    font-size: 0.82rem;
+    padding: 0.3rem 0.4rem;
+    white-space: nowrap;
+}
+
+/* ---- Inline edit inputs ---- */
+.edit-input {
+    width: 100%;
+    min-width: 70px;
+    padding: 0.1rem 0.25rem;
+    font-size: 0.8rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.num-input {
+    max-width: 80px;
+}
+
+/* ---- Actions cell ---- */
+.actions-cell {
+    white-space: nowrap;
+}
+
+/* ---- Icon buttons ---- */
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1;
+    transition: background 0.15s;
+}
+
+.btn-icon:hover {
+    background: #e9ecef;
+}
+
+.btn-danger-icon:hover {
+    background: #f8d7da;
+}
+
+.btn-success-icon:hover {
+    background: #d1e7dd;
+}
+
+/* ---- Editing row (amber highlight) ---- */
+.editing-row {
+    background-color: #fff3cd !important;
+}
+
+/* ---- Add row (green highlight) ---- */
+.add-row {
+    background-color: #d1e7dd !important;
+}
+
+/* ---- Delete confirm row (red highlight) ---- */
+.delete-confirm-row {
+    background-color: #f8d7da !important;
+}
+
+/* ---- Page action bar ---- */
+.page-action-bar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+

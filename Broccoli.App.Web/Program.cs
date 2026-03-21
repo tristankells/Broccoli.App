@@ -85,6 +85,18 @@ builder.Services.AddSingleton<MacroCalculatorService>();
 builder.Services.AddSingleton<IImportFormat, PaprikaHtmlImportFormat>();
 builder.Services.AddSingleton<RecipeImportService>();
 
+// Feature flags
+var featureFlags = new FeatureFlagsSettings();
+builder.Configuration.GetSection(FeatureFlagsSettings.SectionName).Bind(featureFlags);
+builder.Services.AddSingleton(featureFlags);
+
+// USDA FoodData Central
+var usdaSettings = new UsdaSettings();
+builder.Configuration.GetSection(UsdaSettings.SectionName).Bind(usdaSettings);
+builder.Services.AddSingleton(usdaSettings);
+builder.Services.AddHttpClient<IUsdaFoodSearchService, UsdaFoodSearchService>(client =>
+    client.BaseAddress = new Uri(usdaSettings.BaseUrl.TrimEnd('/') + "/"));
+
 // Register FoodService
 // Try multiple paths for the FoodDatabase.json file
 string foodDatabasePath = string.Empty;

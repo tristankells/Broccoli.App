@@ -11,7 +11,7 @@ public partial class RecipeReadOnly
     private bool isLoading = true;
     private string? errorMessage;
     private IReadOnlyList<string> ingredients = Array.Empty<string>();
-    private string directions;
+    private string? directions;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -37,7 +37,7 @@ public partial class RecipeReadOnly
             {
                 errorMessage = "Recipe not found.";
                 ingredients = Array.Empty<string>();
-                directions = string.Empty;
+                directions = null;
                 return;
             }
 

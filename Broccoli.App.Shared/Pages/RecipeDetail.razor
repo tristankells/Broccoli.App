@@ -221,7 +221,7 @@
                                               @bind-Value="recipe.Directions" 
                                               placeholder="1. Preheat oven to 375°F&#10;2. Mix ingredients&#10;3. Bake for 30 minutes..." 
                                               rows="12" />
-                                <small class="form-text">Enter cooking instructions</small>
+                                <small class="form-text">Enter cooking instructions. Markdown supported: <strong>**bold**</strong>, <em>*italic*</em>, <code># Heading</code>, <code>- bullet</code>, <code>1. numbered list</code></small>
                             </div>
                         </div>
 
@@ -233,6 +233,7 @@
                                               @bind-Value="recipe.Notes" 
                                               placeholder="Any additional notes, tips, or variations..." 
                                               rows="6" />
+                                <small class="form-text">Markdown supported: <strong>**bold**</strong>, <em>*italic*</em>, <code># Heading</code>, <code>- bullet</code>, <code>1. numbered list</code></small>
                             </div>
                         </div>
 

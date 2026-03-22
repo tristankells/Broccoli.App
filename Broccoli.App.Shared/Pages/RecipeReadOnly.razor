@@ -67,29 +67,25 @@
                     <h2>Instructions</h2>
                     @if (!string.IsNullOrWhiteSpace(directions))
                     {
-                        <div class="instructions-list">
-                            @directions
+                        <div class="instructions-list markdown-content">
+                            <MarkdownRenderer Content="@directions" />
                         </div>
                     }
                     else
                     {
                         <p class="empty-text">No instructions listed.</p>
                     }
-                    
-                    @* @if (directions.Count > 0) *@
-                    @* { *@
-                    @*     <div class="instructions-list"> *@
-                    @*         @foreach (var step in directions) *@
-                    @*         { *@
-                    @*             <p class="instruction-step" @key="step">@step</p> *@
-                    @*         } *@
-                    @*     </div> *@
-                    @* } *@
-                    @* else *@
-                    @* { *@
-                    @*     <p class="empty-text">No instructions listed.</p> *@
-                    @* } *@
                 </section>
+
+                @if (!string.IsNullOrWhiteSpace(recipe.Notes))
+                {
+                    <section class="notes-section">
+                        <h2>Notes</h2>
+                        <div class="notes-content markdown-content">
+                            <MarkdownRenderer Content="@recipe.Notes" />
+                        </div>
+                    </section>
+                }
             </article>
         }
     </div>

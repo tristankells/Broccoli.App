@@ -23,6 +23,12 @@ public partial class RecipeDetail
     private SeasonalityResult? _seasonality;
     private bool _seasonalityLoading;
 
+    // Autocomplete state
+    private HashSet<string> _allTags = new(StringComparer.OrdinalIgnoreCase);
+    private List<string> _tagSuggestions = new();
+    private bool _showSuggestions;
+    private int _activeSuggestionIndex = -1; // -1 = nothing selected
+
     private bool IsNewRecipe => string.IsNullOrEmpty(RecipeId) || RecipeId == "new";
 
     protected override async Task OnInitializedAsync()
@@ -72,14 +78,24 @@ public partial class RecipeDetail
                     Tags = new List<string>(),
                     Images = new List<string>()
                 };
+                // Still fetch tags so the user gets suggestions on a brand-new recipe
+                var allForNew = await RecipeService.GetAllAsync();
+                _allTags = allForNew
+                    .SelectMany(r => r.Tags)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
             }
             else
             {
-                recipe = await RecipeService.GetByIdAsync(RecipeId!);
+                // Fire both requests in parallel
+                var recipeTask = RecipeService.GetByIdAsync(RecipeId!);
+                var allTask = RecipeService.GetAllAsync();
+                await Task.WhenAll(recipeTask, allTask);
+                recipe = recipeTask.Result;
+                _allTags = allTask.Result
+                    .SelectMany(r => r.Tags)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
                 if (recipe == null)
-                {
                     errorMessage = "Recipe not found.";
-                }
             }
         }
         catch (Exception ex)
@@ -235,6 +251,79 @@ public partial class RecipeDetail
         if (e.Key == "Enter")
         {
             AddTag();
+        }
+    }
+
+    private void OnTagInputChanged(ChangeEventArgs e)
+    {
+        newTag = e.Value?.ToString() ?? string.Empty;
+        _activeSuggestionIndex = -1;
+
+        if (string.IsNullOrWhiteSpace(newTag))
+        {
+            _tagSuggestions.Clear();
+            _showSuggestions = false;
+            return;
+        }
+
+        // Suggestions: tags that start with the typed text, excluding tags
+        // already on this recipe, ordered alphabetically, capped at 8.
+        _tagSuggestions = _allTags
+            .Where(t => t.StartsWith(newTag, StringComparison.OrdinalIgnoreCase)
+                        && !(recipe?.Tags.Contains(t, StringComparer.OrdinalIgnoreCase) ?? false))
+            .OrderBy(t => t)
+            .Take(8)
+            .ToList();
+
+        _showSuggestions = _tagSuggestions.Count > 0;
+    }
+
+    private void SelectSuggestion(string tag)
+    {
+        newTag = tag;
+        _showSuggestions = false;
+        _activeSuggestionIndex = -1;
+        AddTag(); // reuses existing duplicate-check + clear logic
+    }
+
+    private async Task HideSuggestions()
+    {
+        // Delay lets a mousedown on a list item fire before focus leaves the wrapper.
+        await Task.Delay(150);
+        _showSuggestions = false;
+        _activeSuggestionIndex = -1;
+    }
+
+    private void OnTagKeyDown(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                if (_tagSuggestions.Count == 0) break;
+                _showSuggestions = true;
+                _activeSuggestionIndex = Math.Min(_activeSuggestionIndex + 1, _tagSuggestions.Count - 1);
+                break;
+            case "ArrowUp":
+                if (_tagSuggestions.Count == 0) break;
+                _activeSuggestionIndex = Math.Max(_activeSuggestionIndex - 1, -1);
+                if (_activeSuggestionIndex == -1) _showSuggestions = _tagSuggestions.Count > 0;
+                break;
+            case "Enter":
+                if (_activeSuggestionIndex >= 0 && _activeSuggestionIndex < _tagSuggestions.Count)
+                {
+                    SelectSuggestion(_tagSuggestions[_activeSuggestionIndex]);
+                }
+                else
+                {
+                    // Fallback: enter with no selection uses the typed text (existing behaviour)
+                    AddTag();
+                    _showSuggestions = false;
+                }
+                break;
+            case "Escape":
+                _showSuggestions = false;
+                _activeSuggestionIndex = -1;
+                break;
         }
     }
 

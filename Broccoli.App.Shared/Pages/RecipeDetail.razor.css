@@ -407,6 +407,42 @@
     flex-shrink: 0;
 }
 
+/* Autocomplete */
+.tag-autocomplete-wrapper {
+    position: relative;
+}
+
+.tag-suggestions {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    max-height: 12rem;
+    overflow-y: auto;
+    background: var(--color-bg-card, #fff);
+    border: 1px solid var(--color-border, #dee2e6);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+    z-index: 10;
+}
+
+.tag-suggestion-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--color-text-primary, #1a1a1a);
+    transition: background 0.1s ease;
+}
+
+.tag-suggestion-item:hover,
+.tag-suggestion-item.active {
+    background: var(--color-primary-light, #e8f0fe);
+    color: var(--color-primary, #0066cc);
+}
+
 /* Ingredients Parsed */
 .ingredients-parsed {
     margin-top: 1rem;

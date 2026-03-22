@@ -157,9 +157,34 @@
                                         </span>
                                     }
                                 </div>
-                                <div class="tag-input-row">
-                                    <input type="text" class="form-control" @bind="newTag" @onkeypress="OnTagKeyPress" placeholder="Add tag..." />
-                                    <button type="button" class="btn btn-secondary" @onclick="AddTag">Add Tag</button>
+                                <!-- Autocomplete wrapper — focusout fires HideSuggestions with delay -->
+                                <div class="tag-autocomplete-wrapper" @onfocusout="HideSuggestions">
+                                    <div class="tag-input-row">
+                                        <input type="text"
+                                               class="form-control"
+                                               value="@newTag"
+                                               @oninput="OnTagInputChanged"
+                                               @onkeydown="OnTagKeyDown"
+                                               placeholder="Add tag..."
+                                               autocomplete="off" />
+                                        <button type="button" class="btn btn-secondary" @onclick="AddTag">Add Tag</button>
+                                    </div>
+                                    @if (_showSuggestions && _tagSuggestions.Any())
+                                    {
+                                        <ul class="tag-suggestions" role="listbox">
+                                            @for (int i = 0; i < _tagSuggestions.Count; i++)
+                                            {
+                                                var suggestion = _tagSuggestions[i];
+                                                var index = i;
+                                                <li class="tag-suggestion-item @(index == _activeSuggestionIndex ? "active" : "")"
+                                                    role="option"
+                                                    aria-selected="@(index == _activeSuggestionIndex)"
+                                                    @onmousedown="() => SelectSuggestion(suggestion)">
+                                                    @suggestion
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
                                 </div>
                             </div>
                         </div>

@@ -124,12 +124,103 @@
 
   /* ── Overlay ─────────────────────────────────────────── */
   --color-overlay:            rgba(0, 0, 0, 0.65);
+
+  /* ── Bootstrap variable overrides ───────────────────────────────────
+     Bootstrap reads --bs-body-bg / --bs-body-color for .form-select,
+     .form-control, badges, etc.  Overriding them here makes every
+     Bootstrap component switch automatically, with no per-component CSS.
+     ──────────────────────────────────────────────────────────────────── */
+  --bs-body-bg:                 var(--color-bg-page);
+  --bs-body-color:              var(--color-text-body);
+  --bs-body-color-rgb:          201, 209, 217;
+  --bs-secondary-color:         var(--color-text-secondary);
+  --bs-secondary-bg:            var(--color-bg-surface);
+  --bs-tertiary-color:          var(--color-text-muted);
+  --bs-tertiary-bg:             var(--color-bg-subtle);
+  --bs-border-color:            var(--color-border);
+  --bs-border-color-translucent: rgba(48, 54, 61, 0.15);
+  --bs-emphasis-color:          var(--color-text-heading);
+  --bs-heading-color:           var(--color-text-heading);
+  --bs-link-color:              var(--color-primary);
+  --bs-link-hover-color:        var(--color-primary-hover);
+
+  /* form-select: replace the default dark chevron SVG with a light one */
+  --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23c9d1d9' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* Tell the browser which colour scheme is active so native controls render correctly */
+:root {
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
 }
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background: var(--color-bg-page);
     color: var(--color-text-body);
+}
+
+/* ── Global form-control reset ─────────────────────────────────────────
+   Explicitly style all native inputs so they always honour our tokens.
+   Scoped component CSS cannot override browser agent-stylesheet defaults
+   reliably on its own, especially for <input> and <select>.
+   ───────────────────────────────────────────────────────────────────── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
+select,
+textarea {
+    background-color: var(--color-bg-raised);
+    color: var(--color-text-body);
+    border-color: var(--color-border-input);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):focus,
+select:focus,
+textarea:focus {
+    background-color: var(--color-bg-raised);
+    color: var(--color-text-body);
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+/* ── Bootstrap table dark-mode overrides ───────────────────────────────
+   Bootstrap's .table, .table-striped, .bg-light etc. use --bs-* vars
+   that default to light-mode values. Override them when dark is active.
+   ───────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .table {
+    --bs-table-bg:            var(--color-bg-raised);
+    --bs-table-striped-bg:    var(--color-bg-subtle);
+    --bs-table-striped-color: var(--color-text-body);
+    --bs-table-hover-bg:      var(--color-bg-hover);
+    --bs-table-hover-color:   var(--color-text-body);
+    --bs-table-border-color:  var(--color-border-subtle);
+    --bs-table-color:         var(--color-text-body);
+    color: var(--color-text-body);
+    border-color: var(--color-border);
+}
+
+[data-theme="dark"] .table > :not(caption) > * > * {
+    color: var(--color-text-body);
+    background-color: var(--color-bg-raised);
+    border-bottom-color: var(--color-border-subtle);
+}
+
+[data-theme="dark"] .table thead > * > * {
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-surface);
+    border-bottom-color: var(--color-border);
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: var(--color-bg-surface) !important;
+    color: var(--color-text-body) !important;
+}
+
+[data-theme="dark"] .sticky-top.bg-light,
+[data-theme="dark"] thead.sticky-top {
+    background-color: var(--color-bg-surface) !important;
 }
 
 a, .btn-link {

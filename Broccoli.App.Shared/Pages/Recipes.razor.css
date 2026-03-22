@@ -397,3 +397,49 @@
         max-width: 100%;
     }
 }
+
+/* ── Favourite button in recipe-actions ── */
+.btn-favorite {
+    color: #aaa;
+    font-size: 1.1rem;
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-favorite:hover {
+    color: #f0ad00;
+    transform: scale(1.2);
+}
+
+.btn-favorite.is-favorite {
+    color: #f0ad00;
+}
+
+/* ── Favourites filter chip ── */
+.favorites-chip {
+    border-color: #f0ad00;
+    color: #856404;
+    background-color: #fff9e6;
+}
+
+.favorites-chip.selected {
+    background-color: #f0ad00;
+    color: white;
+    border-color: #f0ad00;
+}
+
+/* ── Star badge overlaid on recipe image ── */
+.recipe-image {
+    position: relative;
+}
+
+.favorite-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 1.25rem;
+    color: #f0ad00;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    z-index: 1;
+}
+

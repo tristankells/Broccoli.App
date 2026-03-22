@@ -93,5 +93,12 @@ namespace Broccoli.Data.Models
         /// </summary>
         [JsonPropertyName("updatedAt")]
         public DateTime? UpdatedAt { get; set; }
+
+        /// <summary>
+        /// Whether the user has marked this recipe as a favourite.
+        /// Defaults to false; persisted to CosmosDB as "isFavorite".
+        /// </summary>
+        [JsonPropertyName("isFavorite")]
+        public bool IsFavorite { get; set; } = false;
     }
 }

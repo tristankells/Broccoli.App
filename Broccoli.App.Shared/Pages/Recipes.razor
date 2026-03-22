@@ -41,6 +41,11 @@
             </div>
             
             <div class="tag-filters">
+                <button class="tag-chip favorites-chip @(showFavoritesOnly ? "selected" : "")"
+                        @onclick="ToggleFavoritesFilter">
+                    @(showFavoritesOnly ? "★" : "☆") Favourites
+                </button>
+
                 @if (availableTags.Any())
                 {
                     <div class="tag-filter-label">Filter by tags:</div>
@@ -79,7 +84,7 @@
             <div class="empty-state">
                 <div class="empty-icon">📖</div>
                 <h2>No recipes found</h2>
-                @if (selectedTags.Any() || !string.IsNullOrWhiteSpace(searchTerm))
+                @if (selectedTags.Any() || !string.IsNullOrWhiteSpace(searchTerm) || showFavoritesOnly)
                 {
                     <p>Try adjusting your filters or search terms.</p>
                     <button class="btn btn-secondary" @onclick="ClearFilters">Clear Filters</button>
@@ -102,6 +107,10 @@
                 {
                     <div class="recipe-card" @ondblclick="() => NavigateToReadRecipe(recipe.Id)">
                         <div class="recipe-image">
+                            @if (recipe.IsFavorite)
+                            {
+                                <span class="favorite-badge" title="Favourite">★</span>
+                            }
                             @if (recipe.Images.Any())
                             {
                                 <img src="@recipe.Images.First()" alt="@recipe.Name" />
@@ -159,6 +168,12 @@
                             }
                         </div>
                         <div class="recipe-actions">
+                            <button class="btn-icon btn-favorite @(recipe.IsFavorite ? "is-favorite" : "")"
+                                    title="@(recipe.IsFavorite ? "Remove from favourites" : "Add to favourites")"
+                                    @onclick="() => ToggleFavorite(recipe)"
+                                    @onclick:stopPropagation="true">
+                                @(recipe.IsFavorite ? "★" : "☆")
+                            </button>
                             <button class="btn-icon" @onclick="() => NavigateToEditRecipe(recipe.Id)" @onclick:stopPropagation="true">
                                 ✏️ Edit
                             </button>

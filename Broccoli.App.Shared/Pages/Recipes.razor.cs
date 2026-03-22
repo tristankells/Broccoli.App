@@ -11,6 +11,7 @@ public partial class Recipes
     private HashSet<string> selectedTags = new();
     private string searchTerm = string.Empty;
     private bool isLoading = true;
+    private bool showFavoritesOnly = false;
     private System.Threading.Timer? searchDebounceTimer;
     private bool showIngredientDialog;
     private Recipe? selectedRecipe;
@@ -84,7 +85,17 @@ public partial class Recipes
                 (r.Source?.ToLower().Contains(searchLower) ?? false));
         }
 
-        filteredRecipes = results.ToList();
+        // Favourites-only filter
+        if (showFavoritesOnly)
+        {
+            results = results.Where(r => r.IsFavorite);
+        }
+
+        // Favourites pinned first, then newest first
+        filteredRecipes = results
+            .OrderByDescending(r => r.IsFavorite)
+            .ThenByDescending(r => r.CreatedAt)
+            .ToList();
     }
 
     private void ToggleTag(string tag)
@@ -105,7 +116,33 @@ public partial class Recipes
     {
         selectedTags.Clear();
         searchTerm = string.Empty;
+        showFavoritesOnly = false;
         ApplyFilters();
+    }
+
+    private void ToggleFavoritesFilter()
+    {
+        showFavoritesOnly = !showFavoritesOnly;
+        ApplyFilters();
+    }
+
+    private async Task ToggleFavorite(Recipe recipe)
+    {
+        // Optimistic update — flip the flag and re-sort immediately
+        recipe.IsFavorite = !recipe.IsFavorite;
+        ApplyFilters();
+
+        try
+        {
+            await RecipeService.UpdateAsync(recipe);
+        }
+        catch (Exception ex)
+        {
+            // Roll back on failure
+            Console.WriteLine($"Error saving favourite for '{recipe.Name}': {ex.Message}");
+            recipe.IsFavorite = !recipe.IsFavorite;
+            ApplyFilters();
+        }
     }
 
     private void OnSearchChanged()

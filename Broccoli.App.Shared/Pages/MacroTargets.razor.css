@@ -17,7 +17,7 @@
     margin: 0;
     font-size: 2rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .header-actions {
@@ -44,32 +44,32 @@
 }
 
 .btn-primary {
-    background: #0066cc;
+    background: var(--color-primary);
     color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #0052a3;
+    background: var(--color-primary-hover);
 }
 
 .btn-outline {
-    background: #fff;
-    color: #0066cc;
-    border: 2px solid #0066cc;
+    background: var(--color-bg-raised);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
 }
 
 .btn-outline:hover {
-    background: #e8f0fb;
+    background: var(--color-primary-subtle);
 }
 
 /* ---- Alert ---- */
 .alert-danger {
-    background: #f8d7da;
-    color: #721c24;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-dark);
     padding: 0.75rem 1rem;
     border-radius: 8px;
     margin-bottom: 1rem;
-    border: 1px solid #f5c6cb;
+    border: 1px solid var(--color-danger-border);
 }
 
 /* ---- Loading ---- */
@@ -79,14 +79,14 @@
     align-items: center;
     padding: 3rem 1rem;
     gap: 1rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .spinner {
     width: 36px;
     height: 36px;
-    border: 3px solid #dee2e6;
-    border-top-color: #0066cc;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
 }
@@ -99,7 +99,7 @@
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .empty-icon {
@@ -110,7 +110,7 @@
 .empty-state h2 {
     font-size: 1.4rem;
     font-weight: 600;
-    color: #495057;
+    color: var(--color-text-secondary);
     margin: 0 0 0.5rem;
 }
 
@@ -126,7 +126,7 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 8px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border);
 }
 
 /* ---- Table ---- */
@@ -134,20 +134,20 @@
     border-collapse: collapse;
     width: 100%;
     min-width: 900px;
-    background: #fff;
+    background: var(--color-bg-raised);
     font-size: 0.88rem;
 }
 
 .macro-table thead tr {
-    background: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
+    background: var(--color-bg-surface);
+    border-bottom: 2px solid var(--color-border);
 }
 
 .macro-table th {
     padding: 0.6rem 0.6rem;
     text-align: center;
     font-weight: 700;
-    color: #495057;
+    color: var(--color-text-secondary);
     font-size: 0.8rem;
     white-space: nowrap;
     vertical-align: bottom;
@@ -155,17 +155,17 @@
 
 .unit-label {
     font-weight: 400;
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-size: 0.72rem;
 }
 
 .macro-table tbody tr {
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-subtle);
     transition: background 0.15s;
 }
 
 .macro-table tbody tr:hover {
-    background: #fafafa;
+    background: var(--color-bg-subtle);
 }
 
 .macro-table tbody tr:last-child {
@@ -200,15 +200,15 @@
 .cell-input:focus,
 .cell-select:focus {
     outline: none;
-    border-color: #0066cc;
-    background: #fff;
+    border-color: var(--color-primary);
+    background: var(--color-bg-raised);
     box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.12);
 }
 
 .cell-input:hover,
 .cell-select:hover {
-    border-color: #adb5bd;
-    background: #fff;
+    border-color: var(--color-border-emphasis);
+    background: var(--color-bg-raised);
 }
 
 .cell-number {
@@ -220,13 +220,13 @@
 .calc-cell {
     padding: 0.5rem 0.6rem;
     font-variant-numeric: tabular-nums;
-    color: #495057;
+    color: var(--color-text-secondary);
 }
 
-.calories-cell { color: #0066cc; font-weight: 600; }
-.protein-cell  { color: #d9534f; }
-.carbs-cell    { color: #f0ad4e; }
-.fat-cell      { color: #5cb85c; }
+.calories-cell { color: var(--color-primary); font-weight: 600; }
+.protein-cell  { color: var(--color-danger); }
+.carbs-cell    { color: var(--color-warning); }
+.fat-cell      { color: var(--color-success); }
 
 /* ---- Delete button ---- */
 .btn-icon {
@@ -241,7 +241,7 @@
 }
 
 .btn-danger:hover {
-    background: #f8d7da;
+    background: var(--color-danger-bg);
 }
 
 /* ---- Legend ---- */
@@ -257,7 +257,7 @@
     align-items: center;
     gap: 0.35rem;
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .legend-dot {
@@ -267,10 +267,10 @@
     display: inline-block;
 }
 
-.calories-dot { background: #0066cc; }
-.protein-dot  { background: #d9534f; }
-.carbs-dot    { background: #f0ad4e; }
-.fat-dot      { background: #5cb85c; }
+.calories-dot { background: var(--color-primary); }
+.protein-dot  { background: var(--color-danger); }
+.carbs-dot    { background: var(--color-warning); }
+.fat-dot      { background: var(--color-success); }
 
 /* ---- Mobile adjustments ---- */
 @media (max-width: 768px) {
@@ -303,4 +303,3 @@
         text-align: center;
     }
 }
-

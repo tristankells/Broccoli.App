@@ -16,7 +16,7 @@
     margin: 0;
     font-size: 2rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .add-button {
@@ -42,14 +42,14 @@
     align-items: center;
     justify-content: center;
     padding: 4rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #0066cc;
+    border: 4px solid var(--color-bg-subtle);
+    border-top: 4px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -63,7 +63,7 @@
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     border-radius: 12px;
 }
 
@@ -73,12 +73,12 @@
 }
 
 .empty-state h2 {
-    color: #495057;
+    color: var(--color-text-secondary);
     margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-    color: #6c757d;
+    color: var(--color-text-muted);
     margin-bottom: 1.5rem;
     max-width: 420px;
     margin-left: auto;
@@ -94,8 +94,8 @@
 
 /* ── Plan card ── */
 .plan-card {
-    background: white;
-    border: 1px solid #dee2e6;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -114,8 +114,8 @@
 
 /* Valid drop target being hovered */
 .plan-card.drag-over {
-    border: 2px dashed #0066cc;
-    background: #f0f7ff;
+    border: 2px dashed var(--color-primary);
+    background: var(--color-primary-wash);
     transform: scale(1.01);
     box-shadow: 0 6px 20px rgba(0, 102, 204, 0.2);
 }
@@ -126,7 +126,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     cursor: pointer;
     border-bottom: 1px solid transparent;
     transition: background 0.15s;
@@ -135,7 +135,7 @@
 
 .drag-handle {
     font-size: 1.1rem;
-    color: #adb5bd;
+    color: var(--color-text-placeholder);
     cursor: grab;
     flex-shrink: 0;
     line-height: 1;
@@ -144,7 +144,7 @@
 }
 
 .plan-header:hover .drag-handle {
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .plan-card.is-dragging .drag-handle {
@@ -152,16 +152,16 @@
 }
 
 .plan-card.is-expanded .plan-header {
-    border-bottom-color: #dee2e6;
+    border-bottom-color: var(--color-border);
 }
 
 .plan-header:hover {
-    background: #e9ecef;
+    background: var(--color-bg-hover);
 }
 
 .expand-toggle {
     font-size: 0.75rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
     flex-shrink: 0;
     width: 1rem;
     text-align: center;
@@ -170,7 +170,7 @@
 .plan-name {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -181,12 +181,12 @@
     flex: 1;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
-    border: 2px solid #0066cc;
+    color: var(--color-text-heading);
+    border: 2px solid var(--color-primary);
     border-radius: 6px;
     padding: 0.2rem 0.5rem;
     outline: none;
-    background: white;
+    background: var(--color-bg-raised);
     min-width: 0;
 }
 
@@ -197,14 +197,14 @@
     font-size: 1rem;
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
-    color: #6c757d;
+    color: var(--color-text-muted);
     flex-shrink: 0;
     transition: background 0.15s, color 0.15s;
 }
 
 .btn-icon-sm:hover {
-    background: #dee2e6;
-    color: #212529;
+    background: var(--color-border);
+    color: var(--color-text-body);
 }
 
 .plan-header-actions {
@@ -221,7 +221,7 @@
 }
 
 .no-plan-recipes {
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-style: italic;
     margin: 0 0 1rem 0;
     font-size: 0.9rem;
@@ -239,7 +239,7 @@
     align-items: center;
     gap: 0.6rem;
     padding: 0.55rem 0.5rem;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-subtle);
     border-radius: 6px;
     transition: background 0.1s;
 }
@@ -249,7 +249,7 @@
 }
 
 .plan-recipe-item:hover {
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
 }
 
 .plan-recipe-icon {
@@ -261,7 +261,7 @@
     flex: 1;
     font-size: 0.95rem;
     font-weight: 500;
-    color: #212529;
+    color: var(--color-text-body);
 }
 
 .plan-recipe-tags {
@@ -273,11 +273,11 @@
 .plan-recipe-tag {
     display: inline-block;
     padding: 0.15rem 0.55rem;
-    background: #e9ecef;
+    background: var(--color-bg-hover);
     border-radius: 10px;
     font-size: 0.7rem;
     font-weight: 500;
-    color: #495057;
+    color: var(--color-text-secondary);
 }
 
 .add-recipes-btn {
@@ -313,4 +313,3 @@
         display: none;
     }
 }
-

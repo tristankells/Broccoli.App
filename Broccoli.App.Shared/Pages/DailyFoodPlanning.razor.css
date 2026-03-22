@@ -17,7 +17,7 @@
     margin: 0;
     font-size: 2rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .add-button {
@@ -43,14 +43,14 @@
     align-items: center;
     justify-content: center;
     padding: 4rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #0066cc;
+    border: 4px solid var(--color-bg-subtle);
+    border-top: 4px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -64,7 +64,7 @@
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     border-radius: 12px;
 }
 
@@ -74,12 +74,12 @@
 }
 
 .empty-state h2 {
-    color: #495057;
+    color: var(--color-text-secondary);
     margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-    color: #6c757d;
+    color: var(--color-text-muted);
     margin-bottom: 1.5rem;
     max-width: 480px;
     margin-left: auto;
@@ -97,8 +97,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: white;
-    border: 1px solid #dee2e6;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 1rem 1.25rem;
     cursor: pointer;
@@ -106,7 +106,7 @@
 }
 
 .plan-card:hover {
-    border-color: #0066cc;
+    border-color: var(--color-primary);
     box-shadow: 0 2px 8px rgba(0, 102, 204, 0.12);
     transform: translateY(-1px);
 }
@@ -120,12 +120,12 @@
 .plan-card-name {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .plan-card-meta {
     font-size: 0.85rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .plan-card-actions {
@@ -140,7 +140,7 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid var(--color-border);
     flex-wrap: wrap;
 }
 
@@ -160,7 +160,7 @@
     margin: 0;
     font-size: 1.6rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
     cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
@@ -170,7 +170,7 @@
 .plan-name-input {
     font-size: 1.4rem;
     font-weight: 600;
-    border: 2px solid #0066cc;
+    border: 2px solid var(--color-primary);
     border-radius: 6px;
     padding: 0.2rem 0.5rem;
     outline: none;
@@ -186,26 +186,25 @@
 }
 
 .save-indicator.saving {
-    color: #856404;
-    background: #fff3cd;
+    color: var(--color-warning-text);
+    background: var(--color-warning-bg);
 }
 
 .save-indicator.saved {
-    color: #155724;
-    background: #d4edda;
+    color: var(--color-success-text);
+    background: var(--color-success-bg);
 }
 
 .save-indicator.failed {
-    color: #721c24;
-    background: #f8d7da;
+    color: var(--color-danger-dark);
+    background: var(--color-danger-bg);
 }
 
-/* ── Tab bar ── */
 .tab-bar {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    border-bottom: 2px solid #dee2e6;
+    border-bottom: 2px solid var(--color-border);
     margin-bottom: 1.25rem;
     overflow-x: auto;
     padding-bottom: 0;
@@ -220,8 +219,8 @@
     border: 1px solid transparent;
     border-bottom: none;
     border-radius: 6px 6px 0 0;
-    background: #f8f9fa;
-    color: #495057;
+    background: var(--color-bg-surface);
+    color: var(--color-text-secondary);
     font-size: 0.9rem;
     transition: background 0.15s, color 0.15s;
     white-space: nowrap;
@@ -230,13 +229,13 @@
 }
 
 .tab-item:hover:not(.active) {
-    background: #e9ecef;
+    background: var(--color-bg-hover);
 }
 
 .tab-item.active {
-    background: white;
-    border-color: #dee2e6;
-    color: #0066cc;
+    background: var(--color-bg-raised);
+    border-color: var(--color-border);
+    color: var(--color-primary);
     font-weight: 600;
 }
 
@@ -248,7 +247,7 @@
 
 .tab-name-input {
     font-size: 0.9rem;
-    border: 1px solid #0066cc;
+    border: 1px solid var(--color-primary);
     border-radius: 4px;
     padding: 0.1rem 0.4rem;
     width: 100px;
@@ -273,9 +272,9 @@
 
 .tab-add-btn {
     background: none;
-    border: 1px dashed #adb5bd;
+    border: 1px dashed var(--color-border-emphasis);
     border-radius: 6px 6px 0 0;
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-size: 0.85rem;
     padding: 0.45rem 0.9rem;
     cursor: pointer;
@@ -286,26 +285,25 @@
 }
 
 .tab-add-btn:hover {
-    border-color: #0066cc;
-    color: #0066cc;
-    background: #f0f7ff;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-wash);
 }
 
-/* ── Person bar ── */
 .tab-person-bar {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1rem;
     padding: 0.5rem 0.75rem;
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     border-radius: 8px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border);
 }
 
 .person-label {
     font-size: 0.9rem;
-    color: #495057;
+    color: var(--color-text-secondary);
     font-weight: 500;
     white-space: nowrap;
     margin: 0;
@@ -313,17 +311,17 @@
 
 .person-select {
     font-size: 0.9rem;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--color-border-input);
     border-radius: 6px;
     padding: 0.3rem 0.6rem;
-    background: white;
-    color: #212529;
+    background: var(--color-bg-raised);
+    color: var(--color-text-body);
 }
 
 /* ── Table ── */
 .table-wrapper {
     overflow-x: auto;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     margin-bottom: 1rem;
 }
@@ -336,20 +334,20 @@
 }
 
 .dfp-table thead th {
-    background: #f1f3f5;
-    color: #495057;
+    background: var(--color-bg-surface);
+    color: var(--color-text-secondary);
     font-weight: 600;
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     padding: 0.65rem 0.75rem;
     text-align: left;
-    border-bottom: 2px solid #dee2e6;
+    border-bottom: 2px solid var(--color-border);
 }
 
 .dfp-table td {
     padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid #f1f3f5;
+    border-bottom: 1px solid var(--color-border-subtle);
     vertical-align: middle;
 }
 
@@ -371,7 +369,7 @@
 
 /* ── Header rows ── */
 .header-row td {
-    background: #e9f0fa;
+    background: var(--color-primary-subtle);
     padding: 0.4rem 0.75rem;
 }
 
@@ -381,47 +379,47 @@
     background: transparent;
     font-size: 0.95rem;
     font-weight: 700;
-    color: #1a3a6b;
+    color: var(--color-primary-dark);
     letter-spacing: 0.03em;
     outline: none;
 }
 
 .header-name-input:focus {
-    background: #dce8fb;
+    background: var(--color-primary-subtle);
     border-radius: 4px;
 }
 
 /* ── Food row inputs ── */
 .food-row:hover {
-    background: #fafafa;
+    background: var(--color-bg-subtle);
 }
 
 .item-select {
     width: 100%;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--color-border-input);
     border-radius: 6px;
     padding: 0.35rem 0.5rem;
     font-size: 0.85rem;
-    background: white;
-    color: #212529;
+    background: var(--color-bg-raised);
+    color: var(--color-text-body);
 }
 
 .serving-input,
 .qty-input {
     width: 100%;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--color-border-input);
     border-radius: 6px;
     padding: 0.35rem 0.5rem;
     font-size: 0.85rem;
     text-align: center;
-    background: white;
+    background: var(--color-bg-raised);
 }
 
 .serving-input:focus,
 .qty-input:focus,
 .item-select:focus {
     outline: none;
-    border-color: #0066cc;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.15);
 }
 
@@ -441,7 +439,7 @@
 /* ── Drag handle ── */
 .drag-handle {
     cursor: grab;
-    color: #adb5bd;
+    color: var(--color-text-placeholder);
     font-size: 1rem;
     user-select: none;
     padding: 0 4px;
@@ -457,8 +455,8 @@
 }
 
 .row-drag-over td {
-    border-top: 2px solid #0066cc !important;
-    background-color: #f0f7ff;
+    border-top: 2px solid var(--color-primary) !important;
+    background-color: var(--color-primary-wash);
 }
 
 .btn-icon-sm {
@@ -474,38 +472,38 @@
 
 .btn-icon-sm:hover {
     opacity: 1;
-    background: #f8d7da;
+    background: var(--color-danger-bg);
 }
 
 /* ── Footer / totals ── */
 .dfp-table tfoot td {
-    background: #f8f9fa;
-    border-top: 2px solid #dee2e6;
+    background: var(--color-bg-surface);
+    border-top: 2px solid var(--color-border);
     padding: 0.65rem 0.75rem;
     font-size: 0.9rem;
 }
 
 .totals-row td {
-    background: #f1f3f5;
+    background: var(--color-bg-subtle);
     font-size: 0.9rem;
 }
 
 .to-target-row td {
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     font-size: 0.85rem;
 }
 
 .to-target-label {
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-style: italic;
     font-size: 0.82rem;
     cursor: help;
 }
 
 /* ── Delta colour coding ── */
-.delta-green  { color: #1a7a3f; font-weight: 600; }
-.delta-orange { color: #856404; font-weight: 600; }
-.delta-red    { color: #c0392b; font-weight: 600; }
+.delta-green  { color: var(--color-success-emphasis); font-weight: 600; }
+.delta-orange { color: var(--color-warning-text); font-weight: 600; }
+.delta-red    { color: var(--color-danger-hover); font-weight: 600; }
 
 /* ── Row action buttons ── */
 .row-actions {
@@ -518,7 +516,7 @@
 .empty-tabs-hint {
     padding: 2rem;
     text-align: center;
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-style: italic;
 }
 
@@ -536,6 +534,3 @@
         font-size: 1.2rem;
     }
 }
-
-
-

@@ -1,9 +1,9 @@
 .parsed-ingredients-container {
     margin-top: 1.5rem;
     padding: 0;
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     border-radius: 8px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
 }
@@ -13,8 +13,8 @@
     position: sticky;
     top: 0;
     z-index: 20;
-    background: #ffffff;
-    border-bottom: 2px solid #dee2e6;
+    background: var(--color-bg-raised);
+    border-bottom: 2px solid var(--color-border);
     padding: 1rem;
     flex-shrink: 0;
 }
@@ -32,7 +32,7 @@
 
 .nutrition-label {
     font-weight: 600;
-    color: #495057;
+    color: var(--color-text-secondary);
     min-width: 150px;
     font-size: 0.95rem;
 }
@@ -52,7 +52,7 @@
 
 .nutrition-name {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -61,7 +61,7 @@
 .nutrition-value {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #2e7d32;
+    color: var(--color-success-emphasis);
 }
 
 /* Scrollable Table Section */
@@ -75,7 +75,7 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .loading-spinner p {
@@ -83,7 +83,7 @@
 }
 
 .no-data {
-    color: #6c757d;
+    color: var(--color-text-muted);
     text-align: center;
     padding: 1rem;
     margin: 0;
@@ -97,7 +97,7 @@
 
 .parsed-ingredients-table {
     margin-bottom: 0;
-    background: white;
+    background: var(--color-bg-raised);
     font-size: 0.9rem;
 }
 
@@ -105,22 +105,22 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
+    background: var(--color-bg-surface);
+    border-bottom: 2px solid var(--color-border);
 }
 
 .parsed-ingredients-table th {
     font-weight: 600;
     padding: 0.75rem;
-    color: #495057;
-    background: #f8f9fa;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-surface);
     text-align: left;
     white-space: nowrap;
 }
 
 .parsed-ingredients-table td {
     padding: 0.75rem;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid var(--color-border);
     vertical-align: middle;
 }
 
@@ -150,19 +150,19 @@
 
 /* Row styles */
 .row-matched {
-    background: #ffffff;
+    background: var(--color-bg-raised);
 }
 
 .row-matched:hover {
-    background: #f0f8f0;
+    background: var(--color-success-bg-subtle);
 }
 
 .row-unmatched {
-    background: #fff8e1;
+    background: var(--color-warning-bg-subtle);
 }
 
 .row-unmatched:hover {
-    background: #ffe082;
+    background: var(--color-warning-bg);
 }
 
 
@@ -170,7 +170,7 @@
 .badge-success {
     display: inline-block;
     padding: 0.25rem 0.6rem;
-    background: #28a745;
+    background: var(--color-success);
     color: white;
     border-radius: 4px;
     font-size: 0.8rem;
@@ -181,7 +181,7 @@
 .badge-warning {
     display: inline-block;
     padding: 0.25rem 0.6rem;
-    background: #ff9800;
+    background: var(--color-warning);
     color: white;
     border-radius: 4px;
     font-size: 0.8rem;
@@ -191,23 +191,23 @@
 
 .match-distance {
     font-size: 0.75rem;
-    color: #ff9800;
+    color: var(--color-warning);
     font-weight: bold;
     cursor: help;
 }
 
 .matched-food-name {
     font-weight: 500;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .unmatched-text {
-    color: #d32f2f;
+    color: var(--color-danger);
     font-weight: 500;
 }
 
 .text-muted {
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-size: 0.85rem;
 }
 
@@ -322,4 +322,3 @@
         display: none;
     }
 }
-

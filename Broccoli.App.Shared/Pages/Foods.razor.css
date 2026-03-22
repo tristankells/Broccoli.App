@@ -12,7 +12,7 @@
     min-width: 70px;
     padding: 0.1rem 0.25rem;
     font-size: 0.8rem;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--color-border-input);
     border-radius: 4px;
     box-sizing: border-box;
 }
@@ -39,30 +39,30 @@
 }
 
 .btn-icon:hover {
-    background: #e9ecef;
+    background: var(--color-bg-hover);
 }
 
 .btn-danger-icon:hover {
-    background: #f8d7da;
+    background: var(--color-danger-bg);
 }
 
 .btn-success-icon:hover {
-    background: #d1e7dd;
+    background: var(--color-success-bg);
 }
 
 /* ---- Editing row (amber highlight) ---- */
 .editing-row {
-    background-color: #fff3cd !important;
+    background-color: var(--color-warning-bg) !important;
 }
 
 /* ---- Add row (green highlight) ---- */
 .add-row {
-    background-color: #d1e7dd !important;
+    background-color: var(--color-success-bg) !important;
 }
 
 /* ---- Delete confirm row (red highlight) ---- */
 .delete-confirm-row {
-    background-color: #f8d7da !important;
+    background-color: var(--color-danger-bg) !important;
 }
 
 /* ---- Page action bar ---- */
@@ -71,4 +71,3 @@
     gap: 0.75rem;
     align-items: center;
 }
-

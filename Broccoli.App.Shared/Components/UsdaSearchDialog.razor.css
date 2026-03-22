@@ -2,7 +2,7 @@
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--color-overlay);
     z-index: 1040;
     animation: fade-in 0.15s ease;
 }
@@ -20,7 +20,7 @@
 }
 
 .modal-content-box {
-    background: #fff;
+    background: var(--color-bg-raised);
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     width: 100%;
@@ -42,7 +42,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem 1.5rem 0.75rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
@@ -50,7 +50,7 @@
     margin: 0;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .modal-close-btn {
@@ -58,7 +58,7 @@
     border: none;
     font-size: 1.6rem;
     line-height: 1;
-    color: #6c757d;
+    color: var(--color-text-muted);
     cursor: pointer;
     padding: 0 0.25rem;
     border-radius: 4px;
@@ -66,8 +66,8 @@
 }
 
 .modal-close-btn:hover {
-    color: #212529;
-    background: #f0f0f0;
+    color: var(--color-text-body);
+    background: var(--color-border-subtle);
 }
 
 /* ---- Body ---- */
@@ -88,7 +88,7 @@
     overflow-x: auto;
     max-height: 380px;
     overflow-y: auto;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border);
     border-radius: 4px;
 }
 
@@ -108,16 +108,15 @@
 
 .page-info {
     font-size: 0.9rem;
-    color: #495057;
+    color: var(--color-text-secondary);
 }
 
-/* ---- Footer ---- */
 .modal-footer-bar {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
     padding: 0.75rem 1.5rem 1.25rem;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
@@ -131,4 +130,3 @@
     from { transform: translateY(24px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
 }
-

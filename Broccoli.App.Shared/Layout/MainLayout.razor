@@ -1,4 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
+@using Broccoli.App.Shared.Components
+@using Broccoli.App.Shared.Services
+@inject IThemeService ThemeService
+@inject IJSRuntime JS
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +12,8 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <button class="settings-btn" @onclick="OpenSettings" title="App Settings">⚙️</button>
+            <AppSettingsDialog IsOpen="_settingsOpen" OnClose="CloseSettings" />
         </div>
 
         <article class="content px-4">
@@ -21,3 +27,37 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private bool _settingsOpen;
+    private bool _initialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _initialized) return;
+        _initialized = true;
+
+        bool osDark = await JS.InvokeAsync<bool>("window.getOsPrefersDark");
+        await ThemeService.InitializeAsync(osDark);
+        await JS.InvokeVoidAsync("window.setAppTheme",
+            ThemeService.IsDarkMode ? "dark" : "light");
+
+        ThemeService.OnThemeChanged += HandleThemeChanged;
+        StateHasChanged();
+    }
+
+    private async void HandleThemeChanged()
+    {
+        await JS.InvokeVoidAsync("window.setAppTheme",
+            ThemeService.IsDarkMode ? "dark" : "light");
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OpenSettings()  => _settingsOpen = true;
+    private void CloseSettings() => _settingsOpen = false;
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= HandleThemeChanged;
+    }
+}

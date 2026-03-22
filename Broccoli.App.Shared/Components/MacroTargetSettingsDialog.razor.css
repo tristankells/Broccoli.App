@@ -2,7 +2,7 @@
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--color-overlay);
     z-index: 1040;
     animation: fade-in 0.15s ease;
 }
@@ -19,7 +19,7 @@
 }
 
 .settings-modal-box {
-    background: #fff;
+    background: var(--color-bg-raised);
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     width: 100%;
@@ -38,7 +38,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem 1.5rem 0.75rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
@@ -46,7 +46,7 @@
     margin: 0;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .modal-close-btn {
@@ -54,7 +54,7 @@
     border: none;
     font-size: 1.6rem;
     line-height: 1;
-    color: #6c757d;
+    color: var(--color-text-muted);
     cursor: pointer;
     padding: 0 0.25rem;
     border-radius: 4px;
@@ -62,8 +62,8 @@
 }
 
 .modal-close-btn:hover {
-    color: #212529;
-    background: #f0f0f0;
+    color: var(--color-text-body);
+    background: var(--color-border-subtle);
 }
 
 /* ---- Body ---- */
@@ -79,7 +79,7 @@
 /* ---- Sections ---- */
 .settings-section {
     padding: 1rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .settings-section:last-child {
@@ -91,7 +91,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #6c757d;
+    color: var(--color-text-muted);
     margin: 0 0 0.75rem;
 }
 
@@ -104,25 +104,25 @@
 
 .toggle-btn {
     padding: 0.5rem 1.1rem;
-    border: 2px solid #dee2e6;
-    background: #fff;
+    border: 2px solid var(--color-border);
+    background: var(--color-bg-raised);
     border-radius: 8px;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.15s;
-    color: #495057;
+    color: var(--color-text-secondary);
 }
 
 .toggle-btn.active {
-    border-color: #0066cc;
-    background: #e8f0fb;
-    color: #0066cc;
+    border-color: var(--color-primary);
+    background: var(--color-primary-subtle);
+    color: var(--color-primary);
     font-weight: 600;
 }
 
 .toggle-btn:hover:not(.active) {
-    border-color: #adb5bd;
-    background: #f8f9fa;
+    border-color: var(--color-border-emphasis);
+    background: var(--color-bg-surface);
 }
 
 /* ---- Radio group ---- */
@@ -144,14 +144,14 @@
 }
 
 .radio-label:has(input:checked) {
-    background: #e8f0fb;
-    border-color: #0066cc;
+    background: var(--color-primary-subtle);
+    border-color: var(--color-primary);
 }
 
 .radio-label input[type="radio"] {
     margin-top: 0.2rem;
     flex-shrink: 0;
-    accent-color: #0066cc;
+    accent-color: var(--color-primary);
 }
 
 .radio-label > span {
@@ -162,7 +162,7 @@
 
 .radio-hint {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 /* ---- Goal row ---- */
@@ -174,17 +174,17 @@
 
 .form-select {
     padding: 0.5rem 0.75rem;
-    border: 2px solid #dee2e6;
+    border: 2px solid var(--color-border);
     border-radius: 8px;
     font-size: 0.95rem;
-    background: #fff;
+    background: var(--color-bg-raised);
     cursor: pointer;
     transition: border-color 0.2s;
 }
 
 .form-select:focus {
     outline: none;
-    border-color: #0066cc;
+    border-color: var(--color-primary);
 }
 
 .delta-field {
@@ -196,7 +196,7 @@
 .delta-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #495057;
+    color: var(--color-text-secondary);
 }
 
 .delta-input-row {
@@ -211,7 +211,7 @@
 
 .delta-unit {
     font-size: 0.85rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 /* ---- Macro split ---- */
@@ -231,7 +231,7 @@
 .macro-split-field label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #495057;
+    color: var(--color-text-secondary);
 }
 
 .macro-sum-indicator {
@@ -243,13 +243,13 @@
 }
 
 .sum-valid {
-    background: #d4edda;
-    color: #155724;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
 }
 
 .sum-invalid {
-    background: #f8d7da;
-    color: #721c24;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-dark);
 }
 
 /* ---- g per kg ---- */
@@ -259,14 +259,14 @@
 
 .field-hint {
     font-size: 0.78rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
     margin-top: 0.2rem;
 }
 
 /* ---- Shared form-control ---- */
 .form-control {
     padding: 0.45rem 0.7rem;
-    border: 2px solid #dee2e6;
+    border: 2px solid var(--color-border);
     border-radius: 8px;
     font-size: 0.9rem;
     width: 100%;
@@ -275,13 +275,13 @@
 
 .form-control:focus {
     outline: none;
-    border-color: #0066cc;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
 .settings-hint {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
     margin: 0.4rem 0 0;
 }
 
@@ -291,7 +291,7 @@
     justify-content: flex-end;
     gap: 0.75rem;
     padding: 0.75rem 1.5rem 1.25rem;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
@@ -311,21 +311,21 @@
 }
 
 .btn-primary {
-    background: #0066cc;
+    background: var(--color-primary);
     color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #0052a3;
+    background: var(--color-primary-hover);
 }
 
 .btn-secondary {
-    background: #f0f0f0;
-    color: #333;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-body);
 }
 
 .btn-secondary:hover {
-    background: #e0e0e0;
+    background: var(--color-bg-hover);
 }
 
 /* ---- Animations ---- */
@@ -360,4 +360,3 @@
         text-align: center;
     }
 }
-

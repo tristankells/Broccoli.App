@@ -27,7 +27,7 @@
 .detail-header h1 {
     font-size: 2rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
     margin: 0;
     flex: 1;
 }
@@ -37,17 +37,17 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
     border-radius: 6px;
-    color: #495057;
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-back:hover {
-    background: #e9ecef;
-    border-color: #adb5bd;
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-emphasis);
 }
 
 /* Loading & Error */
@@ -57,14 +57,14 @@
     align-items: center;
     justify-content: center;
     padding: 4rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #0066cc;
+    border: 4px solid var(--color-bg-subtle);
+    border-top: 4px solid var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -88,10 +88,10 @@
 .error-message {
     text-align: center;
     padding: 2rem;
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
     border-radius: 8px;
-    color: #721c24;
+    color: var(--color-danger-dark);
 }
 
 /* Recipe Form */
@@ -115,8 +115,8 @@
 }
 
 .form-section {
-    background: white;
-    border: 1px solid #dee2e6;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 1.5rem;
 }
@@ -124,12 +124,12 @@
 .form-section h2 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
     margin: 0 0 1rem 0;
 }
 
 .section-subtitle {
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-size: 0.875rem;
     margin: -0.5rem 0 1rem 0;
 }
@@ -140,35 +140,35 @@
     position: relative;
     width: 100%;
     height: 300px;
-    border: 2px dashed #dee2e6;
+    border: 2px dashed var(--color-border);
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     transition: border-color 0.2s ease, background-color 0.2s ease;
     cursor: pointer;
 }
 
 /* Hover highlight — only when there is no image */
 .recipe-image-drop-zone:not(.has-image):hover {
-    border-color: #0066cc;
-    background: #f0f7ff;
+    border-color: var(--color-primary);
+    background: var(--color-primary-wash);
 }
 
 /* Active drag-over state — applied by imageDropZone.js */
 .recipe-image-drop-zone.drag-over {
-    border-color: #0066cc !important;
+    border-color: var(--color-primary) !important;
     border-style: solid !important;
-    background-color: #e6f0ff !important;
+    background-color: var(--color-primary-subtle) !important;
 }
 
 /* Solid border when an image is already loaded */
 .recipe-image-drop-zone.has-image {
     border-style: solid;
-    border-color: #dee2e6;
+    border-color: var(--color-border);
     cursor: default;
 }
 
@@ -257,7 +257,7 @@
     flex-direction: column;
     align-items: center;
     gap: 0.4rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
     text-align: center;
     pointer-events: none; /* let clicks fall through to the transparent file input */
     z-index: 1;
@@ -271,15 +271,15 @@
 
 .drop-zone-hint {
     font-size: 0.78rem;
-    color: #adb5bd;
+    color: var(--color-text-placeholder);
 }
 
 /* Uploading spinner inside the drop zone */
 .drop-zone-spinner {
     width: 36px;
     height: 36px;
-    border: 3px solid #dee2e6;
-    border-top-color: #0066cc;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
     border-radius: 50%;
     animation: drop-zone-spin 0.8s linear infinite;
     margin-bottom: 0.5rem;
@@ -304,7 +304,7 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #495057;
+    color: var(--color-text-secondary);
     font-size: 0.875rem;
 }
 
@@ -312,14 +312,14 @@
     width: 100%;
     padding: 0.75rem 1rem;
     font-size: 1rem;
-    border: 2px solid #dee2e6;
+    border: 2px solid var(--color-border);
     border-radius: 8px;
     transition: border-color 0.2s ease;
 }
 
 .form-control:focus {
     outline: none;
-    border-color: #0066cc;
+    border-color: var(--color-primary);
 }
 
 .textarea-large {
@@ -333,7 +333,7 @@
     display: block;
     margin-top: 0.25rem;
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .form-row {
@@ -344,11 +344,11 @@
 
 .total-time {
     padding: 0.75rem;
-    background: #e7f3ff;
-    border-left: 4px solid #0066cc;
+    background: var(--color-primary-info-bg);
+    border-left: 4px solid var(--color-primary);
     border-radius: 4px;
     font-size: 0.875rem;
-    color: #004080;
+    color: var(--color-primary-dark);
     margin-bottom: 1rem;
 }
 
@@ -371,7 +371,7 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: #0066cc;
+    background: var(--color-primary);
     color: white;
     border-radius: 20px;
     font-size: 0.875rem;
@@ -411,14 +411,14 @@
 .ingredients-parsed {
     margin-top: 1rem;
     padding: 1rem;
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
     border-radius: 8px;
 }
 
 .ingredients-parsed h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: #495057;
+    color: var(--color-text-secondary);
     margin: 0 0 0.75rem 0;
 }
 
@@ -429,12 +429,11 @@
 
 .ingredients-parsed li {
     padding: 0.25rem 0;
-    color: #495057;
+    color: var(--color-text-secondary);
 }
 
-/* Nutrition Section */
 .nutrition-section {
-    background: #f8f9fa;
+    background: var(--color-bg-surface);
 }
 
 /* Form Actions */
@@ -443,8 +442,8 @@
     gap: 1rem;
     justify-content: flex-end;
     padding: 1.5rem;
-    background: white;
-    border: 1px solid #dee2e6;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     position: sticky;
     bottom: 1rem;
@@ -464,13 +463,13 @@
 }
 
 .btn-primary {
-    background: #0066cc;
+    background: var(--color-primary);
     color: white;
     border: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #0052a3;
+    background: var(--color-primary-hover);
 }
 
 .btn-primary:disabled {
@@ -489,13 +488,13 @@
 }
 
 .btn-danger {
-    background: #dc3545;
+    background: var(--color-danger);
     color: white;
     border: none;
 }
 
 .btn-danger:hover {
-    background: #c82333;
+    background: var(--color-danger-hover);
 }
 
 .btn-sm {
@@ -513,15 +512,15 @@
 }
 
 .alert-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
+    border: 1px solid var(--color-success-emphasis);
 }
 
 .alert-danger {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background: var(--color-danger-bg);
+    color: var(--color-danger-dark);
+    border: 1px solid var(--color-danger-border);
 }
 
 /* Responsive */
@@ -561,4 +560,3 @@
 .mt-2 {
     margin-top: 0.5rem;
 }
-

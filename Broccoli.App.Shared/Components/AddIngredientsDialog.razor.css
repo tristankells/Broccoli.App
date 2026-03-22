@@ -2,7 +2,7 @@
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--color-overlay);
     z-index: 1040;
     animation: fade-in 0.15s ease;
 }
@@ -20,7 +20,7 @@
 }
 
 .modal-content-box {
-    background: #fff;
+    background: var(--color-bg-raised);
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     width: 100%;
@@ -39,14 +39,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem 1.5rem 0.75rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .modal-title-text {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text-heading);
 }
 
 .modal-close-btn {
@@ -54,7 +54,7 @@
     border: none;
     font-size: 1.6rem;
     line-height: 1;
-    color: #6c757d;
+    color: var(--color-text-muted);
     cursor: pointer;
     padding: 0 0.25rem;
     border-radius: 4px;
@@ -62,14 +62,14 @@
 }
 
 .modal-close-btn:hover {
-    color: #212529;
-    background: #f0f0f0;
+    color: var(--color-text-body);
+    background: var(--color-border-subtle);
 }
 
 .recipe-name-subtitle {
     margin: 0.25rem 1.5rem 0;
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
     font-style: italic;
 }
 
@@ -82,7 +82,7 @@
 
 .dialog-hint {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
     margin-bottom: 1rem;
 }
 
@@ -98,7 +98,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.6rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-subtle);
     gap: 0.75rem;
 }
 
@@ -107,7 +107,7 @@
 }
 
 .ingredient-row.unchecked-row .ingredient-text {
-    color: #adb5bd;
+    color: var(--color-text-placeholder);
 }
 
 .ingredient-label {
@@ -130,7 +130,7 @@
 
 .ingredient-text {
     font-size: 0.95rem;
-    color: #212529;
+    color: var(--color-text-body);
     line-height: 1.4;
 }
 
@@ -147,13 +147,13 @@
 }
 
 .badge-always-have {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: var(--color-success-bg);
+    color: var(--color-success-text);
 }
 
 .badge-check-if-have {
-    background-color: #fff3cd;
-    color: #856404;
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning-text);
 }
 
 .merged-badge {
@@ -165,8 +165,8 @@
     font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
-    background-color: #e0e7ff;
-    color: #3730a3;
+    background-color: var(--color-indigo-bg);
+    color: var(--color-indigo);
 }
 
 /* ---- Footer ---- */
@@ -175,8 +175,8 @@
     justify-content: flex-end;
     gap: 0.75rem;
     padding: 1rem 1.5rem;
-    border-top: 1px solid #e9ecef;
-    background: #f8f9fa;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-surface);
 }
 
 /* ---- Loading ---- */
@@ -185,14 +185,14 @@
     flex-direction: column;
     align-items: center;
     padding: 2rem;
-    color: #6c757d;
+    color: var(--color-text-muted);
 }
 
 .spinner {
     width: 2rem;
     height: 2rem;
-    border: 3px solid #dee2e6;
-    border-top-color: #0066cc;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
     margin-bottom: 0.75rem;
@@ -218,4 +218,3 @@
 @@keyframes spin {
     to { transform: rotate(360deg); }
 }
-

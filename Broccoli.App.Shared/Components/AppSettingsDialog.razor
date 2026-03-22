@@ -1,0 +1,49 @@
+﻿@using Broccoli.App.Shared.Services
+
+@if (IsOpen)
+{
+    <div class="modal-backdrop" @onclick="HandleClose"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="app-settings-title">
+        <div class="settings-modal-box" @onclick:stopPropagation="true">
+
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="app-settings-title" class="modal-title-text">⚙️ App Settings</h2>
+                <button class="modal-close-btn" @onclick="HandleClose" title="Close">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body-scroll">
+
+                <!-- Appearance -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Appearance</h3>
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-name">Dark Mode</span>
+                            <span class="setting-hint">Switch between light and dark theme</span>
+                        </div>
+                        <label class="toggle-switch" title="Toggle dark mode">
+                            <input type="checkbox"
+                                   checked="@ThemeService.IsDarkMode"
+                                   @onchange="OnDarkModeToggled" />
+                            <span class="toggle-track">
+                                <span class="toggle-thumb"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Account -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Account</h3>
+                    <button class="btn btn-logout" @onclick="Logout">
+                        🚪 Logout
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+

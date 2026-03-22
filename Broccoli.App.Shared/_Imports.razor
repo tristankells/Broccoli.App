@@ -5,7 +5,23 @@
 @using Microsoft.AspNetCore.Components.Web
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.Extensions.Options
 @using Microsoft.JSInterop
 @using Broccoli.App
 @using Broccoli.App.Shared
+@using Broccoli.App.Shared.Configuration
 @using Broccoli.App.Shared.Layout
+@* VSA slice namespaces — added globally so Razor markup resolves all slice types *@
+@using Broccoli.App.Shared.Infrastructure
+@using Broccoli.App.Shared.Platform
+@using Broccoli.App.Shared.IngredientParsing
+@using Broccoli.App.Shared.Slices.Auth
+@using Broccoli.App.Shared.Slices.AppSettings
+@using Broccoli.App.Shared.Slices.Pantry
+@using Broccoli.App.Shared.Slices.GroceryList
+@using Broccoli.App.Shared.Slices.Foods
+@using Broccoli.App.Shared.Slices.Recipes
+@using Broccoli.App.Shared.Slices.Recipes.Import
+@using Broccoli.App.Shared.Slices.MealPrep
+@using Broccoli.App.Shared.Slices.Nutrition
+@using Broccoli.App.Shared.Slices.Seasonality

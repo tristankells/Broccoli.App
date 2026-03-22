@@ -1,0 +1,207 @@
+@page "/"
+@page "/recipes"
+@using Broccoli.Data.Models
+@inject IRecipeService RecipeService
+@inject IGroceryListService GroceryListService
+@inject IPantryService PantryService
+@inject IAuthenticationStateService AuthStateService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject IngredientParserService IngredientParserService
+@inject ISeasonalityService SeasonalityService
+@inject IngredientCartService IngredientCartService
+
+<AuthorizeView>
+    <PageTitle>My Recipes</PageTitle>
+
+    <div class="recipes-page">
+        <div class="page-header">
+            <h1>My Recipes</h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary import-button" @onclick="OpenImportDialog">
+                    <span class="icon">📥</span> Import
+                </button>
+                <button class="btn btn-primary add-button" @onclick="NavigateToAddRecipe">
+                    <span class="icon">➕</span> Add Recipe
+                </button>
+            </div>
+        </div>
+
+        <div class="filters-section">
+            <div class="search-box">
+                <input type="text" 
+                       class="form-control" 
+                       placeholder="Search recipes..." 
+                       @bind="searchTerm" 
+                       @bind:event="oninput"
+                       @onkeyup="OnSearchChanged" />
+            </div>
+            
+            <div class="tag-filters">
+                <button class="tag-chip favorites-chip @(showFavoritesOnly ? "selected" : "")"
+                        @onclick="ToggleFavoritesFilter">
+                    @(showFavoritesOnly ? "★" : "☆") Favourites
+                </button>
+
+                @if (availableTags.Any())
+                {
+                    <div class="tag-filter-label">Filter by tags:</div>
+                    <div class="tag-chips">
+                        @foreach (var tag in availableTags)
+                        {
+                            <button class="tag-chip @(selectedTags.Contains(tag) ? "selected" : "")"
+                                    @onclick="() => ToggleTag(tag)">
+                                @tag
+                                @if (selectedTags.Contains(tag))
+                                {
+                                    <span class="tag-remove">×</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                    @if (selectedTags.Any())
+                    {
+                        <button class="btn-link clear-filters" @onclick="ClearFilters">
+                            Clear all filters
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading recipes...</p>
+            </div>
+        }
+        else if (filteredRecipes == null || !filteredRecipes.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📖</div>
+                <h2>No recipes found</h2>
+                @if (selectedTags.Any() || !string.IsNullOrWhiteSpace(searchTerm) || showFavoritesOnly)
+                {
+                    <p>Try adjusting your filters or search terms.</p>
+                    <button class="btn btn-secondary" @onclick="ClearFilters">Clear Filters</button>
+                }
+                else
+                {
+                    <p>Start building your recipe collection!</p>
+                    <button class="btn btn-primary" @onclick="NavigateToAddRecipe">Add Your First Recipe</button>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="recipe-stats">
+                Showing @filteredRecipes.Count() of @allRecipes.Count() recipes
+            </div>
+
+            <div class="recipes-grid">
+                @foreach (var recipe in filteredRecipes)
+                {
+                    <div class="recipe-card" @ondblclick="() => NavigateToReadRecipe(recipe.Id)">
+                        <div class="recipe-image">
+                            @if (recipe.IsFavorite)
+                            {
+                                <span class="favorite-badge" title="Favourite">★</span>
+                            }
+                            @if (recipe.Images.Any())
+                            {
+                                <img src="@recipe.Images.First()" alt="@recipe.Name" />
+                            }
+                            else
+                            {
+                                <div class="recipe-placeholder">
+                                    <span class="placeholder-icon">🍽️</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="recipe-content">
+                            <h3 class="recipe-name">@recipe.Name</h3>
+                            <div class="recipe-meta">
+                                @if (recipe.PrepTimeMinutes.HasValue || recipe.CookTimeMinutes.HasValue)
+                                {
+                                    <div class="recipe-time">
+                                        <span class="icon">⏱️</span>
+                                        @if (recipe.PrepTimeMinutes.HasValue)
+                                        {
+                                            <span>Prep: @recipe.PrepTimeMinutes min</span>
+                                        }
+                                        @if (recipe.CookTimeMinutes.HasValue)
+                                        {
+                                            <span>Cook: @recipe.CookTimeMinutes min</span>
+                                        }
+                                    </div>
+                                }
+                                @if (recipe.Servings.HasValue)
+                                {
+                                    <div class="recipe-servings">
+                                        <span class="icon">👥</span>
+                                        <span>@recipe.Servings servings</span>
+                                    </div>
+                                }
+                            </div>
+                            @if (recipe.Tags.Any())
+                            {
+                                <div class="recipe-tags">
+                                    @foreach (var tag in recipe.Tags.Take(3))
+                                    {
+                                        <span class="recipe-tag">@tag</span>
+                                    }
+                                    @if (recipe.Tags.Count > 3)
+                                    {
+                                        <span class="recipe-tag-more">+@(recipe.Tags.Count - 3)</span>
+                                    }
+                                </div>
+                            }
+                            @if (_seasonalityScores.TryGetValue(recipe.Id, out var seasonality))
+                            {
+                                <div class="recipe-seasonality">
+                                    <SeasonalityBadge Result="@seasonality" />
+                                </div>
+                            }
+                        </div>
+                        <div class="recipe-actions">
+                            <button class="btn-icon btn-favorite @(recipe.IsFavorite ? "is-favorite" : "")"
+                                    title="@(recipe.IsFavorite ? "Remove from favourites" : "Add to favourites")"
+                                    @onclick="() => ToggleFavorite(recipe)"
+                                    @onclick:stopPropagation="true">
+                                @(recipe.IsFavorite ? "★" : "☆")
+                            </button>
+                            <button class="btn-icon" @onclick="() => NavigateToEditRecipe(recipe.Id)" @onclick:stopPropagation="true">
+                                ✏️ Edit
+                            </button>
+                            <button class="btn-icon btn-danger" @onclick="() => DeleteRecipe(recipe)" @onclick:stopPropagation="true">
+                                🗑️ Delete
+                            </button>
+                            <button class="btn-icon btn-success" @onclick="() => OpenAddIngredientsDialog(recipe)" @onclick:stopPropagation="true">
+                                🛒 Add to List
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</AuthorizeView>
+
+<AddIngredientsDialog IsVisible="showIngredientDialog"
+                      RecipeName="@selectedRecipe?.Name"
+                      IngredientsText="@selectedRecipe?.Ingredients"
+                      PantryItems="@userPantryItems"
+                      OnCancel="CloseIngredientDialog"
+                      OnConfirm="HandleAddIngredientsConfirm" />
+
+<ImportRecipesDialog IsVisible="showImportDialog"
+                     ExistingRecipes="@allRecipes"
+                     OnCancel="CloseImportDialog"
+                     OnConfirm="HandleImportConfirm" />
+
+@code {
+
+    // Add Ingredients Dialog state
+
+}

@@ -1,0 +1,360 @@
+@page "/macro-targets"
+@using Broccoli.Data.Models
+@inject IMacroTargetService MacroTargetService
+@inject MacroCalculatorService Calculator
+@inject IAuthenticationStateService AuthStateService
+
+<AuthorizeView>
+    <PageTitle>Macro / Calorie Targets</PageTitle>
+
+    <div class="macro-targets-page">
+
+        <!-- Page header -->
+        <div class="page-header">
+            <h1>🎯 Macro / Calorie Targets</h1>
+            <div class="header-actions">
+                <button class="btn btn-outline" @onclick="OpenSettings">⚙️ Settings</button>
+                <button class="btn btn-primary" @onclick="AddRow" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span>Adding...</span>
+                    }
+                    else
+                    {
+                        <span>＋ Add Person</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+        <!-- Error banner -->
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+
+        <!-- Loading -->
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading targets...</p>
+            </div>
+        }
+        else if (!targets.Any())
+        {
+            <!-- Empty state -->
+            <div class="empty-state">
+                <div class="empty-icon">🎯</div>
+                <h2>No targets yet</h2>
+                <p>Click <strong>＋ Add Person</strong> to create your first macro profile.</p>
+            </div>
+        }
+        else
+        {
+            <!-- Table (scrolls horizontally on small screens) -->
+            <div class="table-scroll-wrapper">
+                <table class="macro-table">
+                    <thead>
+                        <tr>
+                            <th class="col-name">Name</th>
+                            <th class="col-gender">Gender</th>
+                            <th class="col-number">Weight<br /><span class="unit-label">@WeightUnit</span></th>
+                            <th class="col-number">Height<br /><span class="unit-label">@HeightUnit</span></th>
+                            <th class="col-number">Age</th>
+                            <th class="col-activity">Activity</th>
+                            <th class="col-calc">BMR<br /><span class="unit-label">kcal</span></th>
+                            <th class="col-calc">TDEE<br /><span class="unit-label">kcal</span></th>
+                            <th class="col-calc">Calories<br /><span class="unit-label">kcal</span></th>
+                            <th class="col-calc">Protein<br /><span class="unit-label">g</span></th>
+                            <th class="col-calc">Carbs<br /><span class="unit-label">g</span></th>
+                            <th class="col-calc">Fat<br /><span class="unit-label">g</span></th>
+                            <th class="col-delete"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var target in targets)
+                        {
+                            <tr class="@(savingIds.Contains(target.Id) ? "row-saving" : "")">
+                                <!-- Name -->
+                                <td class="col-name">
+                                    <input type="text"
+                                           class="cell-input"
+                                           value="@target.Name"
+                                           placeholder="Name"
+                                           maxlength="100"
+                                           @onchange="(e) => OnFieldChanged(target, () => target.Name = e.Value?.ToString() ?? string.Empty)" />
+                                </td>
+
+                                <!-- Gender -->
+                                <td class="col-gender">
+                                    <select class="cell-select"
+                                            value="@target.Gender"
+                                            @onchange="(e) => OnFieldChanged(target, () => target.Gender = Enum.Parse<GenderType>(e.Value!.ToString()!))">
+                                        <option value="@GenderType.Male">Male</option>
+                                        <option value="@GenderType.Female">Female</option>
+                                        <option value="@GenderType.Other">Other</option>
+                                    </select>
+                                </td>
+
+                                <!-- Weight -->
+                                <td class="col-number">
+                                    <input type="number"
+                                           class="cell-input cell-number"
+                                           value="@FormatWeight(target)"
+                                           min="1" max="500" step="0.1"
+                                           @onchange="(e) => OnWeightChanged(target, e)" />
+                                </td>
+
+                                <!-- Height -->
+                                <td class="col-number">
+                                    <input type="number"
+                                           class="cell-input cell-number"
+                                           value="@FormatHeight(target)"
+                                           min="1" max="300" step="0.1"
+                                           @onchange="(e) => OnHeightChanged(target, e)" />
+                                </td>
+
+                                <!-- Age -->
+                                <td class="col-number">
+                                    <input type="number"
+                                           class="cell-input cell-number"
+                                           value="@target.Age"
+                                           min="1" max="120" step="1"
+                                           @onchange="(e) => OnFieldChanged(target, () => { if (int.TryParse(e.Value?.ToString(), out var v)) target.Age = v; })" />
+                                </td>
+
+                                <!-- Activity -->
+                                <td class="col-activity">
+                                    <select class="cell-select"
+                                            value="@target.ActivityLevel"
+                                            @onchange="(e) => OnFieldChanged(target, () => target.ActivityLevel = Enum.Parse<ActivityLevel>(e.Value!.ToString()!))">
+                                        <option value="@ActivityLevel.Sedentary">Sedentary</option>
+                                        <option value="@ActivityLevel.LightlyActive">Lightly Active</option>
+                                        <option value="@ActivityLevel.ModeratelyActive">Moderately Active</option>
+                                        <option value="@ActivityLevel.VeryActive">Very Active</option>
+                                        <option value="@ActivityLevel.ExtraActive">Extra Active</option>
+                                    </select>
+                                </td>
+
+                                <!-- Calculated (read-only) -->
+                                <td class="col-calc calc-cell">@FormatCalc(target.Bmr)</td>
+                                <td class="col-calc calc-cell">@FormatCalc(target.Tdee)</td>
+                                <td class="col-calc calc-cell calories-cell">@FormatCalc(target.RecommendedCalories)</td>
+                                <td class="col-calc calc-cell protein-cell">@FormatCalc(target.RecommendedProteinG)</td>
+                                <td class="col-calc calc-cell carbs-cell">@FormatCalc(target.RecommendedCarbsG)</td>
+                                <td class="col-calc calc-cell fat-cell">@FormatCalc(target.RecommendedFatG)</td>
+
+                                <!-- Delete -->
+                                <td class="col-delete">
+                                    <button class="btn-icon btn-danger"
+                                            @onclick="() => DeleteRow(target)"
+                                            title="Remove this person">
+                                        🗑️
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <span class="legend-item"><span class="legend-dot calories-dot"></span> Calories</span>
+                <span class="legend-item"><span class="legend-dot protein-dot"></span> Protein</span>
+                <span class="legend-item"><span class="legend-dot carbs-dot"></span> Carbs</span>
+                <span class="legend-item"><span class="legend-dot fat-dot"></span> Fat</span>
+            </div>
+        }
+    </div>
+
+    <!-- Settings dialog -->
+    <MacroTargetSettingsDialog IsVisible="@settingsOpen"
+                               Settings="@settings"
+                               OnSave="OnSettingsSaved"
+                               OnCancel="CloseSettings" />
+
+</AuthorizeView>
+
+@code {
+    private List<MacroTarget> targets = new();
+    private MacroTargetSettings settings = new();
+    private readonly HashSet<string> savingIds = new();
+
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool settingsOpen;
+    private string errorMessage = string.Empty;
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            var userId = AuthStateService.CurrentUserId ?? string.Empty;
+            settings = await MacroTargetService.GetSettingsAsync(userId);
+            targets  = await MacroTargetService.GetAllAsync(userId);
+
+            // Recalculate in case settings changed since last save
+            foreach (var t in targets)
+                Calculator.Calculate(t, settings);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // ── Add / Delete rows ────────────────────────────────────────────────────
+
+    private async Task AddRow()
+    {
+        isSaving = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            var newTarget = new MacroTarget();
+            Calculator.Calculate(newTarget, settings);
+            var saved = await MacroTargetService.AddAsync(newTarget);
+            targets.Add(saved);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to add row: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteRow(MacroTarget target)
+    {
+        errorMessage = string.Empty;
+        targets.Remove(target);
+
+        try
+        {
+            await MacroTargetService.DeleteAsync(target.Id, target.UserId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete: {ex.Message}";
+            targets.Add(target); // restore on failure
+        }
+    }
+
+    // ── Field change handlers ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Generic handler: apply mutation, recalculate, then save.
+    /// </summary>
+    private async Task OnFieldChanged(MacroTarget target, Action mutate)
+    {
+        mutate();
+        Calculator.Calculate(target, settings);
+        await SaveTargetAsync(target);
+    }
+
+    private async Task OnWeightChanged(MacroTarget target, ChangeEventArgs e)
+    {
+        if (!double.TryParse(e.Value?.ToString(), out var value)) return;
+        target.WeightKg = settings.UnitSystem == UnitSystem.Imperial
+            ? value / 2.20462
+            : value;
+        Calculator.Calculate(target, settings);
+        await SaveTargetAsync(target);
+    }
+
+    private async Task OnHeightChanged(MacroTarget target, ChangeEventArgs e)
+    {
+        if (!double.TryParse(e.Value?.ToString(), out var value)) return;
+        target.HeightCm = settings.UnitSystem == UnitSystem.Imperial
+            ? value * 2.54
+            : value;
+        Calculator.Calculate(target, settings);
+        await SaveTargetAsync(target);
+    }
+
+    private async Task SaveTargetAsync(MacroTarget target)
+    {
+        savingIds.Add(target.Id);
+        errorMessage = string.Empty;
+
+        try
+        {
+            await MacroTargetService.UpdateAsync(target);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to save: {ex.Message}";
+        }
+        finally
+        {
+            savingIds.Remove(target.Id);
+        }
+    }
+
+    // ── Settings dialog ──────────────────────────────────────────────────────
+
+    private void OpenSettings()  => settingsOpen = true;
+    private void CloseSettings() => settingsOpen = false;
+
+    private async Task OnSettingsSaved(MacroTargetSettings updated)
+    {
+        settingsOpen = false;
+        errorMessage = string.Empty;
+
+        try
+        {
+            settings = await MacroTargetService.SaveSettingsAsync(updated);
+
+            // Recalculate all rows with the new settings and persist each
+            foreach (var target in targets)
+            {
+                Calculator.Calculate(target, settings);
+                await MacroTargetService.UpdateAsync(target);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to save settings: {ex.Message}";
+        }
+    }
+
+    // ── Display helpers ──────────────────────────────────────────────────────
+
+    private string WeightUnit => settings.UnitSystem == UnitSystem.Imperial ? "lbs" : "kg";
+    private string HeightUnit => settings.UnitSystem == UnitSystem.Imperial ? "in"  : "cm";
+
+    private string FormatWeight(MacroTarget t)
+    {
+        var v = settings.UnitSystem == UnitSystem.Imperial ? t.WeightKg * 2.20462 : t.WeightKg;
+        return v > 0 ? Math.Round(v, 1).ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
+    }
+
+    private string FormatHeight(MacroTarget t)
+    {
+        var v = settings.UnitSystem == UnitSystem.Imperial ? t.HeightCm / 2.54 : t.HeightCm;
+        return v > 0 ? Math.Round(v, 1).ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
+    }
+
+    private static string FormatCalc(double value) =>
+        value > 0 ? Math.Round(value, 1).ToString("N1") : "—";
+}
+

@@ -1,9 +1,6 @@
-﻿﻿@using Broccoli.App.Shared.Services
-@inject IAuthenticationStateService AuthStateService
+﻿@inject IAuthenticationStateService AuthStateService
 @inject NavigationManager Navigation
-@using Broccoli.App.Shared.Services
 @implements IDisposable
-
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Broccoli.App</a>
@@ -16,72 +13,60 @@
         }
     </div>
 </div>
-
 <input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
-
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span aria-hidden="true">🥦</span> Recipes
+                <span aria-hidden="true">&#x1F37D;</span> Recipes
             </NavLink>
         </div>
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="meal-prep">
-                <span aria-hidden="true">📋</span> Meal Prep
+                <span aria-hidden="true">&#x1F4CB;</span> Meal Prep
             </NavLink>
         </div>
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="daily-food-planning">
-                <span aria-hidden="true">📅</span> Daily Food Planning
+                <span aria-hidden="true">&#x1F4C5;</span> Daily Food Planning
             </NavLink>
         </div>
-        
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="foods">
-                <span aria-hidden="true">🍽️</span> Food Database
+                <span aria-hidden="true">&#x1F957;</span> Food Database
             </NavLink>
         </div>
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="grocery-list">
-                <span aria-hidden="true">🛒</span> Grocery List
+                <span aria-hidden="true">&#x1F6D2;</span> Grocery List
             </NavLink>
         </div>
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="pantry">
-                <span aria-hidden="true">🗄️</span> Pantry
+                <span aria-hidden="true">&#x1F5C4;</span> Pantry
             </NavLink>
         </div>
-
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="macro-targets">
-                <span aria-hidden="true">🎯</span> Macro Targets
+                <span aria-hidden="true">&#x1F3AF;</span> Macro Targets
             </NavLink>
         </div>
     </nav>
 </div>
-
 @code {
     protected override void OnInitialized()
     {
         AuthStateService.OnAuthenticationStateChanged += OnAuthStateChanged;
     }
-
     private void OnAuthStateChanged()
     {
         InvokeAsync(StateHasChanged);
     }
-
     private async Task Logout()
     {
         await AuthStateService.LogoutAsync();
         Navigation.NavigateTo("/login");
     }
-
     public void Dispose()
     {
         AuthStateService.OnAuthenticationStateChanged -= OnAuthStateChanged;

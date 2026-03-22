@@ -1,9 +1,18 @@
 using Broccoli.App.Web.Components;
-using Broccoli.App.Shared.Services;
 using Broccoli.App.Shared.Configuration;
-using Broccoli.App.Shared.Services.IngredientParsing;
+using Broccoli.App.Shared.Infrastructure;
+using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.App.Shared.Platform;
+using Broccoli.App.Shared.Slices.Auth;
+using Broccoli.App.Shared.Slices.AppSettings;
+using Broccoli.App.Shared.Slices.Foods;
+using Broccoli.App.Shared.Slices.GroceryList;
+using Broccoli.App.Shared.Slices.MealPrep;
+using Broccoli.App.Shared.Slices.Nutrition;
+using Broccoli.App.Shared.Slices.Pantry;
+using Broccoli.App.Shared.Slices.Recipes;
+using Broccoli.App.Shared.Slices.Seasonality;
 using Broccoli.App.Web.Services;
-using Broccoli.Shared.Services;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Azure.Cosmos;
 
@@ -61,45 +70,16 @@ builder.Services.AddSingleton(new CosmosClient(
     cosmosSettings.GetConnectionString(),
     cosmosClientOptions));
 
-// Cloudinary image storage
-var cloudinarySettings = new CloudinarySettings();
-builder.Configuration.GetSection(CloudinarySettings.SectionName).Bind(cloudinarySettings);
-builder.Services.AddSingleton(cloudinarySettings);
-builder.Services.AddSingleton<IRecipeImageService, CloudinaryImageService>();
-
-// Add device-specific services used by the Broccoli.App.Shared project
+// ── Platform abstractions (host-specific) ────────────────────────────────
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
 
-// Add shared services
-builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
-builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-builder.Services.AddSingleton<IAuthenticationStateService, AuthenticationStateService>();
-builder.Services.AddSingleton<IThemeService, ThemeService>();
-builder.Services.AddSingleton<IRecipeService, CosmosRecipeService>();
-builder.Services.AddSingleton<IPantryService, PantryService>();
-builder.Services.AddSingleton<IGroceryListService, GroceryListService>();
-builder.Services.AddSingleton<IMacroTargetService, CosmosMacroTargetService>();
-builder.Services.AddSingleton<MacroCalculatorService>();
+// ── Cloudinary (shared image storage settings) ────────────────────────────
+var cloudinarySettings = new CloudinarySettings();
+builder.Configuration.GetSection(CloudinarySettings.SectionName).Bind(cloudinarySettings);
+builder.Services.AddSingleton(cloudinarySettings);
 
-// Recipe import
-builder.Services.AddSingleton<IImportFormat, PaprikaHtmlImportFormat>();
-builder.Services.AddSingleton<RecipeImportService>();
-
-// Feature flags
-var featureFlags = new FeatureFlagsSettings();
-builder.Configuration.GetSection(FeatureFlagsSettings.SectionName).Bind(featureFlags);
-builder.Services.AddSingleton(featureFlags);
-
-// USDA FoodData Central
-var usdaSettings = new UsdaSettings();
-builder.Configuration.GetSection(UsdaSettings.SectionName).Bind(usdaSettings);
-builder.Services.AddSingleton(usdaSettings);
-builder.Services.AddHttpClient<IUsdaFoodSearchService, UsdaFoodSearchService>(client =>
-    client.BaseAddress = new Uri(usdaSettings.BaseUrl.TrimEnd('/') + "/"));
-
-// Register FoodService
-// Try multiple paths for the FoodDatabase.json file
+// ── Resolve FoodDatabase.json path ───────────────────────────────────────
 string foodDatabasePath = string.Empty;
 var possiblePaths = new[]
 {
@@ -108,33 +88,42 @@ var possiblePaths = new[]
     Path.Combine(AppContext.BaseDirectory, "FoodDatabase.json"),
     Path.Combine(AppContext.BaseDirectory, "Data", "FoodDatabase.json")
 };
-
 foreach (var path in possiblePaths)
 {
     var fullPath = Path.GetFullPath(path);
-    if (File.Exists(fullPath))
-    {
-        foodDatabasePath = fullPath;
-        break;
-    }
+    if (File.Exists(fullPath)) { foodDatabasePath = fullPath; break; }
 }
-
 if (string.IsNullOrEmpty(foodDatabasePath))
-{
-    // If no file found, use a default path (will fail gracefully in the service)
     foodDatabasePath = Path.Combine(builder.Environment.ContentRootPath, "FoodDatabase.json");
-}
 
-builder.Services.AddSingleton<IFoodService>(sp =>
-    new LocalJsonFoodService(
-        foodDatabasePath,
-        sp.GetRequiredService<ILogger<LocalJsonFoodService>>()));
-builder.Services.AddSingleton<IngredientParserService>();
-builder.Services.AddSingleton<ISeasonalityService>(sp =>
-    new LocalJsonSeasonalityService(sp.GetRequiredService<ILogger<LocalJsonSeasonalityService>>()));
-builder.Services.AddSingleton<IngredientCartService>();
-builder.Services.AddSingleton<IMealPrepPlanService, CosmosMealPrepPlanService>();
-builder.Services.AddSingleton<IDailyFoodPlanService, CosmosDailyFoodPlanService>();
+// ── Feature flags ─────────────────────────────────────────────────────────
+var featureFlags = new FeatureFlagsSettings();
+builder.Configuration.GetSection(FeatureFlagsSettings.SectionName).Bind(featureFlags);
+
+// ── Dev credentials (auto-login in Development) ───────────────────────────
+builder.Services.Configure<DevCredentialsSettings>(
+    builder.Configuration.GetSection(DevCredentialsSettings.SectionName));
+
+var usdaSettings = new UsdaSettings();
+builder.Configuration.GetSection(UsdaSettings.SectionName).Bind(usdaSettings);
+
+// ── Slice registrations ───────────────────────────────────────────────────
+builder.Services.AddAuthSlice();
+builder.Services.AddAppSettingsSlice();
+builder.Services.AddIngredientParsing(foodDatabasePath);
+builder.Services.AddSeasonalitySlice();
+builder.Services.AddPantrySlice();
+builder.Services.AddGroceryListSlice();
+builder.Services.AddFoodsSlice(featureFlags);
+if (featureFlags.FoodDatabaseEditing)
+{
+    builder.Services.AddSingleton(usdaSettings);
+    builder.Services.AddHttpClient<IUsdaFoodSearchService, UsdaFoodSearchService>(client =>
+        client.BaseAddress = new Uri(usdaSettings.BaseUrl.TrimEnd('/') + "/"));
+}
+builder.Services.AddRecipesSlice();
+builder.Services.AddMealPrepSlice();
+builder.Services.AddNutritionSlice();
 
 WebApplication app = builder.Build();
 

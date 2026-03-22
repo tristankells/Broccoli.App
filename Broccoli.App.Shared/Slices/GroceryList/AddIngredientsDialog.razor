@@ -1,0 +1,93 @@
+@using Broccoli.Data.Models
+@inject IngredientParserService IngredientParserService
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="Cancel"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+        <div class="modal-content-box">
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="dialog-title" class="modal-title-text">
+                    🛒 Add Ingredients from Recipe
+                </h2>
+                <button class="modal-close-btn" @onclick="Cancel" title="Close">&times;</button>
+            </div>
+
+            @if (RecipeName is not null)
+            {
+                <p class="recipe-name-subtitle">@RecipeName</p>
+            }
+
+            <!-- Body -->
+            <div class="modal-body-scroll">
+                @if (isLoading)
+                {
+                    <div class="loading-container">
+                        <div class="spinner"></div>
+                        <p>Checking pantry...</p>
+                    </div>
+                }
+                else if (!ingredientRows.Any())
+                {
+                    <p class="no-ingredients">No ingredients found in this recipe.</p>
+                }
+                else
+                {
+                    <p class="dialog-hint">
+                        Select the ingredients you want to add to your grocery list.
+                        Items already in your pantry are pre-unchecked.
+                    </p>
+                    <ul class="ingredient-list">
+                        @foreach (var row in ingredientRows)
+                        {
+                            <li class="ingredient-row @(row.IsChecked ? "" : "unchecked-row")">
+                                <label class="ingredient-label">
+                                    <input type="checkbox"
+                                           class="ingredient-checkbox"
+                                           @bind="row.IsChecked" />
+                                    <span class="ingredient-text">@row.IngredientLine</span>
+                                </label>
+                                @if (row.PantryStatus != PantryMatchStatus.NotInPantry)
+                                {
+                                    <span class="pantry-badge @GetPantryBadgeClass(row.PantryStatus)">
+                                        @GetPantryStatusLabel(row.PantryStatus)
+                                    </span>
+                                }
+                                @if (row.IsMerged)
+                                {
+                                    <span class="merged-badge" title="Quantities combined from duplicate lines">
+                                        combined
+                                    </span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer-bar">
+                <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                @{
+                    var selectedCount = ingredientRows.Count(r => r.IsChecked);
+                }
+                <button class="btn btn-primary"
+                        @onclick="Confirm"
+                        disabled="@(selectedCount == 0 || isLoading)">
+                    Add Selected (@selectedCount)
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    // -------------------------------------------------------
+
+    // ── Formatting ────────────────────────────────────────────────────────────
+
+    // -------------------------------------------------------
+
+}

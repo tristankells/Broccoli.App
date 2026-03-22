@@ -413,6 +413,7 @@
     font-size: 0.85rem;
     text-align: center;
     background: var(--color-bg-raised);
+    color: var(--color-text-body);
 }
 
 .serving-input:focus,

@@ -193,6 +193,7 @@
     border-radius: 6px;
     font-size: 0.88rem;
     background: transparent;
+    color: var(--color-text-body);
     transition: border-color 0.15s, background 0.15s;
     box-sizing: border-box;
 }
@@ -202,6 +203,7 @@
     outline: none;
     border-color: var(--color-primary);
     background: var(--color-bg-raised);
+    color: var(--color-text-body);
     box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.12);
 }
 
@@ -209,6 +211,7 @@
 .cell-select:hover {
     border-color: var(--color-border-emphasis);
     background: var(--color-bg-raised);
+    color: var(--color-text-body);
 }
 
 .cell-number {

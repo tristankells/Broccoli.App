@@ -4,6 +4,13 @@
     font-size: 0.82rem;
     padding: 0.3rem 0.4rem;
     white-space: nowrap;
+    color: var(--color-text-body);
+}
+
+.food-table thead th {
+    color: var(--color-text-heading);
+    background-color: var(--color-bg-surface);
+    border-bottom-color: var(--color-border);
 }
 
 /* ---- Inline edit inputs ---- */
@@ -15,6 +22,8 @@
     border: 1px solid var(--color-border-input);
     border-radius: 4px;
     box-sizing: border-box;
+    background: var(--color-bg-raised);
+    color: var(--color-text-body);
 }
 
 .num-input {

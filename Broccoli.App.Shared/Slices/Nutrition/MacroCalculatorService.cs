@@ -1,4 +1,4 @@
-using Broccoli.Data.Models;
+﻿using Broccoli.Data.Models;
 
 namespace Broccoli.App.Shared.Slices.Nutrition;
 
@@ -35,10 +35,10 @@ public class MacroCalculatorService
             ? target.HeightCm * 2.54
             : target.HeightCm;
 
-        target.Bmr   = Math.Round(CalculateBmr(target.Gender, weightKg, heightCm, target.Age, settings.BmrFormula), 1);
-        target.Tdee  = Math.Round(target.Bmr * ActivityMultipliers[target.ActivityLevel], 1);
+        target.Bmr   = Math.Ceiling(CalculateBmr(target.Gender, weightKg, heightCm, target.Age, settings.BmrFormula));
+        target.Tdee  = Math.Ceiling(target.Bmr * ActivityMultipliers[target.ActivityLevel]);
 
-        target.RecommendedCalories = Math.Round(target.Tdee + settings.GoalCalorieDelta, 1);
+        target.RecommendedCalories = Math.Ceiling(target.Tdee + target.GoalCalorieDelta);
         if (target.RecommendedCalories < 0) target.RecommendedCalories = 0;
 
         CalculateMacros(target, weightKg, settings);
@@ -58,7 +58,7 @@ public class MacroCalculatorService
         };
     }
 
-    /// <summary>Mifflin-St Jeor (1990) � most widely recommended by dietitians.</summary>
+    /// <summary>Mifflin-St Jeor (1990) � most widely recommended by dietitians.</summary>
     private static double CalculateMifflinStJeor(
         GenderType gender, double weightKg, double heightCm, int age)
     {
@@ -97,7 +97,7 @@ public class MacroCalculatorService
         if (settings.ProteinMethod == ProteinMethod.GramsPerKg && weightKg > 0)
         {
             // Protein fixed by bodyweight; carbs & fat share remaining calories proportionally
-            var proteinG   = Math.Round(weightKg * settings.ProteinGramsPerKg, 1);
+            var proteinG   = Math.Ceiling(weightKg * settings.ProteinGramsPerKg);
             var proteinCal = proteinG * 4;
             var remaining  = Math.Max(calories - proteinCal, 0);
 
@@ -106,16 +106,23 @@ public class MacroCalculatorService
             var fatRatio  = carbRatioDivisor > 0 ? settings.FatPercent  / carbRatioDivisor : 0.5;
 
             target.RecommendedProteinG = proteinG;
-            target.RecommendedCarbsG   = Math.Round((remaining * carbRatio) / 4, 1);
-            target.RecommendedFatG     = Math.Round((remaining * fatRatio)  / 9, 1);
+            target.RecommendedCarbsG   = Math.Ceiling((remaining * carbRatio) / 4);
+            target.RecommendedFatG     = Math.Ceiling((remaining * fatRatio)  / 9);
         }
         else
         {
             // All three macros derived from percentage of total calories
-            target.RecommendedProteinG = Math.Round((calories * settings.ProteinPercent / 100) / 4, 1);
-            target.RecommendedCarbsG   = Math.Round((calories * settings.CarbPercent    / 100) / 4, 1);
-            target.RecommendedFatG     = Math.Round((calories * settings.FatPercent     / 100) / 9, 1);
+            target.RecommendedProteinG = Math.Ceiling((calories * settings.ProteinPercent / 100) / 4);
+            target.RecommendedCarbsG   = Math.Ceiling((calories * settings.CarbPercent    / 100) / 4);
+            target.RecommendedFatG     = Math.Ceiling((calories * settings.FatPercent     / 100) / 9);
         }
     }
+
+    /// <summary>
+    /// Returns estimated kg/week change at the given daily calorie delta.
+    /// Negative = loss, positive = gain. Formula: 1 kg body fat ≈ 7700 kcal.
+    /// </summary>
+    public static double WeightChangeKgPerWeek(int calorieDelta) =>
+        Math.Round((calorieDelta * 7.0) / 7700.0, 2);
 }
 

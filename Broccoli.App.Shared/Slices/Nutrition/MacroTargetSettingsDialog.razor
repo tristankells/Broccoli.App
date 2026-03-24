@@ -57,28 +57,6 @@
                     </div>
                 </div>
 
-                <!-- Goal -->
-                <div class="settings-section">
-                    <h3 class="settings-section-title">Goal</h3>
-                    <div class="goal-row">
-                        <select class="form-select" @onchange="OnGoalChanged">
-                            <option value="@MacroGoal.Maintain" selected="@(draft.Goal == MacroGoal.Maintain)">Maintain weight</option>
-                            <option value="@MacroGoal.Lose"     selected="@(draft.Goal == MacroGoal.Lose)">Lose weight</option>
-                            <option value="@MacroGoal.Gain"     selected="@(draft.Goal == MacroGoal.Gain)">Gain weight / muscle</option>
-                        </select>
-                        <div class="delta-field">
-                            <label class="delta-label">Calorie adjustment</label>
-                            <div class="delta-input-row">
-                                <input type="number"
-                                       class="form-control delta-input"
-                                       @bind="draft.GoalCalorieDelta"
-                                       step="50" />
-                                <span class="delta-unit">kcal / day</span>
-                            </div>
-                            <p class="settings-hint">Negative = deficit, positive = surplus. Applied on top of TDEE.</p>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Protein Method -->
                 <div class="settings-section">
@@ -200,8 +178,6 @@
                 CarbPercent        = Settings.CarbPercent,
                 FatPercent         = Settings.FatPercent,
                 ProteinGramsPerKg  = Settings.ProteinGramsPerKg,
-                Goal               = Settings.Goal,
-                GoalCalorieDelta   = Settings.GoalCalorieDelta,
                 UnitSystem         = Settings.UnitSystem
             };
         }
@@ -213,20 +189,6 @@
     private bool CanSave =>
         draft.ProteinMethod == ProteinMethod.GramsPerKg || MacroSumValid;
 
-    private void OnGoalChanged(ChangeEventArgs e)
-    {
-        if (Enum.TryParse<MacroGoal>(e.Value?.ToString(), out var goal))
-        {
-            draft.Goal = goal;
-            // Auto-suggest calorie delta based on goal (user can still override)
-            draft.GoalCalorieDelta = goal switch
-            {
-                MacroGoal.Lose  => -500,
-                MacroGoal.Gain  =>  250,
-                _               =>    0
-            };
-        }
-    }
 
     private async Task HandleSave()
     {

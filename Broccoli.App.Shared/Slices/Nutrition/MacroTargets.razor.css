@@ -133,7 +133,7 @@
 .macro-table {
     border-collapse: collapse;
     width: 100%;
-    min-width: 900px;
+    min-width: 1400px;
     background: var(--color-bg-raised);
     font-size: 0.88rem;
 }
@@ -141,6 +141,36 @@
 .macro-table thead tr {
     background: var(--color-bg-surface);
     border-bottom: 2px solid var(--color-border);
+}
+
+/* ---- Group header row ---- */
+.group-header-row th {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.3rem 0.5rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    white-space: nowrap;
+}
+
+.group-header-empty {
+    background: var(--color-bg-surface);
+}
+
+.group-header-band {
+    text-align: center;
+    border-radius: 4px 4px 0 0;
+}
+
+.group-header-targets {
+    background: var(--color-primary-subtle, rgba(0, 102, 204, 0.08));
+    color: var(--color-primary);
+}
+
+.group-header-meal {
+    background: var(--color-bg-subtle, rgba(0, 0, 0, 0.04));
+    color: var(--color-text-muted);
 }
 
 .macro-table th {
@@ -164,6 +194,16 @@
     transition: background 0.15s;
 }
 
+.macro-table tbody td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 0.3rem 0.4rem;
+}
+
+.macro-table tbody td.col-name {
+    text-align: left;
+}
+
 .macro-table tbody tr:hover {
     background: var(--color-bg-subtle);
 }
@@ -181,6 +221,8 @@
 .col-gender   { min-width: 100px; }
 .col-number   { min-width: 80px; }
 .col-activity { min-width: 155px; }
+.col-goal     { min-width: 110px; }
+.col-delta    { min-width: 90px; }
 .col-calc     { min-width: 80px; text-align: right; }
 .col-delete   { width: 44px; text-align: center; }
 
@@ -216,7 +258,6 @@
 
 .cell-number {
     text-align: right;
-    max-width: 80px;
 }
 
 /* ---- Read-only calculated cells ---- */
@@ -230,6 +271,12 @@
 .protein-cell  { color: var(--color-danger); }
 .carbs-cell    { color: var(--color-warning); }
 .fat-cell      { color: var(--color-success); }
+
+/* Per-meal cells — derived values, visually subordinate */
+.meal-cell          { color: var(--color-text-muted); font-style: italic; }
+.meal-protein-cell  { color: var(--color-danger);  opacity: 0.7; }
+.meal-carbs-cell    { color: var(--color-warning); opacity: 0.7; }
+.meal-fat-cell      { color: var(--color-success); opacity: 0.7; }
 
 /* ---- Delete button ---- */
 .btn-icon {

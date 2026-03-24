@@ -56,6 +56,14 @@
             <div class="table-scroll-wrapper">
                 <table class="macro-table">
                     <thead>
+                        <!-- Column group labels -->
+                        <tr class="group-header-row">
+                            <th colspan="8" class="group-header-empty"></th>
+                            <th colspan="6" class="group-header-band group-header-targets">Targets / Day</th>
+                            <th colspan="4" class="group-header-band group-header-meal">Per Meal (÷3)</th>
+                            <th class="group-header-empty"></th>
+                        </tr>
+                        <!-- Column headers -->
                         <tr>
                             <th class="col-name">Name</th>
                             <th class="col-gender">Gender</th>
@@ -63,12 +71,18 @@
                             <th class="col-number">Height<br /><span class="unit-label">@HeightUnit</span></th>
                             <th class="col-number">Age</th>
                             <th class="col-activity">Activity</th>
+                            <th class="col-goal">Goal</th>
+                            <th class="col-delta">Cal Δ<br /><span class="unit-label">kcal/day</span></th>
                             <th class="col-calc">BMR<br /><span class="unit-label">kcal</span></th>
                             <th class="col-calc">TDEE<br /><span class="unit-label">kcal</span></th>
                             <th class="col-calc">Calories<br /><span class="unit-label">kcal</span></th>
-                            <th class="col-calc">Protein<br /><span class="unit-label">g</span></th>
-                            <th class="col-calc">Carbs<br /><span class="unit-label">g</span></th>
-                            <th class="col-calc">Fat<br /><span class="unit-label">g</span></th>
+                            <th class="col-calc">Protein<br /><span class="unit-label">g @ProteinPercentLabel</span></th>
+                            <th class="col-calc">Carbs<br /><span class="unit-label">g @CarbPercentLabel</span></th>
+                            <th class="col-calc">Fat<br /><span class="unit-label">g @FatPercentLabel</span></th>
+                            <th class="col-calc">Cal<br /><span class="unit-label">kcal</span></th>
+                            <th class="col-calc">Protein<br /><span class="unit-label">g @ProteinPercentLabel</span></th>
+                            <th class="col-calc">Carbs<br /><span class="unit-label">g @CarbPercentLabel</span></th>
+                            <th class="col-calc">Fat<br /><span class="unit-label">g @FatPercentLabel</span></th>
                             <th class="col-delete"></th>
                         </tr>
                     </thead>
@@ -137,13 +151,39 @@
                                     </select>
                                 </td>
 
-                                <!-- Calculated (read-only) -->
+                                <!-- Goal -->
+                                <td class="col-goal">
+                                    <select class="cell-select"
+                                            value="@target.Goal"
+                                            @onchange="(e) => OnGoalChanged(target, Enum.Parse<MacroGoal>(e.Value!.ToString()!))">
+                                        <option value="@MacroGoal.Maintain">Maintain</option>
+                                        <option value="@MacroGoal.Lose">Lose</option>
+                                        <option value="@MacroGoal.Gain">Gain</option>
+                                    </select>
+                                </td>
+
+                                <!-- Calorie delta -->
+                                <td class="col-delta" title="@GetWeightChangeTip(target.GoalCalorieDelta)">
+                                    <input type="number"
+                                           class="cell-input cell-number"
+                                           value="@target.GoalCalorieDelta"
+                                           step="50"
+                                           @onchange="(e) => OnGoalDeltaChanged(target, e)" />
+                                </td>
+
+                                <!-- Calculated targets / day (read-only) -->
                                 <td class="col-calc calc-cell">@FormatCalc(target.Bmr)</td>
                                 <td class="col-calc calc-cell">@FormatCalc(target.Tdee)</td>
                                 <td class="col-calc calc-cell calories-cell">@FormatCalc(target.RecommendedCalories)</td>
                                 <td class="col-calc calc-cell protein-cell">@FormatCalc(target.RecommendedProteinG)</td>
                                 <td class="col-calc calc-cell carbs-cell">@FormatCalc(target.RecommendedCarbsG)</td>
                                 <td class="col-calc calc-cell fat-cell">@FormatCalc(target.RecommendedFatG)</td>
+
+                                <!-- Per meal (÷3) read-only -->
+                                <td class="col-calc calc-cell meal-cell">@FormatCalc(target.RecommendedCalories / 3.0)</td>
+                                <td class="col-calc calc-cell meal-cell meal-protein-cell">@FormatCalc(target.RecommendedProteinG / 3.0)</td>
+                                <td class="col-calc calc-cell meal-cell meal-carbs-cell">@FormatCalc(target.RecommendedCarbsG / 3.0)</td>
+                                <td class="col-calc calc-cell meal-cell meal-fat-cell">@FormatCalc(target.RecommendedFatG / 3.0)</td>
 
                                 <!-- Delete -->
                                 <td class="col-delete">
@@ -310,6 +350,28 @@
         }
     }
 
+    private async Task OnGoalChanged(MacroTarget target, MacroGoal goal)
+    {
+        target.Goal = goal;
+        // Auto-suggest a sensible delta; user can still override via the Cal Δ input
+        target.GoalCalorieDelta = goal switch
+        {
+            MacroGoal.Lose => -500,
+            MacroGoal.Gain =>  250,
+            _              =>    0
+        };
+        Calculator.Calculate(target, settings);
+        await SaveTargetAsync(target);
+    }
+
+    private async Task OnGoalDeltaChanged(MacroTarget target, ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out var v)) return;
+        target.GoalCalorieDelta = v;
+        Calculator.Calculate(target, settings);
+        await SaveTargetAsync(target);
+    }
+
     // ── Settings dialog ──────────────────────────────────────────────────────
 
     private void OpenSettings()  => settingsOpen = true;
@@ -342,6 +404,19 @@
     private string WeightUnit => settings.UnitSystem == UnitSystem.Imperial ? "lbs" : "kg";
     private string HeightUnit => settings.UnitSystem == UnitSystem.Imperial ? "in"  : "cm";
 
+    // Macro percentage labels shown in column headers
+    private string ProteinPercentLabel => settings.ProteinMethod == ProteinMethod.RatioPercent
+        ? $"({settings.ProteinPercent:0}%)"
+        : $"({settings.ProteinGramsPerKg:0.#}g/kg)";
+
+    private string CarbPercentLabel => settings.ProteinMethod == ProteinMethod.RatioPercent
+        ? $"({settings.CarbPercent:0}%)"
+        : $"({settings.CarbPercent:0}% of rem.)";
+
+    private string FatPercentLabel => settings.ProteinMethod == ProteinMethod.RatioPercent
+        ? $"({settings.FatPercent:0}%)"
+        : $"({settings.FatPercent:0}% of rem.)";
+
     private string FormatWeight(MacroTarget t)
     {
         var v = settings.UnitSystem == UnitSystem.Imperial ? t.WeightKg * 2.20462 : t.WeightKg;
@@ -355,6 +430,15 @@
     }
 
     private static string FormatCalc(double value) =>
-        value > 0 ? Math.Round(value, 1).ToString("N1") : "—";
+        value > 0 ? ((int)Math.Ceiling(value)).ToString("N0") : "—";
+
+    private static string GetWeightChangeTip(int delta)
+    {
+        if (delta == 0) return "Maintaining weight — no calorie adjustment";
+        var kgPerWeek  = MacroCalculatorService.WeightChangeKgPerWeek(delta);
+        var lbsPerWeek = Math.Abs(Math.Round(kgPerWeek * 2.20462, 2));
+        var direction  = delta < 0 ? "loss" : "gain";
+        return $"{delta:+#;-#} kcal/day → ~{Math.Abs(kgPerWeek)} kg/week {direction} (~{lbsPerWeek} lbs/week)";
+    }
 }
 

@@ -1,4 +1,4 @@
-@page "/meal-prep"
+﻿@page "/meal-prep"
 @using Broccoli.Data.Models
 @inject IMealPrepPlanService MealPrepPlanService
 @inject IRecipeService RecipeService
@@ -29,9 +29,8 @@
                 <p>Loading plans...</p>
             </div>
         }
-
-        <!-- Empty state -->
-        else if (!_plans.Any())
+        
+        @if (!_plans.Any())
         {
             <div class="empty-state">
                 <div class="empty-icon">📋</div>
@@ -40,9 +39,9 @@
                 <button class="btn btn-primary" @onclick="CreateNewPlan">Create Your First Plan</button>
             </div>
         }
-
+        
         <!-- Plans list -->
-        else
+        @if (_plans.Any())
         {
             <div class="plans-list">
                 @foreach (var plan in _plans)

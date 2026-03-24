@@ -35,15 +35,6 @@ public class MacroTargetSettings
     [JsonPropertyName("proteinGramsPerKg")]
     public double ProteinGramsPerKg { get; set; } = 1.8;
 
-    [JsonPropertyName("goal")]
-    public MacroGoal Goal { get; set; } = MacroGoal.Maintain;
-
-    /// <summary>
-    /// Calorie delta applied on top of TDEE. Negative = deficit, positive = surplus.
-    /// Default 0 (maintain). Typical: Lose = -500, Gain = +250.
-    /// </summary>
-    [JsonPropertyName("goalCalorieDelta")]
-    public int GoalCalorieDelta { get; set; } = 0;
 
     [JsonPropertyName("unitSystem")]
     public UnitSystem UnitSystem { get; set; } = UnitSystem.Metric;

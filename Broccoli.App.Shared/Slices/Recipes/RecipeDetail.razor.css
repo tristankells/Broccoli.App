@@ -468,9 +468,6 @@
     color: var(--color-text-secondary);
 }
 
-.nutrition-section {
-    background: var(--color-bg-surface);
-}
 
 /* Form Actions */
 .form-actions {

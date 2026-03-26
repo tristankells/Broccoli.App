@@ -2,16 +2,12 @@
 <div class="parsed-ingredients-container">
     <!-- Pinned Nutrition Header -->
     <div class="nutrition-header-pinned">
-        <div class="nutrition-row">
+        <div class="nutrition-row nutrition-row--secondary">
             <div class="nutrition-label">Recipe Totals</div>
             <div class="nutrition-values">
                 <div class="nutrition-item">
                     <span class="nutrition-name">Calories</span>
                     <span class="nutrition-value">@($"{_totals.Calories:F1}")</span>
-                </div>
-                <div class="nutrition-item">
-                    <span class="nutrition-name">Fat</span>
-                    <span class="nutrition-value">@($"{_totals.Fat:F1}g")</span>
                 </div>
                 <div class="nutrition-item">
                     <span class="nutrition-name">Protein</span>
@@ -21,21 +17,21 @@
                     <span class="nutrition-name">Carbs</span>
                     <span class="nutrition-value">@($"{_totals.Carbohydrates:F1}g")</span>
                 </div>
+                <div class="nutrition-item">
+                    <span class="nutrition-name">Fat</span>
+                    <span class="nutrition-value">@($"{_totals.Fat:F1}g")</span>
+                </div>
             </div>
         </div>
 
         @if (Servings.HasValue && Servings.Value > 0)
         {
-            <div class="nutrition-row">
+            <div class="nutrition-row nutrition-row--primary">
                 <div class="nutrition-label">Per Serving (@Servings serving@(Servings == 1 ? "" : "s"))</div>
                 <div class="nutrition-values">
                     <div class="nutrition-item">
                         <span class="nutrition-name">Calories</span>
                         <span class="nutrition-value">@($"{_totals.Calories / Servings.Value:F1}")</span>
-                    </div>
-                    <div class="nutrition-item">
-                        <span class="nutrition-name">Fat</span>
-                        <span class="nutrition-value">@($"{_totals.Fat / Servings.Value:F1}g")</span>
                     </div>
                     <div class="nutrition-item">
                         <span class="nutrition-name">Protein</span>
@@ -44,6 +40,10 @@
                     <div class="nutrition-item">
                         <span class="nutrition-name">Carbs</span>
                         <span class="nutrition-value">@($"{_totals.Carbohydrates / Servings.Value:F1}g")</span>
+                    </div>
+                    <div class="nutrition-item">
+                        <span class="nutrition-name">Fat</span>
+                        <span class="nutrition-value">@($"{_totals.Fat / Servings.Value:F1}g")</span>
                     </div>
                 </div>
             </div>
@@ -69,11 +69,11 @@
                     <tr>
                         <th class="col-status">Status</th>
                         <th class="col-ingredient">Ingredient</th>
-                        <th class="col-quantity">Quantity</th>
+                        <th class="col-quantity">Quantity (g)</th>
                         <th class="col-calories">Calories</th>
-                        <th class="col-fat">Fat (g)</th>
                         <th class="col-protein">Protein (g)</th>
                         <th class="col-carbs">Carbs (g)</th>
+                        <th class="col-fat">Fat (g)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,11 +98,11 @@
                                         <small class="text-muted d-block">searched for: @match.ParsedIngredient.FoodName</small>
                                     }
                                 </td>
-                                <td class="col-quantity">@($"{match.ParsedIngredient.Quantity:F1} {match.ParsedIngredient.Unit}")</td>
+                                <td class="col-quantity">@match.GetQuantityDisplay()</td>
                                 <td class="col-calories">@($"{match.GetCalories():F1}")</td>
-                                <td class="col-fat">@($"{match.GetFat():F1}")</td>
                                 <td class="col-protein">@($"{match.GetProtein():F1}")</td>
                                 <td class="col-carbs">@($"{match.GetCarbohydrates():F1}")</td>
+                                <td class="col-fat">@($"{match.GetFat():F1}")</td>
                             </tr>
                         }
                         else
@@ -115,11 +115,11 @@
                                     <span class="unmatched-text">@match.ParsedIngredient.FoodName</span>
                                     <small class="text-muted d-block">Not found in database</small>
                                 </td>
-                                <td class="col-quantity">@($"{match.ParsedIngredient.Quantity:F1} {match.ParsedIngredient.Unit}")</td>
+                                <td class="col-quantity">@match.GetQuantityDisplay()</td>
                                 <td class="col-calories">-</td>
-                                <td class="col-fat">-</td>
                                 <td class="col-protein">-</td>
                                 <td class="col-carbs">-</td>
+                                <td class="col-fat">-</td>
                             </tr>
                         }
                     }
@@ -134,4 +134,3 @@
     // Component-level cache: (foodName, distance) -> Food
 
 }
-

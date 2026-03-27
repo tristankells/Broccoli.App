@@ -1,20 +1,28 @@
 ﻿@inject IAuthenticationStateService AuthStateService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @implements IDisposable
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Broccoli.App</a>
-        @if (AuthStateService.IsAuthenticated)
-        {
-            <div class="user-info">
+        <div class="nav-right">
+            @if (AuthStateService.IsAuthenticated)
+            {
                 <span class="username">@AuthStateService.CurrentUsername</span>
-                <button class="btn btn-sm btn-outline-light" @onclick="Logout">Logout</button>
-            </div>
-        }
+                <button class="btn btn-sm btn-outline-light logout-btn" @onclick="Logout">Logout</button>
+            }
+            <label class="navbar-toggler-label" for="nav-toggle" title="Toggle navigation" aria-label="Toggle navigation"></label>
+        </div>
     </div>
 </div>
-<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+
+<input type="checkbox" id="nav-toggle" class="navbar-toggler-input" />
+<label class="nav-backdrop" for="nav-toggle" aria-hidden="true"></label>
+<div class="nav-scrollable" id="nav-scrollable">
+    <div class="nav-close-row">
+        <label class="nav-close-btn" for="nav-toggle" title="Close menu" aria-label="Close navigation">&#x2715;</label>
+    </div>
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -53,22 +61,38 @@
         </div>
     </nav>
 </div>
+
 @code {
     protected override void OnInitialized()
     {
         AuthStateService.OnAuthenticationStateChanged += OnAuthStateChanged;
+        Navigation.LocationChanged += OnLocationChanged;
     }
-    private void OnAuthStateChanged()
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        InvokeAsync(StateHasChanged);
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("navInterop.init");
+        }
     }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = InvokeAsync(async () => await JS.InvokeVoidAsync("navInterop.closeNav"));
+    }
+
+    private void OnAuthStateChanged() => InvokeAsync(StateHasChanged);
+
     private async Task Logout()
     {
         await AuthStateService.LogoutAsync();
         Navigation.NavigateTo("/login");
     }
+
     public void Dispose()
     {
         AuthStateService.OnAuthenticationStateChanged -= OnAuthStateChanged;
+        Navigation.LocationChanged -= OnLocationChanged;
     }
 }

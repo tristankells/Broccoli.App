@@ -733,5 +733,65 @@
         "SugarsPer100g":  97.78,
         "ProteinPer100g":  0.0,
         "SodiumMgPer100g":  27.78
-    }
+    },
+    {
+        "Id": 50,
+        "Name": "Whey Protein Powder, 24 Grams of Protein per Scoop",
+        "Measure": "Scoop",
+        "GramsPerMeasure": 31,
+        "Notes": "Imported from USDA FDC (fdcId: 173177)",
+        "CaloriesPer100g": 359,
+        "FatPer100g": 2.488,
+        "SaturatedFatPer100g": 0.581,
+        "CarbohydratesPer100g": 6.042,
+        "DietaryFiberPer100g": 0,
+        "SugarsPer100g": 0,
+        "ProteinPer100g": 77.083,
+        "SodiumMgPer100g": 372
+    },
+    {
+        "Id": 51,
+        "Name": "Blackberries, frozen, unsweetened",
+        "Measure": "100g",
+        "GramsPerMeasure": 100,
+        "Notes": "Imported from USDA FDC (fdcId: 171710)",
+        "CaloriesPer100g": 64,
+        "FatPer100g": 0.43,
+        "SaturatedFatPer100g": 0.015,
+        "CarbohydratesPer100g": 15.7,
+        "DietaryFiberPer100g": 5,
+        "SugarsPer100g": 0,
+        "ProteinPer100g": 1.18,
+        "SodiumMgPer100g": 1
+    },
+    {
+        "Id": 52,
+        "Name": "Bananas, raw",
+        "Measure": "Banana",
+        "GramsPerMeasure": 118,
+        "Notes": "Imported from USDA FDC (fdcId: 173944)",
+        "CaloriesPer100g": 89,
+        "FatPer100g": 0.33,
+        "SaturatedFatPer100g": 0.112,
+        "CarbohydratesPer100g": 22.8,
+        "DietaryFiberPer100g": 2.6,
+        "SugarsPer100g": 0,
+        "ProteinPer100g": 1.09,
+        "SodiumMgPer100g": 1
+    },
+  {
+    "Id": 53,
+    "Name": "Ploughman Bakery, Sour Dough Bread",
+    "Measure": "Slice",
+    "GramsPerMeasure": 42,
+    "Notes": "1 slice (half of 84g 2-slice serving)",
+    "CaloriesPer100g": 245.9544,
+    "FatPer100g": 2.1429,
+    "SaturatedFatPer100g": 0.71,
+    "CarbohydratesPer100g": 49.4048,
+    "DietaryFiberPer100g": 3.5714,
+    "SugarsPer100g": 0.71,
+    "ProteinPer100g": 8.8095,
+    "SodiumMgPer100g": 771.43
+  }
 ]

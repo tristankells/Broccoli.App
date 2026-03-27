@@ -1,12 +1,14 @@
+using System.Text.Json;
 using Broccoli.Data.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
 namespace Broccoli.App.Shared.Slices.Recipes;
 
-public partial class RecipeDetail
+public partial class RecipeDetail : IDisposable
 {
     [Parameter] public string? RecipeId { get; set; }
 
@@ -23,6 +25,24 @@ public partial class RecipeDetail
     private SeasonalityResult? _seasonality;
     private bool _seasonalityLoading;
 
+    // Tracks the ingredients text that has been committed to the nutrition table.
+    // Updated only on Enter-key or blur so ParsedIngredientsTable doesn't re-parse
+    // on every single keystroke.
+    private string? _ingredientsDisplayText;
+
+    // ── Autosave ──────────────────────────────────────────────────────────────
+    private enum AutoSaveStatus { Idle, Pending, Saving, Saved, Error }
+    private AutoSaveStatus _autoSaveStatus = AutoSaveStatus.Idle;
+    private string? _autoSaveError;
+    /// <summary>JSON snapshot of the recipe taken after the last successful save.</summary>
+    private string? _savedSnapshot;
+    private System.Threading.Timer? _autosaveTimer;
+    private IDisposable? _locationChangingRegistration;
+
+    private string SerializeRecipe() => JsonSerializer.Serialize(recipe);
+    private bool IsDirty => _savedSnapshot is not null && SerializeRecipe() != _savedSnapshot;
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Autocomplete state
     private HashSet<string> _allTags = new(StringComparer.OrdinalIgnoreCase);
     private List<string> _tagSuggestions = new();
@@ -33,6 +53,7 @@ public partial class RecipeDetail
 
     protected override async Task OnInitializedAsync()
     {
+        _locationChangingRegistration = Navigation.RegisterLocationChangingHandler(OnLocationChangingAsync);
         await LoadRecipe();
     }
 
@@ -107,6 +128,20 @@ public partial class RecipeDetail
             isLoading = false;
         }
 
+        // Capture the initial committed display text for ParsedIngredientsTable.
+        _ingredientsDisplayText = recipe?.Ingredients;
+
+        // Capture autosave baseline snapshot for existing recipes.
+        if (!IsNewRecipe && recipe is not null)
+        {
+            _savedSnapshot = SerializeRecipe();
+            _autoSaveStatus = AutoSaveStatus.Idle;
+        }
+        else
+        {
+            _savedSnapshot = null; // new recipes don't autosave
+        }
+
         // Score seasonality for existing recipes once the recipe is loaded.
         if (recipe is not null && !string.IsNullOrWhiteSpace(recipe.Ingredients))
         {
@@ -116,6 +151,10 @@ public partial class RecipeDetail
 
     private async Task OnIngredientsChanged()
     {
+        // Commit the live model value to the display text so ParsedIngredientsTable
+        // and the seasonality panel receive the updated ingredients.
+        _ingredientsDisplayText = recipe?.Ingredients;
+
         // Re-render so ParsedIngredientsTable sees the new value, then rescore.
         StateHasChanged();
         if (!string.IsNullOrWhiteSpace(recipe?.Ingredients))
@@ -126,7 +165,108 @@ public partial class RecipeDetail
         {
             _seasonality = null;
         }
+
+        HandleFieldChanged();
     }
+
+    /// <summary>
+    /// Keeps <c>recipe.Ingredients</c> in sync with the textarea on every keystroke
+    /// without triggering an expensive re-parse of the nutrition table.
+    /// </summary>
+    private void OnIngredientsInput(ChangeEventArgs e)
+    {
+        if (recipe is not null)
+            recipe.Ingredients = e.Value?.ToString() ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Triggers a nutrition/seasonality recalculation when the user presses Enter
+    /// (i.e. moves to a new ingredient line), rather than waiting for blur.
+    /// </summary>
+    private async Task OnIngredientsKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await OnIngredientsChanged();
+    }
+
+    // ── Autosave ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Called whenever any editable field changes. Resets the 2-second debounce
+    /// timer so autosave fires only after the user pauses. No-ops for new recipes.
+    /// </summary>
+    private void HandleFieldChanged()
+    {
+        if (IsNewRecipe) return;
+
+        _autoSaveStatus = AutoSaveStatus.Pending;
+        _autosaveTimer?.Dispose();
+        _autosaveTimer = new System.Threading.Timer(
+            _ => InvokeAsync(async () => await AutoSaveAsync()),
+            null,
+            dueTime: 2_000,
+            period: System.Threading.Timeout.Infinite);
+    }
+
+    /// <summary>
+    /// Persists the current recipe to Cosmos DB and updates the snapshot.
+    /// All UI mutations go through <see cref="InvokeAsync"/> for thread safety.
+    /// </summary>
+    private async Task AutoSaveAsync()
+    {
+        _autosaveTimer?.Dispose();
+        _autosaveTimer = null;
+
+        if (!IsDirty) return;
+
+        _autoSaveStatus = AutoSaveStatus.Saving;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            // UpdateAsync mutates recipe.UpdatedAt in-place; capture the return
+            // value to keep recipe in sync with what was persisted.
+            recipe = await RecipeService.UpdateAsync(recipe!);
+            _savedSnapshot = SerializeRecipe();
+            _autoSaveStatus = AutoSaveStatus.Saved;
+            await InvokeAsync(StateHasChanged);
+
+            // Show "Saved" for 3 s, then silently revert to Idle.
+            await Task.Delay(3_000);
+            if (_autoSaveStatus == AutoSaveStatus.Saved)
+            {
+                _autoSaveStatus = AutoSaveStatus.Idle;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            _autoSaveError = ex.Message;
+            _autoSaveStatus = AutoSaveStatus.Error;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    /// <summary>
+    /// Flushes any pending autosave before Blazor router performs a navigation.
+    /// Capped at 3 s so a slow Cosmos call never blocks navigation indefinitely.
+    /// </summary>
+    private async ValueTask OnLocationChangingAsync(LocationChangingContext ctx)
+    {
+        _autosaveTimer?.Dispose();
+        _autosaveTimer = null;
+
+        if (IsDirty)
+            await Task.WhenAny(AutoSaveAsync(), Task.Delay(3_000));
+    }
+
+    public void Dispose()
+    {
+        _autosaveTimer?.Dispose();
+        _locationChangingRegistration?.Dispose();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     private async Task ScoreSeasonalityAsync(string ingredientsText)
     {
@@ -157,6 +297,10 @@ public partial class RecipeDetail
             return;
         }
 
+        // Cancel any pending autosave — manual save takes precedence.
+        _autosaveTimer?.Dispose();
+        _autosaveTimer = null;
+
         isSaving = true;
         errorMessage = null;
         successMessage = null;
@@ -172,7 +316,11 @@ public partial class RecipeDetail
             }
             else
             {
-                await RecipeService.UpdateAsync(recipe);
+                recipe = await RecipeService.UpdateAsync(recipe);
+                // Refresh snapshot so the location-changing handler sees IsDirty = false
+                // and doesn't attempt a redundant autosave during the navigation.
+                _savedSnapshot = SerializeRecipe();
+                _autoSaveStatus = AutoSaveStatus.Idle;
                 successMessage = "Recipe updated successfully!";
                 await Task.Delay(1500);
                 Navigation.NavigateTo("/recipes");
@@ -239,11 +387,13 @@ public partial class RecipeDetail
         }
 
         newTag = string.Empty;
+        HandleFieldChanged();
     }
 
     private void RemoveTag(string tag)
     {
         recipe?.Tags.Remove(tag);
+        HandleFieldChanged();
     }
 
     private void OnTagKeyPress(KeyboardEventArgs e)
@@ -372,7 +522,7 @@ public partial class RecipeDetail
         }
         catch (Exception ex)
         {
-            // Log but don't surface � image is already removed from the recipe
+            // Log but don't surface � image is already removed from the recipe
             Console.WriteLine($"Failed to delete image from storage: {ex.Message}");
         }
     }

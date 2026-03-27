@@ -593,3 +593,73 @@
 .mt-2 {
     margin-top: 0.5rem;
 }
+
+/* ── Autosave indicator pill ─────────────────────────────────────────────── */
+.autosave-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    transition: opacity 0.3s ease, background 0.3s ease;
+    align-self: flex-start;
+}
+
+.autosave-idle   { display: none; }
+
+.autosave-pending {
+    background: var(--color-warning-bg, #fff3cd);
+    color: #856404;
+    border: 1px solid #ffc107;
+}
+
+.autosave-saving {
+    background: var(--color-info-bg, #cfe2ff);
+    color: #084298;
+    border: 1px solid #9ec5fe;
+}
+
+.autosave-saved {
+    background: var(--color-success-bg, #d1e7dd);
+    color: #0a3622;
+    border: 1px solid #a3cfbb;
+}
+
+.autosave-error {
+    background: var(--color-danger-bg, #f8d7da);
+    color: #842029;
+    border: 1px solid #f1aeb5;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Tiny inline spinner used inside the Saving state */
+.spinner-tiny {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+/* Retry button inside the error pill */
+.btn-retry {
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    padding: 0.1rem 0.5rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: inherit;
+    line-height: 1.4;
+}
+
+.btn-retry:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
+

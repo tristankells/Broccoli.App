@@ -1,5 +1,6 @@
 @page "/recipes/new"
 @page "/recipes/{RecipeId}"
+@implements IDisposable
 @using Broccoli.Data.Models
 @inject IRecipeService RecipeService
 @inject NavigationManager Navigation
@@ -17,6 +18,27 @@
                 ← Back to Recipes
             </button>
             <h1>@(IsNewRecipe ? "Add New Recipe" : "Edit Recipe")</h1>
+            @if (!IsNewRecipe)
+            {
+                <div class="autosave-indicator autosave-@_autoSaveStatus.ToString().ToLower()">
+                    @switch (_autoSaveStatus)
+                    {
+                        case AutoSaveStatus.Pending:
+                            <span>⏳ Unsaved changes</span>
+                            break;
+                        case AutoSaveStatus.Saving:
+                            <span class="spinner-tiny"></span><span>Saving…</span>
+                            break;
+                        case AutoSaveStatus.Saved:
+                            <span>✓ Saved</span>
+                            break;
+                        case AutoSaveStatus.Error:
+                            <span>⚠ Save failed — @_autoSaveError</span>
+                            <button type="button" class="btn-retry" @onclick="AutoSaveAsync">Retry</button>
+                            break;
+                    }
+                </div>
+            }
             @if (!IsNewRecipe && recipe != null)
             {
                 <button class="btn btn-secondary" @onclick="NavigateToReadRecipe">
@@ -103,22 +125,22 @@
                             
                             <div class="form-group">
                                 <label>Recipe Name *</label>
-                                <InputText class="form-control" @bind-Value="recipe.Name" placeholder="e.g., Chicken Parmesan" />
+                                <InputText class="form-control" @bind-Value="recipe.Name" @bind-Value:after="HandleFieldChanged" placeholder="e.g., Chicken Parmesan" />
                                 <ValidationMessage For="@(() => recipe.Name)" />
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Servings</label>
-                                    <InputNumber class="form-control" @bind-Value="recipe.Servings" placeholder="4" />
+                                    <InputNumber class="form-control" @bind-Value="recipe.Servings" @bind-Value:after="HandleFieldChanged" placeholder="4" />
                                 </div>
                                 <div class="form-group">
                                     <label>Prep Time (min)</label>
-                                    <InputNumber class="form-control" @bind-Value="recipe.PrepTimeMinutes" placeholder="15" />
+                                    <InputNumber class="form-control" @bind-Value="recipe.PrepTimeMinutes" @bind-Value:after="HandleFieldChanged" placeholder="15" />
                                 </div>
                                 <div class="form-group">
                                     <label>Cook Time (min)</label>
-                                    <InputNumber class="form-control" @bind-Value="recipe.CookTimeMinutes" placeholder="30" />
+                                    <InputNumber class="form-control" @bind-Value="recipe.CookTimeMinutes" @bind-Value:after="HandleFieldChanged" placeholder="30" />
                                 </div>
                             </div>
 
@@ -132,12 +154,12 @@
 
                             <div class="form-group">
                                 <label>Source</label>
-                                <InputText class="form-control" @bind-Value="recipe.Source" placeholder="e.g., Grandmas cookbook" />
+                                <InputText class="form-control" @bind-Value="recipe.Source" @bind-Value:after="HandleFieldChanged" placeholder="e.g., Grandmas cookbook" />
                             </div>
 
                             <div class="form-group">
                                 <label>URL</label>
-                                <InputText class="form-control" @bind-Value="recipe.Url" placeholder="https://..." />
+                                <InputText class="form-control" @bind-Value="recipe.Url" @bind-Value:after="HandleFieldChanged" placeholder="https://..." />
                             </div>
                         </div>
 
@@ -194,16 +216,18 @@
                             <h2>Ingredients</h2>
                             <div class="form-group">
                                 <textarea class="form-control textarea-large" 
-                                          @bind="recipe.Ingredients"
+                                          value="@recipe.Ingredients"
+                                          @oninput="OnIngredientsInput"
                                           @onblur="OnIngredientsChanged"
+                                          @onkeyup="OnIngredientsKeyUp"
                                           placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..." 
                                           rows="12"></textarea>
-                                <small class="form-text">Enter each ingredient on a new line. Parsing updates when you click outside the box.</small>
+                                <small class="form-text">Enter each ingredient on a new line. Nutrition updates on each new line or when you click outside.</small>
                             </div>
 
-                            @if (!string.IsNullOrWhiteSpace(recipe.Ingredients))
+                            @if (!string.IsNullOrWhiteSpace(_ingredientsDisplayText))
                             {
-                                <ParsedIngredientsTable IngredientsText="@recipe.Ingredients" Servings="@recipe.Servings" />
+                                <ParsedIngredientsTable IngredientsText="@_ingredientsDisplayText" Servings="@recipe.Servings" />
                                 <div class="seasonality-section-detail">
                                     <SeasonalityPanel Result="@_seasonality" IsLoading="@_seasonalityLoading" />
                                 </div>
@@ -215,7 +239,8 @@
                             <h2>Directions</h2>
                             <div class="form-group">
                                 <InputTextArea class="form-control textarea-large" 
-                                              @bind-Value="recipe.Directions" 
+                                              @bind-Value="recipe.Directions"
+                                              @bind-Value:after="HandleFieldChanged"
                                               placeholder="1. Preheat oven to 375°F&#10;2. Mix ingredients&#10;3. Bake for 30 minutes..." 
                                               rows="12" />
                                 <small class="form-text">Enter cooking instructions. Markdown supported: <strong>**bold**</strong>, <em>*italic*</em>, <code># Heading</code>, <code>- bullet</code>, <code>1. numbered list</code></small>
@@ -227,7 +252,8 @@
                             <h2>Notes</h2>
                             <div class="form-group">
                                 <InputTextArea class="form-control" 
-                                              @bind-Value="recipe.Notes" 
+                                              @bind-Value="recipe.Notes"
+                                              @bind-Value:after="HandleFieldChanged"
                                               placeholder="Any additional notes, tips, or variations..." 
                                               rows="6" />
                                 <small class="form-text">Markdown supported: <strong>**bold**</strong>, <em>*italic*</em>, <code># Heading</code>, <code>- bullet</code>, <code>1. numbered list</code></small>

@@ -86,7 +86,7 @@ public static class MauiProgram
         builder.Services.AddSeasonalitySlice();
         builder.Services.AddPantrySlice();
         builder.Services.AddGroceryListSlice();
-        // Food database editing is not supported on MAUI — flag permanently off
+        // Food database editing is not supported on MAUI ï¿½ flag permanently off
         builder.Services.AddFoodsSlice(new FeatureFlagsSettings { FoodDatabaseEditing = false });
         builder.Services.AddRecipesSlice();
         builder.Services.AddMealPrepSlice();
@@ -97,9 +97,27 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
         var app = builder.Build();
-        // Initialize CosmosDB on startup
-        var cosmosDbService = app.Services.GetRequiredService<ICosmosDbService>();
-        Task.Run(async () => await cosmosDbService.InitializeAsync());
+        // Initialize CosmosDB and all Cosmos-backed services on startup
+        Task.Run(async () =>
+        {
+            var cosmosDbService = app.Services.GetRequiredService<ICosmosDbService>();
+            await cosmosDbService.InitializeAsync();
+
+            var pantryService = app.Services.GetRequiredService<IPantryService>();
+            await pantryService.InitializeAsync();
+
+            var groceryListService = app.Services.GetRequiredService<IGroceryListService>();
+            await groceryListService.InitializeAsync();
+
+            var macroTargetService = app.Services.GetRequiredService<IMacroTargetService>();
+            await macroTargetService.InitializeAsync();
+
+            var mealPrepPlanService = app.Services.GetRequiredService<IMealPrepPlanService>();
+            await mealPrepPlanService.InitializeAsync();
+
+            var dailyFoodPlanService = app.Services.GetRequiredService<IDailyFoodPlanService>();
+            await dailyFoodPlanService.InitializeAsync();
+        });
         return app;
     }
 }

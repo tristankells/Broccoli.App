@@ -663,3 +663,36 @@
 }
 /* ─────────────────────────────────────────────────────────────────────────── */
 
+/* ── Recipe settings button (header) ────────────────────────────────────── */
+.btn-outline-settings {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-surface);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-outline-settings:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-emphasis);
+}
+
+/* ── Meal comparison hint strip ─────────────────────────────────────────── */
+.meal-comparison-hint {
+    margin-top: 0.75rem;
+    padding: 0.6rem 1rem;
+    background: var(--color-primary-info-bg, #cfe2ff);
+    border-left: 4px solid var(--color-primary, #0066cc);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: var(--color-primary-dark, #084298);
+}
+
+

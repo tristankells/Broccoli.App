@@ -8,6 +8,8 @@
 @inject IngredientParserService IngredientParserService
 @inject ISeasonalityService SeasonalityService
 @inject IRecipeImageService RecipeImageService
+@inject IMacroTargetService MacroTargetService
+@inject IAuthenticationStateService AuthStateService
 
 <AuthorizeView>
     <PageTitle>@(IsNewRecipe ? "Add Recipe" : "Edit Recipe")</PageTitle>
@@ -41,6 +43,9 @@
             }
             @if (!IsNewRecipe && recipe != null)
             {
+                <button class="btn btn-outline-settings" @onclick="() => _recipeSettingsDialogOpen = true">
+                    ⚙️ Settings
+                </button>
                 <button class="btn btn-secondary" @onclick="NavigateToReadRecipe">
                     📖 View Recipe
                 </button>
@@ -225,9 +230,35 @@
                                 <small class="form-text">Enter each ingredient on a new line. Nutrition updates on each new line or when you click outside.</small>
                             </div>
 
-                            @if (!string.IsNullOrWhiteSpace(_ingredientsDisplayText))
+            @if (!string.IsNullOrWhiteSpace(_ingredientsDisplayText))
                             {
                                 <ParsedIngredientsTable IngredientsText="@_ingredientsDisplayText" Servings="@recipe.Servings" />
+
+                                @if (_recipeDetailSettings.RecipeMealComparisonEnabled)
+                                {
+                                    @if (ChosenMacroTarget is not null && (recipe.Servings ?? 0) > 0)
+                                    {
+                                        <MealMacroComparison
+                                            PerServingCalories="@PerServingCalories"
+                                            PerServingProteinG="@PerServingProteinG"
+                                            PerServingCarbsG="@PerServingCarbsG"
+                                            PerServingFatG="@PerServingFatG"
+                                            Target="@ChosenMacroTarget" />
+                                    }
+                                    else if ((recipe.Servings ?? 0) <= 0)
+                                    {
+                                        <div class="meal-comparison-hint">
+                                            💡 Set a serving count to enable meal comparison.
+                                        </div>
+                                    }
+                                    else if (ChosenMacroTarget is null && _allTargets.Any())
+                                    {
+                                        <div class="meal-comparison-hint">
+                                            💡 Choose a macro profile in ⚙️ Settings to see the meal comparison.
+                                        </div>
+                                    }
+                                }
+
                                 <div class="seasonality-section-detail">
                                     <SeasonalityPanel Result="@_seasonality" IsLoading="@_seasonalityLoading" />
                                 </div>
@@ -304,3 +335,10 @@
         }
     </div>
 </AuthorizeView>
+
+<RecipeDetailSettingsDialog IsVisible="@_recipeSettingsDialogOpen"
+                            Settings="@_recipeDetailSettings"
+                            AvailableTargets="@_allTargets"
+                            OnSave="OnRecipeSettingsSaved"
+                            OnCancel="() => _recipeSettingsDialogOpen = false" />
+

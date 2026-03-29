@@ -25,6 +25,28 @@ public partial class RecipeDetail : IDisposable
     private SeasonalityResult? _seasonality;
     private bool _seasonalityLoading;
 
+    // ── Recipe settings / meal macro comparison ───────────────────────────────
+    private MacroTargetSettings _recipeDetailSettings = new();
+    private List<MacroTarget> _allTargets = new();
+    private bool _recipeSettingsDialogOpen;
+
+    // Nutrition totals from the last ingredient parse (updated by ScoreSeasonalityAsync).
+    private double _totalCalories;
+    private double _totalProteinG;
+    private double _totalCarbsG;
+    private double _totalFatG;
+
+    // Per-serving values — automatically reflect the current Servings field.
+    private double PerServingCalories => recipe?.Servings > 0 ? _totalCalories / recipe.Servings.Value : 0;
+    private double PerServingProteinG => recipe?.Servings > 0 ? _totalProteinG  / recipe.Servings.Value : 0;
+    private double PerServingCarbsG   => recipe?.Servings > 0 ? _totalCarbsG    / recipe.Servings.Value : 0;
+    private double PerServingFatG     => recipe?.Servings > 0 ? _totalFatG      / recipe.Servings.Value : 0;
+
+    /// <summary>The macro profile currently selected in the recipe settings dialog (null when none chosen).</summary>
+    private MacroTarget? ChosenMacroTarget =>
+        _allTargets.FirstOrDefault(t => t.Id == _recipeDetailSettings.RecipeMealComparisonPersonId);
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Tracks the ingredients text that has been committed to the nutrition table.
     // Updated only on Enter-key or blur so ParsedIngredientsTable doesn't re-parse
     // on every single keystroke.
@@ -55,6 +77,18 @@ public partial class RecipeDetail : IDisposable
     {
         _locationChangingRegistration = Navigation.RegisterLocationChangingHandler(OnLocationChangingAsync);
         await LoadRecipe();
+
+        // Load macro settings and targets for the meal comparison panel.
+        try
+        {
+            var userId = AuthStateService.CurrentUserId ?? string.Empty;
+            _recipeDetailSettings = await MacroTargetService.GetSettingsAsync(userId);
+            _allTargets = await MacroTargetService.GetAllAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load macro settings for recipe comparison: {ex.Message}");
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -277,6 +311,12 @@ public partial class RecipeDetail : IDisposable
         {
             var matches = await IngredientParserService.ParseAndMatchIngredientsAsync(ingredientsText);
             _seasonality = SeasonalityService.Score(matches);
+
+            // Reuse the same parsed matches to update nutrition totals for the meal comparison panel.
+            _totalCalories = matches.Where(m => m.IsMatched).Sum(m => m.GetCalories());
+            _totalProteinG = matches.Where(m => m.IsMatched).Sum(m => m.GetProtein());
+            _totalCarbsG   = matches.Where(m => m.IsMatched).Sum(m => m.GetCarbohydrates());
+            _totalFatG     = matches.Where(m => m.IsMatched).Sum(m => m.GetFat());
         }
         catch (Exception ex)
         {
@@ -289,6 +329,25 @@ public partial class RecipeDetail : IDisposable
             await InvokeAsync(StateHasChanged);
         }
     }
+
+    // ── Recipe settings ───────────────────────────────────────────────────────
+
+    private async Task OnRecipeSettingsSaved(MacroTargetSettings updated)
+    {
+        _recipeSettingsDialogOpen = false;
+        try
+        {
+            _recipeDetailSettings = await MacroTargetService.SaveSettingsAsync(updated);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to save recipe settings: {ex.Message}");
+            // Still apply locally so the UI reflects the change even if persist failed.
+            _recipeDetailSettings = updated;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     private async Task SaveRecipe()
     {

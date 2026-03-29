@@ -1,0 +1,108 @@
+﻿@using Broccoli.Data.Models
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="HandleCancel"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="recipe-settings-dialog-title">
+        <div class="settings-modal-box">
+
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="recipe-settings-dialog-title" class="modal-title-text">⚙️ Recipe Settings</h2>
+                <button class="modal-close-btn" @onclick="HandleCancel" title="Close">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body-scroll">
+
+                <!-- Meal Comparison toggle -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Meal Macro Comparison</h3>
+                    <p class="settings-hint">Show how this recipe's per-serving macros compare against a per-meal target (÷&nbsp;3).</p>
+                    <div class="toggle-group">
+                        <button class="toggle-btn @(!draft.RecipeMealComparisonEnabled ? "active" : "")"
+                                @onclick="() => draft.RecipeMealComparisonEnabled = false">
+                            Off
+                        </button>
+                        <button class="toggle-btn @(draft.RecipeMealComparisonEnabled ? "active" : "")"
+                                @onclick="() => draft.RecipeMealComparisonEnabled = true">
+                            On
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Person selector — only shown when comparison is on -->
+                @if (draft.RecipeMealComparisonEnabled)
+                {
+                    <div class="settings-section">
+                        <h3 class="settings-section-title">Compare Against</h3>
+
+                        @if (!AvailableTargets.Any())
+                        {
+                            <p class="settings-hint info-hint">
+                                No macro profiles found — <a href="/macro-targets">add one on the Macro Targets page</a>.
+                            </p>
+                        }
+                        else
+                        {
+                            <select class="form-control"
+                                    value="@draft.RecipeMealComparisonPersonId"
+                                    @onchange="e => draft.RecipeMealComparisonPersonId = e.Value?.ToString() ?? string.Empty">
+                                <option value="">— Select a person —</option>
+                                @foreach (var t in AvailableTargets)
+                                {
+                                    <option value="@t.Id">@(string.IsNullOrWhiteSpace(t.Name) ? "(unnamed)" : t.Name)</option>
+                                }
+                            </select>
+                        }
+                    </div>
+                }
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer-bar">
+                <button class="btn btn-secondary" @onclick="HandleCancel">Cancel</button>
+                <button class="btn btn-primary" @onclick="HandleSave">Save Settings</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public MacroTargetSettings Settings { get; set; } = new();
+    [Parameter] public List<MacroTarget> AvailableTargets { get; set; } = new();
+    [Parameter] public EventCallback<MacroTargetSettings> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private MacroTargetSettings draft = new();
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            // Deep-copy so changes don't leak until Save is clicked.
+            draft = new MacroTargetSettings
+            {
+                Id                           = Settings.Id,
+                UserId                       = Settings.UserId,
+                PartitionKey                 = Settings.PartitionKey,
+                BmrFormula                   = Settings.BmrFormula,
+                ProteinMethod                = Settings.ProteinMethod,
+                ProteinPercent               = Settings.ProteinPercent,
+                CarbPercent                  = Settings.CarbPercent,
+                FatPercent                   = Settings.FatPercent,
+                ProteinGramsPerKg            = Settings.ProteinGramsPerKg,
+                UnitSystem                   = Settings.UnitSystem,
+                RecipeMealComparisonEnabled  = Settings.RecipeMealComparisonEnabled,
+                RecipeMealComparisonPersonId = Settings.RecipeMealComparisonPersonId
+            };
+        }
+    }
+
+    private async Task HandleSave()   => await OnSave.InvokeAsync(draft);
+    private async Task HandleCancel() => await OnCancel.InvokeAsync();
+}
+

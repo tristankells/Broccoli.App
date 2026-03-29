@@ -1,0 +1,92 @@
+﻿@using Broccoli.Data.Models
+
+<div class="meal-macro-comparison">
+    <div class="mmc-header">
+        <span class="mmc-title">🍽️ Meal Comparison</span>
+        <span class="mmc-subtitle">Per serving vs. @(string.IsNullOrWhiteSpace(Target.Name) ? "Unnamed Profile" : Target.Name)'s per-meal target&nbsp;(÷&nbsp;3)</span>
+    </div>
+
+    <table class="mmc-table">
+        <thead>
+            <tr>
+                <th class="col-macro">Macro</th>
+                <th class="col-target">Target</th>
+                <th class="col-actual">Actual</th>
+                <th class="col-delta">Δ</th>
+                <th class="col-pct">% Off</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="col-macro macro-label calories-label">Calories</td>
+                <td class="col-target">@FormatCalories(MealCalories)&nbsp;kcal</td>
+                <td class="col-actual">@FormatCalories(PerServingCalories)&nbsp;kcal</td>
+                <td class="col-delta @DeltaSign(PerServingCalories - MealCalories)">@FormatDelta(PerServingCalories - MealCalories)&nbsp;kcal</td>
+                <td class="col-pct"><span class="mmc-badge @DeviationClass(PerServingCalories, MealCalories)">@FormatPct(PerServingCalories, MealCalories)</span></td>
+            </tr>
+            <tr>
+                <td class="col-macro macro-label protein-label">Protein</td>
+                <td class="col-target">@FormatMacro(MealProteinG)&nbsp;g</td>
+                <td class="col-actual">@FormatMacro(PerServingProteinG)&nbsp;g</td>
+                <td class="col-delta @DeltaSign(PerServingProteinG - MealProteinG)">@FormatDelta(PerServingProteinG - MealProteinG)&nbsp;g</td>
+                <td class="col-pct"><span class="mmc-badge @DeviationClass(PerServingProteinG, MealProteinG)">@FormatPct(PerServingProteinG, MealProteinG)</span></td>
+            </tr>
+            <tr>
+                <td class="col-macro macro-label carbs-label">Carbs</td>
+                <td class="col-target">@FormatMacro(MealCarbsG)&nbsp;g</td>
+                <td class="col-actual">@FormatMacro(PerServingCarbsG)&nbsp;g</td>
+                <td class="col-delta @DeltaSign(PerServingCarbsG - MealCarbsG)">@FormatDelta(PerServingCarbsG - MealCarbsG)&nbsp;g</td>
+                <td class="col-pct"><span class="mmc-badge @DeviationClass(PerServingCarbsG, MealCarbsG)">@FormatPct(PerServingCarbsG, MealCarbsG)</span></td>
+            </tr>
+            <tr>
+                <td class="col-macro macro-label fat-label">Fat</td>
+                <td class="col-target">@FormatMacro(MealFatG)&nbsp;g</td>
+                <td class="col-actual">@FormatMacro(PerServingFatG)&nbsp;g</td>
+                <td class="col-delta @DeltaSign(PerServingFatG - MealFatG)">@FormatDelta(PerServingFatG - MealFatG)&nbsp;g</td>
+                <td class="col-pct"><span class="mmc-badge @DeviationClass(PerServingFatG, MealFatG)">@FormatPct(PerServingFatG, MealFatG)</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p class="mmc-legend">
+        <span class="legend-chip macro-ok">●</span>&nbsp;≤&nbsp;15% off &nbsp;
+        <span class="legend-chip macro-warn">●</span>&nbsp;≤&nbsp;25% off &nbsp;
+        <span class="legend-chip macro-over">●</span>&nbsp;&gt;&nbsp;25% off
+    </p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public double PerServingCalories { get; set; }
+    [Parameter, EditorRequired] public double PerServingProteinG  { get; set; }
+    [Parameter, EditorRequired] public double PerServingCarbsG    { get; set; }
+    [Parameter, EditorRequired] public double PerServingFatG      { get; set; }
+    [Parameter, EditorRequired] public MacroTarget Target { get; set; } = default!;
+
+    // Per-meal targets (daily ÷ 3)
+    private double MealCalories  => Target.RecommendedCalories  / 3.0;
+    private double MealProteinG  => Target.RecommendedProteinG  / 3.0;
+    private double MealCarbsG    => Target.RecommendedCarbsG    / 3.0;
+    private double MealFatG      => Target.RecommendedFatG      / 3.0;
+
+    /// <summary>Returns the CSS class for the deviation badge based on absolute % off.</summary>
+    private static string DeviationClass(double actual, double target)
+    {
+        if (target <= 0) return string.Empty;
+        var pct = Math.Abs(actual - target) / target * 100.0;
+        return pct <= 15 ? "macro-ok" : pct <= 25 ? "macro-warn" : "macro-over";
+    }
+
+    private static string DeltaSign(double delta) => delta >= 0 ? "delta-positive" : "delta-negative";
+
+    private static string FormatPct(double actual, double target)
+    {
+        if (target <= 0) return "—";
+        var pct = Math.Abs(actual - target) / target * 100.0;
+        return $"{pct:F0}%";
+    }
+
+    private static string FormatCalories(double v) => v > 0 ? ((int)Math.Round(v)).ToString("N0") : "0";
+    private static string FormatMacro(double v)    => $"{v:F1}";
+    private static string FormatDelta(double v)    => v >= 0 ? $"+{v:F1}" : $"{v:F1}";
+}
+

@@ -39,6 +39,14 @@ public class MacroTargetSettings
     [JsonPropertyName("unitSystem")]
     public UnitSystem UnitSystem { get; set; } = UnitSystem.Metric;
 
+    /// <summary>When true, the Recipe Detail page shows a meal macro comparison panel.</summary>
+    [JsonPropertyName("recipeMealComparisonEnabled")]
+    public bool RecipeMealComparisonEnabled { get; set; } = false;
+
+    /// <summary>The MacroTarget.Id of the profile to compare against on the Recipe Detail page.</summary>
+    [JsonPropertyName("recipeMealComparisonPersonId")]
+    public string RecipeMealComparisonPersonId { get; set; } = string.Empty;
+
     [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

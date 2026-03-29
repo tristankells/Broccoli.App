@@ -35,6 +35,30 @@
     font-size: 0.95rem;
 }
 
+.read-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-settings {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+    color: var(--color-text-secondary);
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-settings:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-body);
+    border-color: var(--color-border-emphasis);
+}
+
 /* Loading & Error */
 .loading-container {
     display: flex;

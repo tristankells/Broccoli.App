@@ -1,9 +1,10 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject IThemeService ThemeService
+@inject INavStateService NavState
 @inject IJSRuntime JS
 
-<div class="page">
+<div class="page @(NavState.IsCollapsed ? "nav-collapsed" : "")">
     <div class="sidebar">
         <NavMenu/>
     </div>
@@ -41,6 +42,10 @@
             ThemeService.IsDarkMode ? "dark" : "light");
 
         ThemeService.OnThemeChanged += HandleThemeChanged;
+
+        await NavState.InitializeAsync();
+        NavState.OnChanged += HandleNavStateChanged;
+
         StateHasChanged();
     }
 
@@ -51,11 +56,14 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private void HandleNavStateChanged() => InvokeAsync(StateHasChanged);
+
     private void OpenSettings()  => _settingsOpen = true;
     private void CloseSettings() => _settingsOpen = false;
 
     public void Dispose()
     {
         ThemeService.OnThemeChanged -= HandleThemeChanged;
+        NavState.OnChanged -= HandleNavStateChanged;
     }
 }

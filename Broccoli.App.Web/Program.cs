@@ -2,6 +2,7 @@ using Broccoli.App.Web.Components;
 using Broccoli.App.Shared.Configuration;
 using Broccoli.App.Shared.Infrastructure;
 using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.App.Shared.Layout;
 using Broccoli.App.Shared.Platform;
 using Broccoli.App.Shared.Slices.Auth;
 using Broccoli.App.Shared.Slices.AppSettings;
@@ -73,6 +74,8 @@ builder.Services.AddSingleton(new CosmosClient(
 // ── Platform abstractions (host-specific) ────────────────────────────────
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
+builder.Services.AddScoped<INavStateService, NavStateService>();
+builder.Services.AddScoped<IWakeLockService, WakeLockService>();
 
 // ── Cloudinary (shared image storage settings) ────────────────────────────
 var cloudinarySettings = new CloudinarySettings();

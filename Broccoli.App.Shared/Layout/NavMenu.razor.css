@@ -204,13 +204,64 @@
     /* Override both the default hidden state and the :checked state */
     .nav-scrollable,
     .navbar-toggler-input:checked ~ .nav-scrollable {
-        display: block;
+        display: flex;
+        flex-direction: column;
         position: static;
         width: auto;
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
+        overflow-x: hidden;
         background-image: none;
         z-index: auto;
         animation: none;
+    }
+
+    /* ── Collapse button — only visible on desktop ─────── */
+    .nav-collapse-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: auto 0.75rem 0.75rem;
+        padding: 0.4rem 0.6rem;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 6px;
+        color: rgba(255,255,255,0.7);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: background 0.15s, color 0.15s;
+        align-self: flex-start;
+        min-width: 2rem;
+    }
+
+    .nav-collapse-btn:hover {
+        background: rgba(255,255,255,0.18);
+        color: white;
+    }
+
+    /* ── Nav-text: hidden when parent sidebar is collapsed ─ */
+    /* The .nav-collapsed class is on the .page element (MainLayout),
+       which wraps the sidebar. We propagate it via a data attribute
+       or we can use the CSS variable trick. Instead, we rely on the
+       sidebar width transition and hide text with overflow on the sidebar.
+       The .nav-text spans are hidden when sidebar is 60px wide. */
+    .nav-text {
+        transition: opacity 0.15s ease, max-width 0.2s ease;
+        overflow: hidden;
+        white-space: nowrap;
+        max-width: 200px;
+        opacity: 1;
+    }
+
+    .nav-icon {
+        flex-shrink: 0;
+    }
+}
+
+/* ── Mobile: hide collapse button ───────────────────────── */
+@media (max-width: 640.98px) {
+    .nav-collapse-btn {
+        display: none;
     }
 }

@@ -11,6 +11,7 @@
                 Back to Recipes
             </button>
             <div class="read-header-actions">
+                <button class="btn-settings" @onclick="OpenSettings" title="Reading settings">⚙️</button>
                 <button class="btn btn-secondary" @onclick="NavigateToEdit">
                     View/Edit Recipe
                 </button>
@@ -90,4 +91,9 @@
         }
     </div>
 </AuthorizeView>
+
+<RecipeReadOnlySettingsDialog IsVisible="_settingsDialogOpen"
+                              KeepScreenOn="_keepScreenOn"
+                              OnSave="OnSettingsSaved"
+                              OnCancel="CloseSettings" />
 

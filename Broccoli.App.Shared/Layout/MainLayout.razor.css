@@ -74,6 +74,48 @@ main {
         height: 100vh;
         position: sticky;
         top: 0;
+        transition: width 0.2s ease;
+        overflow: hidden;
+    }
+
+    /* Collapsed sidebar — icon-only rail */
+    .page.nav-collapsed .sidebar {
+        width: 60px;
+    }
+
+    /* Hide nav link text when collapsed (punches through NavMenu component boundary) */
+    .page.nav-collapsed .sidebar ::deep .nav-text {
+        opacity: 0;
+        max-width: 0;
+        overflow: hidden;
+    }
+
+    /* Center collapse button when collapsed */
+    .page.nav-collapsed .sidebar ::deep .nav-collapse-btn {
+        align-self: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Center nav links when collapsed */
+    .page.nav-collapsed .sidebar ::deep .nav-link {
+        justify-content: center;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    /* Hide top-row brand text when collapsed */
+    .page.nav-collapsed .sidebar ::deep .navbar-brand {
+        opacity: 0;
+        overflow: hidden;
+        max-width: 0;
+        padding: 0;
+    }
+
+    /* Hide username & logout when collapsed */
+    .page.nav-collapsed .sidebar ::deep .username,
+    .page.nav-collapsed .sidebar ::deep .logout-btn {
+        display: none;
     }
 
     .top-row {

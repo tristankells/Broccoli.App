@@ -31,22 +31,27 @@
                 <div class="nutrition-values">
                     <div class="nutrition-item">
                         <span class="nutrition-name">Calories</span>
-                        <span class="nutrition-value">@($"{_totals.Calories / Servings.Value:F1}")</span>
+                        <span class="nutrition-value @DeviationClass(_totals.Calories / Servings.Value, MealTargetCalories)">@($"{_totals.Calories / Servings.Value:F1}")</span>
                     </div>
                     <div class="nutrition-item">
                         <span class="nutrition-name">Protein</span>
-                        <span class="nutrition-value">@($"{_totals.Protein / Servings.Value:F1}g")</span>
+                        <span class="nutrition-value @DeviationClass(_totals.Protein / Servings.Value, MealTargetProteinG)">@($"{_totals.Protein / Servings.Value:F1}g")</span>
                     </div>
                     <div class="nutrition-item">
                         <span class="nutrition-name">Carbs</span>
-                        <span class="nutrition-value">@($"{_totals.Carbohydrates / Servings.Value:F1}g")</span>
+                        <span class="nutrition-value @DeviationClass(_totals.Carbohydrates / Servings.Value, MealTargetCarbsG)">@($"{_totals.Carbohydrates / Servings.Value:F1}g")</span>
                     </div>
                     <div class="nutrition-item">
                         <span class="nutrition-name">Fat</span>
-                        <span class="nutrition-value">@($"{_totals.Fat / Servings.Value:F1}g")</span>
+                        <span class="nutrition-value @DeviationClass(_totals.Fat / Servings.Value, MealTargetFatG)">@($"{_totals.Fat / Servings.Value:F1}g")</span>
                     </div>
                 </div>
             </div>
+        }
+
+        @if (MealComparisonContent is not null)
+        {
+            @MealComparisonContent
         }
     </div>
 

@@ -8,6 +8,29 @@ public partial class ParsedIngredientsTable(IngredientParserService ingredientPa
 
     [Parameter] public int? Servings { get; set; }
 
+    /// <summary>
+    /// Optional content rendered inside the pinned nutrition header, immediately after
+    /// the "Per Serving" row. Intended for the meal macro comparison panel.
+    /// </summary>
+    [Parameter] public RenderFragment? MealComparisonContent { get; set; }
+
+    /// <summary>
+    /// When set, the Per Serving values are colour-coded against these per-meal targets.
+    /// Pass null (default) to disable colour coding.
+    /// </summary>
+    [Parameter] public double? MealTargetCalories { get; set; }
+    [Parameter] public double? MealTargetProteinG  { get; set; }
+    [Parameter] public double? MealTargetCarbsG    { get; set; }
+    [Parameter] public double? MealTargetFatG      { get; set; }
+
+    /// <summary>Returns the CSS deviation class for a per-serving value vs its per-meal target.</summary>
+    private static string DeviationClass(double actual, double? target)
+    {
+        if (target is null || target.Value <= 0) return string.Empty;
+        var pct = Math.Abs(actual - target.Value) / target.Value * 100.0;
+        return pct <= 15 ? "macro-ok" : pct <= 25 ? "macro-warn" : "macro-over";
+    }
+
     private List<ParsedIngredientMatch> _matches = new();
     private NutritionTotals _totals = new();
     private bool _isLoading = false;

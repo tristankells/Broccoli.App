@@ -45,6 +45,18 @@ public partial class RecipeDetail : IDisposable
     /// <summary>The macro profile currently selected in the recipe settings dialog (null when none chosen).</summary>
     private MacroTarget? ChosenMacroTarget =>
         _allTargets.FirstOrDefault(t => t.Id == _recipeDetailSettings.RecipeMealComparisonPersonId);
+
+    /// <summary>True when comparison is on, a profile is chosen, and servings are set.</summary>
+    private bool ComparisonActive =>
+        _recipeDetailSettings.RecipeMealComparisonEnabled &&
+        ChosenMacroTarget is not null &&
+        (recipe?.Servings ?? 0) > 0;
+
+    // Per-meal targets (daily ÷ 3) forwarded to ParsedIngredientsTable for Per Serving colour coding.
+    private double? MealTargetCalories => ComparisonActive ? ChosenMacroTarget!.RecommendedCalories / 3.0 : null;
+    private double? MealTargetProteinG  => ComparisonActive ? ChosenMacroTarget!.RecommendedProteinG  / 3.0 : null;
+    private double? MealTargetCarbsG    => ComparisonActive ? ChosenMacroTarget!.RecommendedCarbsG    / 3.0 : null;
+    private double? MealTargetFatG      => ComparisonActive ? ChosenMacroTarget!.RecommendedFatG      / 3.0 : null;
     // ─────────────────────────────────────────────────────────────────────────
 
     // Tracks the ingredients text that has been committed to the nutrition table.

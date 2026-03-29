@@ -8,11 +8,8 @@
     flex-direction: column;
 }
 
-/* Pinned Nutrition Header - Always Visible */
+/* Nutrition Header */
 .nutrition-header-pinned {
-    position: sticky;
-    top: 0;
-    z-index: 20;
     background: var(--color-bg-raised);
     border-bottom: 2px solid var(--color-border);
     padding: 1rem;
@@ -92,6 +89,11 @@
     font-size: 1.4rem;
     font-weight: 800;
 }
+
+/* Meal target deviation colours — applied to Per Serving nutrition-value spans */
+.nutrition-value.macro-ok   { color: #065f46; }
+.nutrition-value.macro-warn { color: #92400e; }
+.nutrition-value.macro-over { color: #991b1b; }
 
 /* Scrollable Table Section */
 .parsed-ingredients-table-container {

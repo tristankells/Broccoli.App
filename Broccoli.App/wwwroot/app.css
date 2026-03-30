@@ -7,8 +7,8 @@
     top: 0;
     /* fallback to 0px on browsers that don't support env() */
     height: env(safe-area-inset-top, 0px);
-    /* rgb(3,23,62) = rgb(5,39,103) gradient start + rgba(0,0,0,0.4) overlay */
-    background-color: rgb(3, 23, 62);
+    /* rgb(27,67,50) = #1b4332 (forest green — matches sidebar top gradient) */
+    background-color: rgb(27, 67, 50);
     width: 100%;
     z-index: 1000;
 }

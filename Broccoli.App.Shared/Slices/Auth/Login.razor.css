@@ -1,9 +1,33 @@
 .login-container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
+    gap: 1.5rem;
+}
+
+.login-branding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.login-logo {
+    width: 200px;
+    height: auto;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.25));
+}
+
+.login-tagline {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    font-weight: 400;
+    text-align: center;
+    margin: 0;
+    letter-spacing: 0.03em;
 }
 
 .login-card {

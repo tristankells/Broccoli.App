@@ -46,7 +46,7 @@
                                     <input type="checkbox"
                                            class="ingredient-checkbox"
                                            @bind="row.IsChecked" />
-                                    <span class=                                    <span class="ingredient-edit-group">
+                                    <span class="ingredient-edit-group">
                                         <input type="text"
                                                class="ingredient-line-input"
                                                @bind="row.IngredientLine" />
@@ -55,6 +55,7 @@
                                             <span class="ingredient-original">(@row.OriginalDisplay)</span>
                                         }
                                     </span>
+                                </label>
                         @if (row.PantryStatus != PantryMatchStatus.NotInPantry)
                                 {
                                     <span class="pantry-badge @GetPantryBadgeClass(row.PantryStatus)">

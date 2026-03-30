@@ -6,7 +6,9 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Broccoli.App</a>
+        <a class="navbar-brand" href="">
+            <img src="_content/Broccoli.App.Shared/broccoli-logo.svg" class="nav-logo" alt="Broccoli" />
+        </a>
         <div class="nav-right">
             @if (AuthStateService.IsAuthenticated)
             {
@@ -27,37 +29,44 @@
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Recipes">
-                <span class="nav-icon" aria-hidden="true">&#x1F37D;</span><span class="nav-text"> Recipes</span>
+                <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><line x1="7" y1="2" x2="7" y2="22"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h1v5a2 2 0 0 0 4 0z"/></svg>
+                <span class="nav-text"> Recipes</span>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="meal-prep" title="Meal Prep">
-                <span class="nav-icon" aria-hidden="true">&#x1F4CB;</span><span class="nav-text"> Meal Prep</span>
+                <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>
+                <span class="nav-text"> Meal Prep</span>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="daily-food-planning" title="Daily Food Planning">
-                <span class="nav-icon" aria-hidden="true">&#x1F4C5;</span><span class="nav-text"> Daily Food Planning</span>
+                <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span class="nav-text"> Daily Food Planning</span>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="foods" title="Food Database">
-                <span class="nav-icon" aria-hidden="true">&#x1F957;</span><span class="nav-text"> Food Database</span>
+                <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                <span class="nav-text"> Food Database</span>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="grocery-list" title="Grocery List">
-                <span class="nav-icon" aria-hidden="true">&#x1F6D2;</span><span class="nav-text"> Grocery List</span>
+                <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                <span class="nav-text"> Grocery List</span>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="pantry" title="Pantry">
-                <span class="nav-icon" aria-hidden="true">&#x1F5C4;</span><span class="nav-text"> Pantry</span>
+                <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+                <span class="nav-text"> Pantry</span>
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="macro-targets" title="Macro Targets">
-                <span class="nav-icon" aria-hidden="true">&#x1F3AF;</span><span class="nav-text"> Macro Targets</span>
+                <svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                <span class="nav-text"> Macro Targets</span>
             </NavLink>
         </div>
     </nav>
@@ -65,7 +74,14 @@
     <button class="nav-collapse-btn" @onclick="NavState.Toggle"
             title="@(NavState.IsCollapsed ? "Expand navigation" : "Collapse navigation")"
             aria-label="@(NavState.IsCollapsed ? "Expand navigation" : "Collapse navigation")">
-        @(NavState.IsCollapsed ? "»" : "«")
+        @if (NavState.IsCollapsed)
+        {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        }
+        else
+        {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        }
     </button>
 </div>
 

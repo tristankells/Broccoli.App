@@ -8,7 +8,7 @@
   --color-bg-raised:          #ffffff;
   --color-bg-subtle:          #f3f3f3;
   --color-bg-hover:           #e9ecef;
-  --color-bg-selected:        #f0f7ff;
+  --color-bg-selected:        #f0f7f0;
 
   /* ── Borders ─────────────────────────────────────────── */
   --color-border:             #dee2e6;
@@ -24,12 +24,12 @@
   --color-text-placeholder:   #adb5bd;
 
   /* ── Brand / Interactive ─────────────────────────────── */
-  --color-primary:            #0066cc;
-  --color-primary-hover:      #0052a3;
-  --color-primary-dark:       #004080;
-  --color-primary-subtle:     #e8f0fb;
-  --color-primary-wash:       #f0f7ff;
-  --color-primary-info-bg:    #e7f3ff;
+  --color-primary:            #2e7d32;
+  --color-primary-hover:      #1b5e20;
+  --color-primary-dark:       #145214;
+  --color-primary-subtle:     #e8f5e9;
+  --color-primary-wash:       #f1f8f1;
+  --color-primary-info-bg:    #e8f5e9;
 
   /* ── Semantic: Success ───────────────────────────────── */
   --color-success:            #28a745;
@@ -72,7 +72,7 @@
   --color-bg-raised:          #1e2530;
   --color-bg-subtle:          #21262d;
   --color-bg-hover:           #21262d;
-  --color-bg-selected:        #1f3a5f;
+  --color-bg-selected:        #1a3d1f;
 
   /* ── Borders ─────────────────────────────────────────── */
   --color-border:             #30363d;
@@ -88,12 +88,12 @@
   --color-text-placeholder:   #484f58;
 
   /* ── Brand / Interactive ─────────────────────────────── */
-  --color-primary:            #58a6ff;
-  --color-primary-hover:      #79b8ff;
-  --color-primary-dark:       #1f6feb;
-  --color-primary-subtle:     #1f3a5f;
-  --color-primary-wash:       #0d2440;
-  --color-primary-info-bg:    #0d2440;
+  --color-primary:            #66bb6a;
+  --color-primary-hover:      #81c784;
+  --color-primary-dark:       #43a047;
+  --color-primary-subtle:     #1a3d1f;
+  --color-primary-wash:       #0f2a12;
+  --color-primary-info-bg:    #0f2a12;
 
   /* ── Semantic: Success ───────────────────────────────── */
   --color-success:            #3fb950;

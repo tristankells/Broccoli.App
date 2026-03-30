@@ -6,8 +6,8 @@ namespace Broccoli.App.Shared.Slices.GroceryList;
 /// <summary>
 /// Handles the "add to grocery cart" action with two levels of deduplication:
 /// <list type="number">
-///   <item>Within the batch — ingredients that resolve to the same food and unit are merged.</item>
-///   <item>Against the existing grocery list — if the item is already there, its quantity is
+///   <item>Within the batch ï¿½ ingredients that resolve to the same food and unit are merged.</item>
+///   <item>Against the existing grocery list ï¿½ if the item is already there, its quantity is
 ///         updated rather than a duplicate being inserted.</item>
 /// </list>
 /// Only items with the same canonical unit can be merged (e.g. g+g ?, g+cup ?).
@@ -90,13 +90,17 @@ public class IngredientCartService(
 
         foreach (var newMatch in newMatches)
         {
-            var (existingItem, existingQty) = FindMatch(newMatch, existingItems, claimedIds);
+            var (existingItem, existingQty, effectiveUnit) = FindMatch(newMatch, existingItems, claimedIds);
 
             if (existingItem is not null)
             {
-                double merged     = existingQty + newMatch.ParsedIngredient.Quantity;
-                string unit       = newMatch.ParsedIngredient.CanonicalUnit ?? string.Empty;
-                string food       = newMatch.IsMatched
+                // When FindMatch unified to grams, use the new weight in grams; otherwise the raw qty.
+                bool unifiedToGrams = effectiveUnit == "g"
+                    && (newMatch.ParsedIngredient.CanonicalUnit ?? string.Empty).ToLowerInvariant() != "g";
+                double newQty  = unifiedToGrams ? newMatch.GetWeightInGrams() : newMatch.ParsedIngredient.Quantity;
+                double merged  = existingQty + newQty;
+                string unit    = effectiveUnit;
+                string food    = newMatch.IsMatched
                     ? newMatch.MatchedFood!.Name
                     : newMatch.ParsedIngredient.FoodDescription;
 
@@ -160,12 +164,15 @@ public class IngredientCartService(
         return result;
     }
 
+
     /// <summary>
     /// Finds an existing grocery list item that represents the same ingredient as
-    /// <paramref name="newMatch"/> and has the same canonical unit.
-    /// Returns the item and its parsed quantity, or (null, 0) if no match.
+    /// <paramref name="newMatch"/>. When both sides use the same unit the existing
+    /// quantity is returned as-is. When units differ but both sides can be converted
+    /// to grams, the item is returned with its gram equivalent so the caller can
+    /// unify them in grams. Returns (null, 0, newUnit) when no match is found.
     /// </summary>
-    private (GroceryListItem? item, double existingQty) FindMatch(
+    private (GroceryListItem? item, double existingQty, string effectiveUnit) FindMatch(
         ParsedIngredientMatch newMatch,
         IEnumerable<GroceryListItem> existingItems,
         HashSet<string> claimedIds)
@@ -178,7 +185,7 @@ public class IngredientCartService(
 
         foreach (var item in existingItems)
         {
-            if (item.IsChecked)          continue; // already checked off — don't touch
+            if (item.IsChecked)               continue; // already checked off -- don't touch
             if (claimedIds.Contains(item.Id)) continue; // already claimed by another match
 
             // Quick food-name check before paying for a full parse
@@ -201,14 +208,22 @@ public class IngredientCartService(
                 ? newMatch.MatchedFood!.Id == existingMatch.MatchedFood!.Id
                 : newFood == existingFood;
 
-            if (sameFood && newUnit == existingUnit)
-                return (item, existingMatch.ParsedIngredient.Quantity);
+            if (!sameFood) continue;
+
+            if (newUnit == existingUnit)
+                return (item, existingMatch.ParsedIngredient.Quantity, newUnit);
+
+            // Cross-unit unification: convert both sides to grams when possible.
+            double existingGrams = existingMatch.GetWeightInGrams();
+            double newGrams      = newMatch.GetWeightInGrams();
+            if (existingGrams > 0 && newGrams > 0)
+                return (item, existingGrams, "g");
         }
 
-        return (null, 0);
+        return (null, 0, newUnit);
     }
 
-    internal static string BuildLine(double qty, string unit, string food)
+    public static string BuildLine(double qty, string unit, string food)
     {
         // Suppress trailing zeros: 200.0 ? "200", 1.5 ? "1.5", 0.333 ? "0.33"
         string qtyStr = qty.ToString("0.##");

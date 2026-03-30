@@ -1,6 +1,8 @@
 using Broccoli.Data.Models;
 using Broccoli.App.Shared.IngredientParsing;
 using Broccoli.App.Shared.Slices.Auth;
+using Broccoli.App.Shared.Slices.GroceryList;
+using Broccoli.App.Shared.Slices.Pantry;
 using Broccoli.App.Shared.Slices.Recipes;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -15,6 +17,8 @@ public partial class DailyFoodPlanning
     [Inject] private IRecipeService RecipeService { get; set; } = default!;
     [Inject] private IFoodService FoodService { get; set; } = default!;
     [Inject] private IMacroTargetService MacroTargetService { get; set; } = default!;
+    [Inject] private IPantryService PantryService { get; set; } = default!;
+    [Inject] private IngredientCartService IngredientCartService { get; set; } = default!;
     [Inject] private IngredientParserService IngredientParserService { get; set; } = default!;
     [Inject] private IAuthenticationStateService AuthStateService { get; set; } = default!;
 
@@ -24,6 +28,14 @@ public partial class DailyFoodPlanning
     private List<Recipe>        _allRecipes   = new();
     private List<Food>          _allFoods     = new();
     private List<MacroTarget>   _macroTargets = new();
+    private List<PantryItem>    _pantryItems  = new();
+
+    // -- Shopping dialog state -------------------------------------------------
+
+    private bool   _showSetupDialog           = false;
+    private bool   _showAddIngredientsDialog  = false;
+    private string _builtIngredientText       = string.Empty;
+    private string _shoppingLabel             = string.Empty;
 
     // -- UI state --------------------------------------------------------------
 
@@ -105,6 +117,7 @@ public partial class DailyFoodPlanning
             _allRecipes   = (await RecipeService.GetAllAsync()).OrderBy(r => r.Name).ToList();
             _allFoods     = (await FoodService.GetAllAsync()).OrderBy(f => f.Name).ToList();
             _macroTargets = await MacroTargetService.GetAllAsync(userId);
+            _pantryItems  = await PantryService.GetAllAsync(userId);
         }
         catch (Exception ex)
         {
@@ -490,8 +503,8 @@ public partial class DailyFoodPlanning
 
     /// <summary>
     /// Returns a CSS class for colour-coding a macro delta value.
-    /// Green = within ±10% of target.
-    /// Orange = 10–20% under target.
+    /// Green = within ï¿½10% of target.
+    /// Orange = 10ï¿½20% under target.
     /// Red = more than 20% under target OR over target by more than 10%.
     /// </summary>
     private static string GetDeltaClass(double delta, double target)
@@ -521,7 +534,7 @@ public partial class DailyFoodPlanning
         var cts = new CancellationTokenSource();
         _debounceCts[planId] = cts;
 
-        _planSaveStatus[planId] = "Saving…";
+        _planSaveStatus[planId] = "Savingï¿½";
         StateHasChanged();
 
         _ = Task.Run(async () =>
@@ -538,7 +551,7 @@ public partial class DailyFoodPlanning
             }
             catch (OperationCanceledException)
             {
-                // A newer mutation arrived — this task is superseded.
+                // A newer mutation arrived ï¿½ this task is superseded.
             }
             catch (Exception ex)
             {
@@ -587,6 +600,47 @@ public partial class DailyFoodPlanning
 
     private string GetSaveStatus(string planId) =>
         _planSaveStatus.TryGetValue(planId, out var s) ? s : string.Empty;
+
+    // -- Shopping dialog handlers ----------------------------------------------
+
+    private void OpenShoppingSetup()
+    {
+        _showSetupDialog = true;
+    }
+
+    private void HandleSetupCancel()
+    {
+        _showSetupDialog = false;
+    }
+
+    private void HandleSetupPreview(ShoppingPreviewResult result)
+    {
+        _builtIngredientText      = result.IngredientText;
+        _shoppingLabel            = result.Label;
+        _showSetupDialog          = false;
+        _showAddIngredientsDialog = true;
+    }
+
+    private void HandleShoppingCancel()
+    {
+        _showAddIngredientsDialog = false;
+    }
+
+    private async Task HandleShoppingConfirm(List<string> selectedLines)
+    {
+        _showAddIngredientsDialog = false;
+        if (!selectedLines.Any()) return;
+
+        try
+        {
+            var userId = AuthStateService.CurrentUserId!;
+            await IngredientCartService.AddToCartAsync(selectedLines, userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding ingredients to grocery list: {ex.Message}");
+        }
+    }
 }
 
 

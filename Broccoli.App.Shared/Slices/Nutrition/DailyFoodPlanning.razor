@@ -91,6 +91,10 @@
                 <span class="save-indicator @(GetSaveStatus(_selectedPlan.Id) == "Saved ✓" ? "saved" : GetSaveStatus(_selectedPlan.Id).StartsWith("Saving") ? "saving" : GetSaveStatus(_selectedPlan.Id).StartsWith("Save failed") ? "failed" : "")">
                     @GetSaveStatus(_selectedPlan.Id)
                 </span>
+
+                <button class="btn btn-sm btn-outline-success shop-btn" @onclick="OpenShoppingSetup" title="Add ingredients to shopping list">
+                    🛒 Add to Shopping List
+                </button>
             </div>
 
             <!-- Tab bar -->
@@ -349,6 +353,23 @@
 
     </div>
 </AuthorizeView>
+
+<DailyPlanShoppingSetupDialog
+    IsVisible="@_showSetupDialog"
+    CurrentPlan="@_selectedPlan"
+    AllPlans="@_plans"
+    AllRecipes="@_allRecipes"
+    AllFoods="@_allFoods"
+    OnCancel="HandleSetupCancel"
+    OnPreview="HandleSetupPreview" />
+
+<AddIngredientsDialog
+    IsVisible="@_showAddIngredientsDialog"
+    RecipeName="@_shoppingLabel"
+    IngredientsText="@_builtIngredientText"
+    PantryItems="@_pantryItems"
+    OnCancel="HandleShoppingCancel"
+    OnConfirm="HandleShoppingConfirm" />
 
 
 

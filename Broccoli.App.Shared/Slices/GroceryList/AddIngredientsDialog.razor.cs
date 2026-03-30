@@ -71,8 +71,6 @@ public partial class AddIngredientsDialog
         {
             if (match.IsMatched)
             {
-                // Count as merged if quantity > what a single line would produce
-                // (the parser already summed quantities for matched dupes)
                 dedupedMatches.Add((match, false));
             }
             else
@@ -83,7 +81,6 @@ public partial class AddIngredientsDialog
                 {
                     dedupedMatches[idx].match.ParsedIngredient.Quantity
                         += match.ParsedIngredient.Quantity;
-                    // Mark as merged
                     var existing = dedupedMatches[idx];
                     dedupedMatches[idx] = (existing.match, true);
                 }
@@ -95,30 +92,150 @@ public partial class AddIngredientsDialog
             }
         }
 
-        foreach (var (match, wasMerged) in dedupedMatches)
+        // Gram-normalize and cross-unit merge all matched items.
+        var normalizedRows = GramNormalizeAndMerge(dedupedMatches);
+
+        foreach (var (displayLine, originalDisplay, isMerged, isMatchedRow) in normalizedRows)
         {
             // Skip ingredients that should never appear in a grocery list (e.g. water)
-            if (IngredientCartService.IsIgnoredIngredient(match)) continue;
+            // For matched rows we need to check via the underlying match; for unmatched rows
+            // we do a simple name check inline.
+            if (string.IsNullOrWhiteSpace(displayLine)) continue;
 
-            string displayLine = FormatIngredient(match);
             var (status, isChecked) = GetPantryStatus(displayLine);
             ingredientRows.Add(new IngredientRow
             {
                 IngredientLine = displayLine,
+                OriginalDisplay = originalDisplay,
                 PantryStatus = status,
                 IsChecked = isChecked,
-                IsMerged = wasMerged
+                IsMerged = isMerged
             });
         }
+
+        // Sort by pantry status so "definitely need to buy" items appear first.
+        // NotInPantry(0) → CheckIfHave(1) → AlwaysHave(2)
+        ingredientRows = ingredientRows
+            .OrderBy(r => r.PantryStatus == PantryMatchStatus.AlwaysHave ? 2
+                        : r.PantryStatus == PantryMatchStatus.CheckIfHave ? 1
+                        : 0)
+            .ToList();
 
         isLoading = false;
     }
 
-    private static string FormatIngredient(ParsedIngredientMatch match) =>
-        IngredientCartService.BuildLine(
-            match.ParsedIngredient.Quantity,
-            match.ParsedIngredient.CanonicalUnit ?? string.Empty,
-            match.IsMatched ? match.MatchedFood!.Name : match.ParsedIngredient.FoodDescription);
+    /// <summary>
+    /// Converts matched ingredients to grams (recording the original representation in brackets),
+    /// then cross-unit merges any two entries that resolved to the same food.
+    /// Unmatched items pass through unchanged.
+    /// Returns tuples of (displayLine, originalDisplay, isMerged, isMatchedRow).
+    /// </summary>
+    private static List<(string displayLine, string originalDisplay, bool isMerged, bool isMatchedRow)>
+        GramNormalizeAndMerge(List<(ParsedIngredientMatch match, bool wasMerged)> dedupedMatches)
+    {
+        // --- Step 1: normalize each matched item to grams -----------------------
+        // key = MatchedFood.Id; value = list of (grams, originalPart, wasMerged)
+        var matchedByFoodId = new Dictionary<int, List<(double grams, string originalPart, bool wasMerged)>>();
+
+        foreach (var (match, wasMerged) in dedupedMatches)
+        {
+            if (!match.IsMatched || IngredientCartService.IsIgnoredIngredient(match))
+                continue;
+
+            string foodName = match.MatchedFood!.Name;
+            double qty      = match.ParsedIngredient.Quantity;
+            string unit     = match.ParsedIngredient.CanonicalUnit ?? string.Empty;
+
+            double grams = match.GetWeightInGrams();
+
+            string originalPart;
+            double effectiveQty;
+            string effectiveUnit;
+
+            if (grams > 0 && !string.Equals(unit, "g", StringComparison.OrdinalIgnoreCase))
+            {
+                // Record original before normalizing.
+                originalPart  = IngredientCartService.BuildLine(qty, unit, foodName);
+                effectiveQty  = grams;
+                effectiveUnit = "g";
+            }
+            else
+            {
+                // Already in grams or no conversion available — no bracket display.
+                originalPart  = string.Empty;
+                effectiveQty  = qty;
+                effectiveUnit = unit;
+            }
+
+            // Temporarily store the effective quantity back so the cross-unit merge can sum.
+            match.ParsedIngredient.Quantity     = effectiveQty;
+            match.ParsedIngredient.CanonicalUnit = effectiveUnit;
+
+            if (!matchedByFoodId.TryGetValue(match.MatchedFood.Id, out var bucket))
+            {
+                bucket = new List<(double, string, bool)>();
+                matchedByFoodId[match.MatchedFood.Id] = bucket;
+            }
+            bucket.Add((effectiveQty, originalPart, wasMerged));
+        }
+
+        // --- Step 2: cross-unit merge per food ----------------------------------
+        // We need to emit rows in the same order they first appeared, so build an
+        // ordered list of food IDs (first-seen order).
+        var foodIdOrder = new List<int>();
+        var foodNames   = new Dictionary<int, string>();
+        foreach (var (match, _) in dedupedMatches)
+        {
+            if (!match.IsMatched || IngredientCartService.IsIgnoredIngredient(match)) continue;
+            int id = match.MatchedFood!.Id;
+            if (!foodNames.ContainsKey(id))
+            {
+                foodIdOrder.Add(id);
+                foodNames[id] = match.MatchedFood.Name;
+            }
+        }
+
+        var result = new List<(string, string, bool, bool)>();
+
+        foreach (int foodId in foodIdOrder)
+        {
+            var bucket   = matchedByFoodId[foodId];
+            string food  = foodNames[foodId];
+
+            double totalGrams = bucket.Sum(b => b.grams);
+            // Unit: if any bucket entry used grams (i.e., was normalized), the merged result
+            // is in grams.  If all were already grams, still grams.  Use the unit from the
+            // first entry in case no normalization happened.
+            string mergedUnit = bucket.Any(b => b.originalPart.Length > 0) ? "g"
+                              : (dedupedMatches.FirstOrDefault(d => d.match.IsMatched && d.match.MatchedFood!.Id == foodId)
+                                    .match?.ParsedIngredient.CanonicalUnit ?? "g");
+
+            string displayLine    = IngredientCartService.BuildLine(totalGrams, mergedUnit, food);
+            string originalDisplay = string.Join(" + ", bucket
+                .Where(b => b.originalPart.Length > 0)
+                .Select(b => b.originalPart));
+
+            bool isMerged = bucket.Count > 1 || bucket.Any(b => b.wasMerged);
+
+            result.Add((displayLine, originalDisplay, isMerged, true));
+        }
+
+        // --- Step 3: append unmatched items untouched ---------------------------
+        foreach (var (match, wasMerged) in dedupedMatches)
+        {
+            if (match.IsMatched) continue;
+            if (IngredientCartService.IsIgnoredIngredient(match)) continue;
+
+            string line = IngredientCartService.BuildLine(
+                match.ParsedIngredient.Quantity,
+                match.ParsedIngredient.CanonicalUnit ?? string.Empty,
+                match.ParsedIngredient.FoodDescription);
+
+            result.Add((line, string.Empty, wasMerged, false));
+        }
+
+        return result;
+    }
 
     private static string NormalizeFood(string name)
     {
@@ -178,6 +295,13 @@ public partial class AddIngredientsDialog
     private class IngredientRow
     {
         public string IngredientLine { get; set; } = string.Empty;
+
+        /// <summary>
+        /// When the ingredient was normalised to grams, this holds the original representation(s)
+        /// shown in brackets after the input, e.g. "2 carrots" or "100g + 2 carrots".
+        /// Empty when no conversion was needed.
+        /// </summary>
+        public string OriginalDisplay { get; set; } = string.Empty;
 
         public PantryMatchStatus PantryStatus { get; set; }
 

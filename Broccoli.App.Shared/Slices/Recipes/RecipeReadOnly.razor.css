@@ -59,6 +59,22 @@
     border-color: var(--color-border-emphasis);
 }
 
+/* Icon helpers */
+.btn-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.35rem;
+    vertical-align: -0.125em;
+    flex-shrink: 0;
+}
+
+.settings-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    vertical-align: -0.125em;
+    display: block;
+}
+
 /* Loading & Error */
 .loading-container {
     display: flex;
@@ -130,16 +146,18 @@
 
 /* Sections */
 .ingredients-section,
-.instructions-section {
+.instructions-section,
+.notes-section {
     background: var(--color-bg-raised);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .ingredients-section h2,
-.instructions-section h2 {
+.instructions-section h2,
+.notes-section h2 {
     font-size: 1.75rem;
     font-weight: 600;
     color: var(--color-text-heading);
@@ -213,12 +231,14 @@
     }
 
     .ingredients-section,
-    .instructions-section {
+    .instructions-section,
+    .notes-section {
         padding: 1.5rem;
     }
 
     .ingredients-section h2,
-    .instructions-section h2 {
+    .instructions-section h2,
+    .notes-section h2 {
         font-size: 1.5rem;
     }
 
@@ -253,7 +273,8 @@
     }
 
     .ingredients-section,
-    .instructions-section {
+    .instructions-section,
+    .notes-section {
         box-shadow: none;
         page-break-inside: avoid;
     }

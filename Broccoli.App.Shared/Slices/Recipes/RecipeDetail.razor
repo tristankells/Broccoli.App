@@ -17,7 +17,8 @@
     <div class="recipe-detail-page">
         <div class="detail-header">
             <button class="btn-back" @onclick="NavigateBack">
-                ← Back to Recipes
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                Back to Recipes
             </button>
             <h1>@(IsNewRecipe ? "Add New Recipe" : "Edit Recipe")</h1>
             @if (!IsNewRecipe)
@@ -26,16 +27,25 @@
                     @switch (_autoSaveStatus)
                     {
                         case AutoSaveStatus.Pending:
-                            <span>⏳ Unsaved changes</span>
+                            <span>
+                                <svg class="autosave-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Unsaved changes
+                            </span>
                             break;
                         case AutoSaveStatus.Saving:
                             <span class="spinner-tiny"></span><span>Saving…</span>
                             break;
                         case AutoSaveStatus.Saved:
-                            <span>✓ Saved</span>
+                            <span>
+                                <svg class="autosave-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                                Saved
+                            </span>
                             break;
                         case AutoSaveStatus.Error:
-                            <span>⚠ Save failed — @_autoSaveError</span>
+                            <span>
+                                <svg class="autosave-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                Save failed — @_autoSaveError
+                            </span>
                             <button type="button" class="btn-retry" @onclick="AutoSaveAsync">Retry</button>
                             break;
                     }
@@ -44,10 +54,12 @@
             @if (!IsNewRecipe && recipe != null)
             {
                 <button class="btn btn-outline-settings" @onclick="() => _recipeSettingsDialogOpen = true">
-                    ⚙️ Settings
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Settings
                 </button>
                 <button class="btn btn-secondary" @onclick="NavigateToReadRecipe">
-                    📖 View Recipe
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    View Recipe
                 </button>
             }
         </div>
@@ -72,8 +84,6 @@
                 <DataAnnotationsValidator />
 
                 <div class="recipe-form">
-                    <!-- Left Column -->
-                    <div class="form-column">
                         <!-- Image Section -->
                         <div class="form-section image-section">
                             <div class="recipe-image-drop-zone @(recipe.Images.Any() ? "has-image" : "")"
@@ -84,12 +94,14 @@
                                     <!-- Image present: show it with a drag-to-replace overlay -->
                                     <img src="@recipe.Images.First()" alt="Recipe" />
                                     <div class="drop-zone-overlay">
-                                        <span>🔄 Drop to replace</span>
+                                        <svg class="drop-overlay-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                                        Drop to replace
                                     </div>
                                     <button type="button" class="btn-remove-image"
                                             @onclick="RemoveImage"
                                             disabled="@isUploadingImage">
-                                        ✕ Remove
+                                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                        Remove
                                     </button>
                                 }
                                 else if (isUploadingImage)
@@ -103,7 +115,7 @@
                                 {
                                     <!-- No image: clicking anywhere opens the file picker -->
                                     <label class="drop-zone-placeholder" for="recipe-image-input">
-                                        <span class="drop-zone-icon">🖼️</span>
+                                        <svg class="drop-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                                         <strong>Drop image here</strong>
                                         <span class="drop-zone-hint">or click to browse · JPG / PNG · max 5 MB</span>
                                     </label>
@@ -124,8 +136,8 @@
                             }
                         </div>
 
-                        <!-- Basic Info -->
-                        <div class="form-section">
+                        <!-- Basic Information -->
+                        <div class="form-section basic-info-section">
                             <h2>Basic Information</h2>
                             
                             <div class="form-group">
@@ -169,7 +181,7 @@
                         </div>
 
                         <!-- Tags -->
-                        <div class="form-section">
+                        <div class="form-section tags-section">
                             <h2>Tags</h2>
                             <div class="tags-input-container">
                                 <div class="tags-display">
@@ -212,68 +224,203 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Right Column -->
-                    <div class="form-column">
-                        <!-- Ingredients -->
-                        <div class="form-section">
-                            <h2>Ingredients</h2>
-                            <div class="form-group">
-                                <textarea class="form-control textarea-large" 
-                                          value="@recipe.Ingredients"
-                                          @oninput="OnIngredientsInput"
-                                          @onblur="OnIngredientsChanged"
-                                          @onkeyup="OnIngredientsKeyUp"
-                                          placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..." 
-                                          rows="12"></textarea>
-                                <small class="form-text">Enter each ingredient on a new line. Nutrition updates on each new line or when you click outside.</small>
+                        <!-- Ingredients + Nutrition Split Panel -->
+                        <div class="form-section ingredient-combo-section">
+
+                            <!-- Split panel: textarea (left) | parsed rows (right) -->
+                            <div class="ingredient-split-panel">
+
+                                <!-- Left: editable textarea -->
+                                <div class="ingredient-left-panel">
+                                    <h2 class="split-panel-heading">Ingredients</h2>
+                                    <textarea id="ingredient-textarea"
+                                              class="ingredient-textarea"
+                                              value="@recipe.Ingredients"
+                                              @oninput="OnIngredientsInput"
+                                              @onblur="OnIngredientsChanged"
+                                              @onkeyup="OnIngredientsKeyUp"
+                                              placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..."></textarea>
+                                    <small class="split-panel-hint">One ingredient per line. Nutrition updates on Enter or when you click outside.</small>
+                                </div>
+
+                                <!-- Right: per-line parsed results -->
+                                <div class="ingredient-right-panel" id="ingredient-right-panel">
+                                    @if (_ingredientsLoading)
+                                    {
+                                        <div class="split-loading">
+                                            <div class="spinner-tiny-green"></div>
+                                            <span>Parsing…</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        var rawLines = (_ingredientsDisplayText ?? "").Split('\n');
+                                        var lineMatchMap = _matches
+                                            .GroupBy(m => m.ParsedIngredient.RawLine.Trim())
+                                            .ToDictionary(g => g.Key, g => g.First());
+                                        <table class="ingredient-align-table">
+                                            <thead>
+                                                <tr>
+                                                    <th class="iat-col-status">Status</th>
+                                                    <th class="iat-col-food">Matched Food</th>
+                                                    <th class="iat-col-qty">Qty (g)</th>
+                                                    <th class="iat-col-cal">Cal</th>
+                                                    <th class="iat-col-macro">Protein</th>
+                                                    <th class="iat-col-macro">Carbs</th>
+                                                    <th class="iat-col-macro">Fat</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < rawLines.Length; i++)
+                                                {
+                                                    var line = rawLines[i];
+                                                    if (string.IsNullOrWhiteSpace(line))
+                                                    {
+                                                        continue;
+                                                    }
+                                                    else if (lineMatchMap.TryGetValue(line.Trim(), out var match))
+                                                    {
+                                                        if (match.IsMatched)
+                                                        {
+                                                            <tr class="align-row align-row--matched">
+                                                                <td class="iat-col-status">
+                                                                    <span class="iat-badge iat-badge--ok" title="@(match.MatchDistance > 0 ? $"Fuzzy match ({match.MatchScore:P0})" : "Exact match")">✓</span>
+                                                                </td>
+                                                                <td class="iat-col-food">
+                                                                    <span class="iat-food-name">@match.MatchedFood?.Name</span>
+                                                                    @if (match.MatchDistance > 0)
+                                                                    {
+                                                                        <small class="iat-searched-for">@match.ParsedIngredient.FoodName</small>
+                                                                    }
+                                                                </td>
+                                                                <td class="iat-col-qty">@match.GetQuantityDisplay()</td>
+                                                                <td class="iat-col-cal">@($"{match.GetCalories():F1}")</td>
+                                                                <td class="iat-col-macro">@($"{match.GetProtein():F1}g")</td>
+                                                                <td class="iat-col-macro">@($"{match.GetCarbohydrates():F1}g")</td>
+                                                                <td class="iat-col-macro">@($"{match.GetFat():F1}g")</td>
+                                                            </tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            <tr class="align-row align-row--unmatched">
+                                                                <td class="iat-col-status">
+                                                                    <span class="iat-badge iat-badge--warn" title="Not found in database">✗</span>
+                                                                </td>
+                                                                <td class="iat-col-food">
+                                                                    <span class="iat-unmatched">@match.ParsedIngredient.FoodName</span>
+                                                                    <small class="iat-searched-for">Not in database</small>
+                                                                </td>
+                                                                <td class="iat-col-qty">@match.GetQuantityDisplay()</td>
+                                                                <td class="iat-col-cal">–</td>
+                                                                <td class="iat-col-macro">–</td>
+                                                                <td class="iat-col-macro">–</td>
+                                                                <td class="iat-col-macro">–</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <!-- Line not yet parsed, skip it -->
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                </div>
                             </div>
 
-            @if (!string.IsNullOrWhiteSpace(_ingredientsDisplayText))
+                            <!-- Nutrition Summary (below both panels) -->
+                            @if (_matches.Any())
                             {
-                                <ParsedIngredientsTable IngredientsText="@_ingredientsDisplayText"
-                                                        Servings="@recipe.Servings"
-                                                        MealTargetCalories="@MealTargetCalories"
-                                                        MealTargetProteinG="@MealTargetProteinG"
-                                                        MealTargetCarbsG="@MealTargetCarbsG"
-                                                        MealTargetFatG="@MealTargetFatG">
-                                    <MealComparisonContent>
-                                        @if (_recipeDetailSettings.RecipeMealComparisonEnabled)
-                                        {
-                                            @if (ChosenMacroTarget is not null && (recipe.Servings ?? 0) > 0)
-                                            {
-                                                <MealMacroComparison
-                                                    PerServingCalories="@PerServingCalories"
-                                                    PerServingProteinG="@PerServingProteinG"
-                                                    PerServingCarbsG="@PerServingCarbsG"
-                                                    PerServingFatG="@PerServingFatG"
-                                                    Target="@ChosenMacroTarget" />
-                                            }
-                                            else if ((recipe.Servings ?? 0) <= 0)
-                                            {
-                                                <div class="meal-comparison-hint">
-                                                    💡 Set a serving count to enable meal comparison.
+                                <div class="nutrition-summary">
+                                    <div class="nutrition-stat-stack">
+                                    <!-- Per Serving (primary) -->
+                                    @if (recipe.Servings.HasValue && recipe.Servings.Value > 0)
+                                    {
+                                        <div class="nutrition-row nutrition-row--primary">
+                                            <div class="nutrition-label">Per Serving (@recipe.Servings serving@(recipe.Servings == 1 ? "" : "s"))</div>
+                                            <div class="nutrition-values">
+                                                <div class="nutrition-item">
+                                                    <span class="nutrition-name">Calories</span>
+                                                    <span class="nutrition-value @DeviationClass(_totalCalories / recipe.Servings.Value, MealTargetCalories)">@($"{_totalCalories / recipe.Servings.Value:F1}")</span>
                                                 </div>
-                                            }
-                                            else if (ChosenMacroTarget is null && _allTargets.Any())
-                                            {
-                                                <div class="meal-comparison-hint">
-                                                    💡 Choose a macro profile in ⚙️ Settings to see the meal comparison.
+                                                <div class="nutrition-item">
+                                                    <span class="nutrition-name">Protein</span>
+                                                    <span class="nutrition-value @DeviationClass(_totalProteinG / recipe.Servings.Value, MealTargetProteinG)">@($"{_totalProteinG / recipe.Servings.Value:F1}g")</span>
                                                 </div>
-                                            }
-                                        }
-                                    </MealComparisonContent>
-                                </ParsedIngredientsTable>
+                                                <div class="nutrition-item">
+                                                    <span class="nutrition-name">Carbs</span>
+                                                    <span class="nutrition-value @DeviationClass(_totalCarbsG / recipe.Servings.Value, MealTargetCarbsG)">@($"{_totalCarbsG / recipe.Servings.Value:F1}g")</span>
+                                                </div>
+                                                <div class="nutrition-item">
+                                                    <span class="nutrition-name">Fat</span>
+                                                    <span class="nutrition-value @DeviationClass(_totalFatG / recipe.Servings.Value, MealTargetFatG)">@($"{_totalFatG / recipe.Servings.Value:F1}g")</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
 
-                                <div class="seasonality-section-detail">
-                                    <SeasonalityPanel Result="@_seasonality" IsLoading="@_seasonalityLoading" />
+                                    <!-- Recipe Totals (secondary) -->
+                                    <div class="nutrition-row nutrition-row--secondary">
+                                        <div class="nutrition-label">Recipe Totals</div>
+                                        <div class="nutrition-values">
+                                            <div class="nutrition-item">
+                                                <span class="nutrition-name">Calories</span>
+                                                <span class="nutrition-value">@($"{_totalCalories:F1}")</span>
+                                            </div>
+                                            <div class="nutrition-item">
+                                                <span class="nutrition-name">Protein</span>
+                                                <span class="nutrition-value">@($"{_totalProteinG:F1}g")</span>
+                                            </div>
+                                            <div class="nutrition-item">
+                                                <span class="nutrition-name">Carbs</span>
+                                                <span class="nutrition-value">@($"{_totalCarbsG:F1}g")</span>
+                                            </div>
+                                            <div class="nutrition-item">
+                                                <span class="nutrition-name">Fat</span>
+                                                <span class="nutrition-value">@($"{_totalFatG:F1}g")</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+
+                                    <!-- Meal Comparison -->
+                                    @if (_recipeDetailSettings.RecipeMealComparisonEnabled)
+                                    {
+                                        @if (ChosenMacroTarget is not null && (recipe.Servings ?? 0) > 0)
+                                        {
+                                            <MealMacroComparison
+                                                PerServingCalories="@PerServingCalories"
+                                                PerServingProteinG="@PerServingProteinG"
+                                                PerServingCarbsG="@PerServingCarbsG"
+                                                PerServingFatG="@PerServingFatG"
+                                                Target="@ChosenMacroTarget" />
+                                        }
+                                        else if ((recipe.Servings ?? 0) <= 0)
+                                        {
+                                            <div class="meal-comparison-hint">
+                                                Add a serving count to enable meal comparison.
+                                            </div>
+                                        }
+                                        else if (ChosenMacroTarget is null && _allTargets.Any())
+                                        {
+                                            <div class="meal-comparison-hint">
+                                                Choose a macro profile in Settings to see the meal comparison.
+                                            </div>
+                                        }
+                                    }
                                 </div>
                             }
                         </div>
 
+                        <!-- Seasonality -->
+                        <div class="form-section seasonality-section-full">
+                            <SeasonalityPanel Result="@_seasonality" IsLoading="@_seasonalityLoading" />
+                        </div>
+
                         <!-- Directions -->
-                        <div class="form-section">
+                        <div class="form-section directions-section">
                             <h2>Directions</h2>
                             <div class="form-group">
                                 <InputTextArea class="form-control textarea-large" 
@@ -286,7 +433,7 @@
                         </div>
 
                         <!-- Notes -->
-                        <div class="form-section">
+                        <div class="form-section notes-section">
                             <h2>Notes</h2>
                             <div class="form-group">
                                 <InputTextArea class="form-control" 
@@ -298,7 +445,6 @@
                             </div>
                         </div>
 
-                    </div>
                 </div>
 
                 <!-- Form Actions -->
@@ -320,7 +466,8 @@
                         }
                         else
                         {
-                            <span>💾 Save Recipe</span>
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            <span>Save Recipe</span>
                         }
                     </button>
                 </div>

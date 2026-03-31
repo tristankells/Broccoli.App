@@ -1,5 +1,11 @@
 ﻿.meal-macro-comparison {
-    border-top: 1px solid var(--color-border, #dee2e6);
+    flex: 3 1 400px;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ---- Header ---- */
@@ -8,15 +14,17 @@
     align-items: baseline;
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: var(--color-bg-surface);
-    border-bottom: 2px solid var(--color-border);
+    padding: 0.45rem 1rem;
+    background: var(--color-bg-subtle);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .mmc-title {
+    font-size: 0.7rem;
     font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--color-text-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
 }
 
 .mmc-subtitle {

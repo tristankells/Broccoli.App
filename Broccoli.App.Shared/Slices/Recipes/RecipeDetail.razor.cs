@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Broccoli.App.Shared.IngredientParsing;
 using Broccoli.Data.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -17,6 +18,7 @@ public partial class RecipeDetail : IDisposable
     private bool isSaving = false;
     private bool isUploadingImage = false;
     private bool _jsInitialized;
+    private bool _syncInitialized;
     private string? errorMessage;
     private string? successMessage;
     private string? imageUploadError;
@@ -36,6 +38,10 @@ public partial class RecipeDetail : IDisposable
     private double _totalCarbsG;
     private double _totalFatG;
 
+    // Parsed ingredient matches used by the inline split-panel (updated by ScoreSeasonalityAsync).
+    private List<ParsedIngredientMatch> _matches = new();
+    private bool _ingredientsLoading;
+
     // Per-serving values — automatically reflect the current Servings field.
     private double PerServingCalories => recipe?.Servings > 0 ? _totalCalories / recipe.Servings.Value : 0;
     private double PerServingProteinG => recipe?.Servings > 0 ? _totalProteinG  / recipe.Servings.Value : 0;
@@ -52,16 +58,23 @@ public partial class RecipeDetail : IDisposable
         ChosenMacroTarget is not null &&
         (recipe?.Servings ?? 0) > 0;
 
-    // Per-meal targets (daily ÷ 3) forwarded to ParsedIngredientsTable for Per Serving colour coding.
+    // Per-meal targets (daily ÷ 3) used for per-serving colour coding in the nutrition summary.
     private double? MealTargetCalories => ComparisonActive ? ChosenMacroTarget!.RecommendedCalories / 3.0 : null;
     private double? MealTargetProteinG  => ComparisonActive ? ChosenMacroTarget!.RecommendedProteinG  / 3.0 : null;
     private double? MealTargetCarbsG    => ComparisonActive ? ChosenMacroTarget!.RecommendedCarbsG    / 3.0 : null;
     private double? MealTargetFatG      => ComparisonActive ? ChosenMacroTarget!.RecommendedFatG      / 3.0 : null;
+
+    /// <summary>Returns the CSS deviation class for a per-serving value vs its per-meal target.</summary>
+    private static string DeviationClass(double actual, double? target)
+    {
+        if (target is null || target.Value <= 0) return string.Empty;
+        var pct = Math.Abs(actual - target.Value) / target.Value * 100.0;
+        return pct <= 15 ? "macro-ok" : pct <= 25 ? "macro-warn" : "macro-over";
+    }
     // ─────────────────────────────────────────────────────────────────────────
 
-    // Tracks the ingredients text that has been committed to the nutrition table.
-    // Updated only on Enter-key or blur so ParsedIngredientsTable doesn't re-parse
-    // on every single keystroke.
+    // Tracks the ingredients text that has been committed to the inline split-panel.
+    // Updated only on Enter-key or blur so the panel doesn't re-parse on every keystroke.
     private string? _ingredientsDisplayText;
 
     // ── Autosave ──────────────────────────────────────────────────────────────
@@ -128,12 +141,27 @@ public partial class RecipeDetail : IDisposable
                 // imageDropZone.js is only loaded in the web host; silently ignore in MAUI.
             }
         }
+
+        // Initialise the ingredient split-panel scroll sync once the combo section is rendered.
+        if (!isLoading && recipe != null && !_syncInitialized)
+        {
+            _syncInitialized = true;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("ingredientScrollSync.init", "ingredient-textarea", "ingredient-right-panel");
+            }
+            catch
+            {
+                // ingredientScrollSync.js is only loaded in the web host; silently ignore in MAUI.
+            }
+        }
     }
 
     private async Task LoadRecipe()
     {
         isLoading = true;
         _jsInitialized = false;
+        _syncInitialized = false;
         errorMessage = null;
 
         try
@@ -197,11 +225,9 @@ public partial class RecipeDetail : IDisposable
 
     private async Task OnIngredientsChanged()
     {
-        // Commit the live model value to the display text so ParsedIngredientsTable
-        // and the seasonality panel receive the updated ingredients.
+        // Commit the live model value to the split-panel display text and rescore.
         _ingredientsDisplayText = recipe?.Ingredients;
 
-        // Re-render so ParsedIngredientsTable sees the new value, then rescore.
         StateHasChanged();
         if (!string.IsNullOrWhiteSpace(recipe?.Ingredients))
         {
@@ -210,6 +236,8 @@ public partial class RecipeDetail : IDisposable
         else
         {
             _seasonality = null;
+            _matches = new();
+            _totalCalories = _totalProteinG = _totalCarbsG = _totalFatG = 0;
         }
 
         HandleFieldChanged();
@@ -317,14 +345,16 @@ public partial class RecipeDetail : IDisposable
     private async Task ScoreSeasonalityAsync(string ingredientsText)
     {
         _seasonalityLoading = true;
+        _ingredientsLoading = true;
         await InvokeAsync(StateHasChanged);
 
         try
         {
             var matches = await IngredientParserService.ParseAndMatchIngredientsAsync(ingredientsText);
             _seasonality = SeasonalityService.Score(matches);
+            _matches = matches;
 
-            // Reuse the same parsed matches to update nutrition totals for the meal comparison panel.
+            // Update nutrition totals for the summary panel.
             _totalCalories = matches.Where(m => m.IsMatched).Sum(m => m.GetCalories());
             _totalProteinG = matches.Where(m => m.IsMatched).Sum(m => m.GetProtein());
             _totalCarbsG   = matches.Where(m => m.IsMatched).Sum(m => m.GetCarbohydrates());
@@ -334,10 +364,12 @@ public partial class RecipeDetail : IDisposable
         {
             Console.WriteLine($"Seasonality scoring error: {ex.Message}");
             _seasonality = null;
+            _matches = new();
         }
         finally
         {
             _seasonalityLoading = false;
+            _ingredientsLoading = false;
             await InvokeAsync(StateHasChanged);
         }
     }

@@ -15,6 +15,7 @@ public static class RecipesSliceExtensions
         services.AddSingleton<IRecipeService, CosmosRecipeService>();
         services.AddSingleton<IRecipeImageService, CloudinaryImageService>();
         services.AddSingleton<Import.IImportFormat, Import.PaprikaHtmlImportFormat>();
+        services.AddSingleton<Import.IImportFormat, Import.BargainBoxPasteImportFormat>();
         services.AddSingleton<Import.RecipeImportService>();
         return services;
     }

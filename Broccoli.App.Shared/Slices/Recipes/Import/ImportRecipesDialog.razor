@@ -49,7 +49,7 @@
                     {
                         <details class="instructions-panel" open>
                             <summary class="instructions-summary">
-                                📋 How to export from @_activeFormat.DisplayName
+                                📋 @(_activeFormat.IsPasteBased ? "How to copy from" : "How to export from") @_activeFormat.DisplayName
                             </summary>
                             <ol class="instructions-list">
                                 @foreach (var step in _activeFormat.ExportInstructions)
@@ -60,7 +60,20 @@
                         </details>
                     }
 
-                    <!-- Drop zone -->
+                    <!-- Drop zone (file-based formats) or paste textarea (paste-based formats) -->
+                    @if (_activeFormat?.IsPasteBased == true)
+                    {
+                        <div class="paste-zone">
+                            <label class="form-label" for="bargainbox-paste-input">Paste recipe text</label>
+                            <textarea id="bargainbox-paste-input"
+                                      class="form-control paste-textarea"
+                                      rows="14"
+                                      placeholder="Paste the copied Bargain Box recipe text here…"
+                                      @oninput="OnPasteContentChanged">@_pasteContent</textarea>
+                        </div>
+                    }
+                    else
+                    {
                     <div class="drop-zone @(_selectedFileCount > 0 ? "drop-zone-filled" : "")">
                         <InputFile multiple
                                    accept="@(_activeFormat?.FileExtension ?? ".html")"
@@ -85,6 +98,7 @@
                             }
                         </div>
                     </div>
+                    }
 
                 </div>
 
@@ -93,7 +107,7 @@
                     <button class="btn btn-secondary" @onclick="HandleCancel">Cancel</button>
                     <button class="btn btn-primary"
                             @onclick="AdvanceToPreview"
-                            disabled="@(_selectedFileCount == 0 || _isParsing)">
+                            disabled="@((_activeFormat?.IsPasteBased == true ? string.IsNullOrWhiteSpace(_pasteContent) : _selectedFileCount == 0) || _isParsing)">
                         @if (_isParsing)
                         {
                             <span class="btn-spinner"></span>
@@ -106,12 +120,11 @@
                     </button>
                 </div>
             }
-
-            <!-- ═══════════════════════════════════════════════════════════
-                 STEP 2 — Preview table + confirm
-                 ═══════════════════════════════════════════════════════════ -->
             else if (_currentStep == 2)
             {
+                <!-- ═══════════════════════════════════════════════════════════
+                     STEP 2 — Preview table + confirm
+                     ═══════════════════════════════════════════════════════════ -->
                 <div class="modal-body-scroll">
 
                     <!-- Summary badges -->
@@ -143,11 +156,15 @@
                                     <th class="col-tags">Tags</th>
                                     <th class="col-servings">Servings</th>
                                     <th class="col-status">Status</th>
+                                    <th class="col-expand"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var result in _importResults)
+                                @for (int idx = 0; idx < _importResults.Count; idx++)
                                 {
+                                    var result = _importResults[idx];
+                                    var localIdx = idx;
+                                    var isExpanded = _previewResultIndex == localIdx;
                                     <tr class="preview-row @GetRowClass(result)">
 
                                         <!-- Checkbox -->
@@ -167,11 +184,16 @@
                                             <span class="file-name-text">@result.FileName</span>
                                         </td>
 
-                                        <!-- Recipe name -->
+                                        <!-- Recipe name (editable) -->
                                         <td class="col-name">
                                             @if (result.Recipe is not null)
                                             {
-                                                <strong>@result.Recipe.Name</strong>
+                                                <input type="text"
+                                                       class="form-control form-control-sm name-edit-input"
+                                                       value="@result.Recipe.Name"
+                                                       placeholder="Enter recipe name…"
+                                                       disabled="@_isSaving"
+                                                       @oninput="e => result.Recipe!.Name = e.Value?.ToString() ?? string.Empty" />
                                             }
                                             else
                                             {
@@ -247,7 +269,38 @@
                                             }
                                         </td>
 
+                                        <!-- Preview toggle -->
+                                        <td class="col-expand">
+                                            @if (result.Recipe is not null && result.Status != ImportStatus.ParseError)
+                                            {
+                                                <button type="button"
+                                                        class="btn-expand @(isExpanded ? "btn-expand--open" : "")"
+                                                        @onclick="() => TogglePreview(localIdx)"
+                                                        title="@(isExpanded ? "Close preview" : "Preview recipe")">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                                                </button>
+                                            }
+                                        </td>
+
                                     </tr>
+
+                                    @if (isExpanded && result.Recipe is not null)
+                                    {
+                                        <tr class="preview-expand-row">
+                                            <td colspan="7" class="preview-expand-cell">
+                                                <div class="preview-expand-grid">
+                                                    <div class="preview-panel">
+                                                        <div class="preview-panel-heading">Ingredients</div>
+                                                        <pre class="preview-text">@(string.IsNullOrWhiteSpace(result.Recipe.Ingredients) ? "—" : result.Recipe.Ingredients)</pre>
+                                                    </div>
+                                                    <div class="preview-panel">
+                                                        <div class="preview-panel-heading">Directions</div>
+                                                        <pre class="preview-text">@(string.IsNullOrWhiteSpace(result.Recipe.Directions) ? "—" : result.Recipe.Directions.Length > 800 ? result.Recipe.Directions[..800] + "\n…" : result.Recipe.Directions)</pre>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
                                 }
                             </tbody>
                         </table>

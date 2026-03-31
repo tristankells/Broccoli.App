@@ -131,6 +131,12 @@ public class IngredientParserService(IFoodService foodService)
             return null;
         }
 
+        // Skip section-heading lines (e.g. "# Potato Salad") — not parseable as food ingredients
+        if (line.TrimStart().StartsWith('#'))
+        {
+            return null;
+        }
+
         // Reject lines that are purely numeric (e.g. "1.5" with no food name)
         if (Regex.IsMatch(line.Trim(), @"^[\d\s./]+$"))
         {

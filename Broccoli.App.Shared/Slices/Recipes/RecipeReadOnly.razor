@@ -49,7 +49,15 @@
                         <ul class="ingredients-list">
                             @for (int i = 0; i < ingredients.Count; i++)
                             {
-                                <li @key="ingredients[i]+i">@ingredients[i]</li>
+                                var ingLine = ingredients[i];
+                                if (ingLine.StartsWith('#'))
+                                {
+                                    <li class="ingredient-section-header" @key="ingLine+i">@ingLine[1..].TrimStart()</li>
+                                }
+                                else
+                                {
+                                    <li @key="ingLine+i">@ingLine</li>
+                                }
                             }
                         </ul>
                     }

@@ -184,6 +184,22 @@
     border-bottom: none;
 }
 
+.ingredients-list li.ingredient-section-header {
+    list-style: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    border-bottom: none;
+    margin-top: 0.75rem;
+    padding-bottom: 0.1rem;
+}
+
+.ingredients-list li.ingredient-section-header::before {
+    content: none;
+}
+
 .ingredients-list li::before {
     content: "•";
     color: var(--color-primary);

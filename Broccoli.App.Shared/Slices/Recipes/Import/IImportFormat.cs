@@ -9,7 +9,7 @@ namespace Broccoli.App.Shared.Slices.Recipes.Import;
 /// </summary>
 public interface IImportFormat
 {
-    /// <summary>Display name shown in the format dropdown, e.g. "Paprika — HTML Export".</summary>
+    /// <summary>Display name shown in the format dropdown, e.g. "Paprika ï¿½ HTML Export".</summary>
     string DisplayName { get; }
 
     /// <summary>File extension(s) accepted, e.g. ".html". Used for the file input accept attribute.</summary>
@@ -17,6 +17,12 @@ public interface IImportFormat
 
     /// <summary>Ordered step-by-step export instructions shown in the dialog.</summary>
     IReadOnlyList<string> ExportInstructions { get; }
+
+    /// <summary>
+    /// When true the dialog shows a paste textarea instead of a file drop zone.
+    /// Defaults to false for all file-based formats.
+    /// </summary>
+    bool IsPasteBased => false;
 
     /// <summary>
     /// Parses raw file content into a Recipe.

@@ -23,6 +23,7 @@ public partial class ImportRecipesDialog
     private IImportFormat? _activeFormat;
     private int _selectedFileCount;
     private IReadOnlyList<IBrowserFile> _selectedFiles = [];
+    private string _pasteContent = string.Empty;
     private List<ImportRecipeResult> _importResults = [];
     private bool _isParsing;
     private bool _isSaving;
@@ -41,9 +42,15 @@ public partial class ImportRecipesDialog
     {
         var name = e.Value?.ToString();
         _activeFormat = ImportFormats.FirstOrDefault(f => f.DisplayName == name);
-        // Reset any previously chosen files when the format changes
+        // Reset any previously chosen files / paste content when the format changes
         _selectedFileCount = 0;
         _selectedFiles = [];
+        _pasteContent = string.Empty;
+    }
+
+    private void OnPasteContentChanged(ChangeEventArgs e)
+    {
+        _pasteContent = e.Value?.ToString() ?? string.Empty;
     }
 
     private void HandleFilesChanged(InputFileChangeEventArgs e)
@@ -54,7 +61,11 @@ public partial class ImportRecipesDialog
 
     private async Task AdvanceToPreview()
     {
-        if (_activeFormat is null || _selectedFiles.Count == 0) return;
+        if (_activeFormat is null) return;
+
+        // Guard: paste mode requires content; file mode requires files
+        if (_activeFormat.IsPasteBased && string.IsNullOrWhiteSpace(_pasteContent)) return;
+        if (!_activeFormat.IsPasteBased && _selectedFiles.Count == 0) return;
 
         _isParsing = true;
         StateHasChanged();
@@ -62,44 +73,59 @@ public partial class ImportRecipesDialog
         try
         {
             var existingNames = ExistingRecipes.Select(r => r.Name);
-            var fileData = new List<(string FileName, string Content)>();
 
-            foreach (var file in _selectedFiles)
+            if (_activeFormat.IsPasteBased)
             {
-                try
+                var fileData = new List<(string FileName, string Content)>
                 {
-                    // Allow up to 10 MB per file
-                    using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-                    using var reader = new StreamReader(stream);
-                    var content = await reader.ReadToEndAsync();
-                    fileData.Add((file.Name, content));
-                }
-                catch (Exception ex)
-                {
-                    // Surface unreadable files as parse errors rather than crashing
-                    fileData.Add((file.Name, $"__READ_ERROR__:{ex.Message}"));
-                }
+                    ("bargainbox-paste.txt", _pasteContent)
+                };
+                _importResults = await ImportService.ParseFilesAsync(_activeFormat, fileData, existingNames);
             }
+            else
+            {
+                var fileData = new List<(string FileName, string Content)>();
 
-            _importResults = await ImportService.ParseFilesAsync(_activeFormat, fileData, existingNames);
+                foreach (var file in _selectedFiles)
+                {
+                    try
+                    {
+                        // Allow up to 10 MB per file
+                        using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+                        using var reader = new StreamReader(stream);
+                        var content = await reader.ReadToEndAsync();
+                        fileData.Add((file.Name, content));
+                    }
+                    catch (Exception ex)
+                    {
+                        // Surface unreadable files as parse errors rather than crashing
+                        fileData.Add((file.Name, $"__READ_ERROR__:{ex.Message}"));
+                    }
+                }
+
+                _importResults = await ImportService.ParseFilesAsync(_activeFormat, fileData, existingNames);
+            }
         }
         catch (Exception ex)
         {
-            // Catastrophic failure — surface all files as errors
-            _importResults = _selectedFiles
-                .Select(f => new ImportRecipeResult
+            // Catastrophic failure - surface as a parse error
+            _importResults =
+            [
+                new ImportRecipeResult
                 {
-                    FileName = f.Name,
+                    FileName = _activeFormat.IsPasteBased ? "bargainbox-paste.txt" : "unknown",
                     Status = ImportStatus.ParseError,
                     ErrorMessage = ex.Message,
                     IsSelected = false
-                })
-                .ToList();
+                }
+            ];
         }
         finally
         {
             _isParsing = false;
             _currentStep = 2;
+            // Auto-expand the preview when there is exactly one result to import
+            _previewResultIndex = _importResults.Count == 1 ? 0 : -1;
         }
     }
 
@@ -109,6 +135,7 @@ public partial class ImportRecipesDialog
         _currentStep = 1;
         _importResults.Clear();
         _saveComplete = false;
+        _previewResultIndex = -1;
     }
 
     private async Task HandleConfirm()
@@ -163,6 +190,13 @@ public partial class ImportRecipesDialog
     // -- Helpers -----------------------------------------------------------
     private int SelectedCount => _importResults.Count(r => r.IsSelected);
 
+    private int _previewResultIndex = -1;
+
+    private void TogglePreview(int index)
+    {
+        _previewResultIndex = _previewResultIndex == index ? -1 : index;
+    }
+
     private static string GetRowClass(ImportRecipeResult result) => result.Status switch
     {
         ImportStatus.Duplicate => "row-duplicate",
@@ -175,11 +209,13 @@ public partial class ImportRecipesDialog
         _currentStep = 1;
         _selectedFileCount = 0;
         _selectedFiles = [];
+        _pasteContent = string.Empty;
         _importResults.Clear();
         _isParsing = false;
         _isSaving = false;
         _saveComplete = false;
         _activeFormat = null;
+        _previewResultIndex = -1;
     }
 }
 

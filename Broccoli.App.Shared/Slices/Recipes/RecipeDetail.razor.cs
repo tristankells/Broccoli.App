@@ -77,6 +77,24 @@ public partial class RecipeDetail : IDisposable
     // Updated only on Enter-key or blur so the panel doesn't re-parse on every keystroke.
     private string? _ingredientsDisplayText;
 
+    // ── Inline name editing in header ─────────────────────────────────────────
+    private bool _editingName;
+
+    private void StartEditingName()  => _editingName = true;
+
+    private void CommitNameEdit()
+    {
+        _editingName = false;
+        HandleFieldChanged();
+    }
+
+    private void HandleNameKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")  CommitNameEdit();
+        if (e.Key == "Escape") _editingName = false;
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // ── Autosave ──────────────────────────────────────────────────────────────
     private enum AutoSaveStatus { Idle, Pending, Saving, Saved, Error }
     private AutoSaveStatus _autoSaveStatus = AutoSaveStatus.Idle;

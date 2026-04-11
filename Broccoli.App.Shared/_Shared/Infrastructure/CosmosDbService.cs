@@ -1,26 +1,20 @@
-using Broccoli.App.Shared.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using UserModel = Broccoli.App.Shared.Models.User;
 
-namespace Broccoli.App.Shared.Infrastructure;
+namespace Broccoli.App.Shared._Shared.Infrastructure;
 
-public class CosmosDbService : ICosmosDbService
+public partial class CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDbService> logger) : ICosmosDbService
 {
-    private readonly CosmosClient _cosmosClient;
-    private readonly ILogger<CosmosDbService> _logger;
+    private readonly CosmosClient _cosmosClient = cosmosClient ?? throw new ArgumentNullException(nameof(cosmosClient));
+    private readonly ILogger<CosmosDbService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
     private Container? _userContainer;
     private bool _initialized;
 
     private const string DatabaseId = "BroccoliAppDb";
     private const string UserContainerId = "Users";
     public const string FoodsContainerId = "Foods";
-
-    public CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDbService> logger)
-    {
-        _cosmosClient = cosmosClient;
-        _logger = logger;
-    }
 
     public async Task InitializeAsync()
     {
@@ -35,15 +29,15 @@ public class CosmosDbService : ICosmosDbService
 
             // Create database with shared throughput if it doesn't exist
             // All containers in this database will share the 400 RU/s
-            var databaseResponse = await _cosmosClient.CreateDatabaseIfNotExistsAsync(
+            DatabaseResponse databaseResponse = await _cosmosClient.CreateDatabaseIfNotExistsAsync(
                 DatabaseId,
                 ThroughputProperties.CreateManualThroughput(600)); // Shared across all containers
 
-            var database = databaseResponse.Database;
-            _logger.LogInformation("Database {DatabaseId} ready with shared throughput", DatabaseId);
+            Database database = databaseResponse.Database;
+            LogDatabaseReady(DatabaseId);
 
             // Create container for users (no throughput specified - uses shared)
-            var containerResponse = await database.CreateContainerIfNotExistsAsync(
+            ContainerResponse containerResponse = await database.CreateContainerIfNotExistsAsync(
                 new ContainerProperties
                 {
                     Id = UserContainerId,
@@ -64,9 +58,9 @@ public class CosmosDbService : ICosmosDbService
 
             _initialized = true;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error initializing CosmosDB");
+            _logger.LogError(exception, "Error initializing CosmosDB");
             throw;
         }
     }
@@ -77,16 +71,16 @@ public class CosmosDbService : ICosmosDbService
 
         try
         {
-            var query = new QueryDefinition(
+            QueryDefinition query = new QueryDefinition(
                 "SELECT * FROM c WHERE c.username = @username")
                 .WithParameter("@username", username);
 
-            using var iterator = _userContainer!.GetItemQueryIterator<UserModel>(query);
+            using FeedIterator<UserModel> iterator = _userContainer!.GetItemQueryIterator<UserModel>(query);
 
             while (iterator.HasMoreResults)
             {
-                var response = await iterator.ReadNextAsync();
-                var user = response.FirstOrDefault();
+                FeedResponse<UserModel> response = await iterator.ReadNextAsync();
+                UserModel? user = response.FirstOrDefault();
                 if (user != null)
                 {
                     return user;
@@ -95,13 +89,13 @@ public class CosmosDbService : ICosmosDbService
 
             return null;
         }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (CosmosException exception) when (exception.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
             return null;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error getting user by username {Username}", username);
+            _logger.LogError(exception, "Error getting user by username {Username}", username);
             throw;
         }
     }
@@ -112,16 +106,16 @@ public class CosmosDbService : ICosmosDbService
 
         try
         {
-            var response = await _userContainer!.CreateItemAsync(
+            ItemResponse<UserModel> response = await _userContainer!.CreateItemAsync(
                 user,
                 new PartitionKey(user.PartitionKey));
 
             _logger.LogInformation("User {Username} created successfully", user.Username);
             return response.Resource;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error creating user {Username}", user.Username);
+            _logger.LogError(exception, "Error creating user {Username}", user.Username);
             throw;
         }
     }
@@ -132,7 +126,7 @@ public class CosmosDbService : ICosmosDbService
 
         try
         {
-            var response = await _userContainer!.ReplaceItemAsync(
+            ItemResponse<UserModel> response = await _userContainer!.ReplaceItemAsync(
                 user,
                 user.Id,
                 new PartitionKey(user.PartitionKey));
@@ -140,9 +134,9 @@ public class CosmosDbService : ICosmosDbService
             _logger.LogInformation("User {Username} updated successfully", user.Username);
             return response.Resource;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Error updating user {Username}", user.Username);
+            _logger.LogError(exception, "Error updating user {Username}", user.Username);
             throw;
         }
     }
@@ -154,4 +148,7 @@ public class CosmosDbService : ICosmosDbService
             await InitializeAsync();
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Database {DatabaseId} ready with shared throughput")]
+    private partial void LogDatabaseReady(string databaseId);
 }

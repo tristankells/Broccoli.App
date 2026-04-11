@@ -13,6 +13,8 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
     private readonly HttpClient _http;
     private readonly UsdaSettings _settings;
 
+    public bool IsAvailable => true;
+
     private static readonly JsonSerializerOptions s_jsonOpts = new()
     {
         PropertyNameCaseInsensitive = true

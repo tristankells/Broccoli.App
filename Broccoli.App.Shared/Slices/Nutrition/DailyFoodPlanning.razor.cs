@@ -641,6 +641,26 @@ public partial class DailyFoodPlanning
             Console.WriteLine($"Error adding ingredients to grocery list: {ex.Message}");
         }
     }
+
+    private async Task HandleShoppingAddToPantry(List<string> foodNames)
+    {
+        if (!foodNames.Any()) return;
+
+        try
+        {
+            var userId = AuthStateService.CurrentUserId!;
+            foreach (var name in foodNames)
+            {
+                if (!await PantryService.ExistsAsync(userId, name))
+                    await PantryService.AddAsync(new PantryItem { Name = name, UserId = userId });
+            }
+            _pantryItems = await PantryService.GetAllAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding items to pantry: {ex.Message}");
+        }
+    }
 }
 
 

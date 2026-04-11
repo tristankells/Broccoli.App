@@ -14,6 +14,7 @@ public class CosmosDbService : ICosmosDbService
 
     private const string DatabaseId = "BroccoliAppDb";
     private const string UserContainerId = "Users";
+    public const string FoodsContainerId = "Foods";
 
     public CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDbService> logger)
     {
@@ -51,6 +52,15 @@ public class CosmosDbService : ICosmosDbService
 
             _userContainer = containerResponse.Container;
             _logger.LogInformation("Container {ContainerId} ready", UserContainerId);
+
+            // Create container for foods (shared across all users)
+            await database.CreateContainerIfNotExistsAsync(
+                new ContainerProperties
+                {
+                    Id = FoodsContainerId,
+                    PartitionKeyPath = "/partitionKey"
+                });
+            _logger.LogInformation("Container {ContainerId} ready", FoodsContainerId);
 
             _initialized = true;
         }

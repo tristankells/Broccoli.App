@@ -95,6 +95,35 @@ public partial class RecipeDetail : IDisposable
     }
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ── Food edit/add dialog (in-line via parsed ingredient table) ────────────
+    private bool _foodDialogOpen;
+    private Food? _foodDialogFood;
+    private string? _foodDialogSuggestedName;
+
+    private void OpenFoodEdit(Food food)
+    {
+        _foodDialogFood = food;
+        _foodDialogSuggestedName = null;
+        _foodDialogOpen = true;
+    }
+
+    private void OpenFoodCreate(string suggestedName)
+    {
+        _foodDialogFood = null;
+        _foodDialogSuggestedName = suggestedName;
+        _foodDialogOpen = true;
+    }
+
+    private async Task HandleFoodSaved(Food _)
+    {
+        _foodDialogOpen = false;
+        if (recipe?.Ingredients is not null)
+            await ScoreSeasonalityAsync(recipe.Ingredients);
+    }
+
+    private void HandleFoodDialogCancelled() => _foodDialogOpen = false;
+    // ─────────────────────────────────────────────────────────────────────────
+
     // ── Autosave ──────────────────────────────────────────────────────────────
     private enum AutoSaveStatus { Idle, Pending, Saving, Saved, Error }
     private AutoSaveStatus _autoSaveStatus = AutoSaveStatus.Idle;
@@ -246,7 +275,6 @@ public partial class RecipeDetail : IDisposable
         // Commit the live model value to the split-panel display text and rescore.
         _ingredientsDisplayText = recipe?.Ingredients;
 
-        StateHasChanged();
         if (!string.IsNullOrWhiteSpace(recipe?.Ingredients))
         {
             _ = ScoreSeasonalityAsync(recipe.Ingredients);
@@ -256,6 +284,8 @@ public partial class RecipeDetail : IDisposable
             _seasonality = null;
             _matches = new();
             _totalCalories = _totalProteinG = _totalCarbsG = _totalFatG = 0;
+            // Only call StateHasChanged when clearing — ScoreSeasonalityAsync handles it otherwise.
+            await InvokeAsync(StateHasChanged);
         }
 
         HandleFieldChanged();
@@ -269,16 +299,6 @@ public partial class RecipeDetail : IDisposable
     {
         if (recipe is not null)
             recipe.Ingredients = e.Value?.ToString() ?? string.Empty;
-    }
-
-    /// <summary>
-    /// Triggers a nutrition/seasonality recalculation when the user presses Enter
-    /// (i.e. moves to a new ingredient line), rather than waiting for blur.
-    /// </summary>
-    private async Task OnIngredientsKeyUp(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-            await OnIngredientsChanged();
     }
 
     // ── Autosave ──────────────────────────────────────────────────────────────

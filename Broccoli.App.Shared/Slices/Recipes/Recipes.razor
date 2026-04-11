@@ -193,7 +193,8 @@
                       IngredientsText="@selectedRecipe?.Ingredients"
                       PantryItems="@userPantryItems"
                       OnCancel="CloseIngredientDialog"
-                      OnConfirm="HandleAddIngredientsConfirm" />
+                      OnConfirm="HandleAddIngredientsConfirm"
+                      OnAddToPantry="HandleAddIngredientsToPantry" />
 
 <ImportRecipesDialog IsVisible="showImportDialog"
                      ExistingRecipes="@allRecipes"

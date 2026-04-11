@@ -75,6 +75,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
         builder.Services.AddScoped<INavStateService, NavStateService>();
         builder.Services.AddScoped<IWakeLockService, WakeLockService>();
+        builder.Services.AddScoped<IFoodFileService, FoodFileService>();
         // -- FoodDatabase path ----------------------------------------------
         string foodDatabasePath = Path.Combine(
             FileSystem.AppDataDirectory,
@@ -89,8 +90,19 @@ public static class MauiProgram
         builder.Services.AddSeasonalitySlice();
         builder.Services.AddPantrySlice();
         builder.Services.AddGroceryListSlice();
-        // Food database editing is not supported on MAUI � flag permanently off
-        builder.Services.AddFoodsSlice(new FeatureFlagsSettings { FoodDatabaseEditing = false });
+        builder.Services.AddFoodsSlice();
+        var usdaSettings = new UsdaSettings();
+        config.GetSection(UsdaSettings.SectionName).Bind(usdaSettings);
+        if (!string.IsNullOrWhiteSpace(usdaSettings.ApiKey))
+        {
+            builder.Services.AddSingleton(usdaSettings);
+            var usdaHttp = new HttpClient
+            {
+                BaseAddress = new Uri(usdaSettings.BaseUrl.TrimEnd('/') + "/")
+            };
+            builder.Services.AddSingleton<IUsdaFoodSearchService>(
+                new UsdaFoodSearchService(usdaHttp, usdaSettings));
+        }
         builder.Services.AddRecipesSlice();
         builder.Services.AddMealPrepSlice();
         builder.Services.AddNutritionSlice();
@@ -120,6 +132,10 @@ public static class MauiProgram
 
             var dailyFoodPlanService = app.Services.GetRequiredService<IDailyFoodPlanService>();
             await dailyFoodPlanService.InitializeAsync();
+
+            var foodService = app.Services.GetRequiredService<IFoodService>();
+            if (foodService is Broccoli.App.Shared.IngredientParsing.CosmosFoodService cosmosFoodService)
+                await cosmosFoodService.InitializeAsync();
         });
         return app;
     }

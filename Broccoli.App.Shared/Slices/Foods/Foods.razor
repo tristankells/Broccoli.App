@@ -1,8 +1,5 @@
 @page "/foods"
 @using Broccoli.Data.Models
-@using Broccoli.App.Shared.Configuration
-@inject IFoodService FoodService
-@inject FeatureFlagsSettings FeatureFlags
 
 <AuthorizeView>
     <PageTitle>Foods</PageTitle>
@@ -11,14 +8,21 @@
 
     <p>Browse all available foods in the database.</p>
 
-    @if (FeatureFlags.FoodDatabaseEditing)
-    {
-        <div class="page-action-bar mb-3">
-            <button class="btn btn-outline-primary" @onclick="() => _usdaDialogVisible = true">
-                🔍 Search USDA
-            </button>
-        </div>
-    }
+    <div class="page-action-bar mb-3">
+        <button class="btn btn-outline-primary" @onclick="() => _usdaDialogVisible = true">
+            🔍 Search USDA
+        </button>
+        <button class="btn btn-outline-success" @onclick="OpenAddFoodDialog">
+            ➕ Add Food
+        </button>
+        <button class="btn btn-outline-secondary" @onclick="ExportAsync">
+            ⬇️ Export
+        </button>
+        <button class="btn btn-outline-secondary" @onclick="ImportAsync" disabled="@_importBusy">
+            @if (_importBusy) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            ⬆️ Import
+        </button>
+    </div>
 
     @if (_foods == null)
     {
@@ -47,16 +51,13 @@
                     <th>Protein g</th>
                     <th>Na mg</th>
                     <th>Notes</th>
-                    @if (FeatureFlags.FoodDatabaseEditing)
-                    {
-                        <th>Actions</th>
-                    }
+                    <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 @foreach (var food in _foods)
                 {
-                    @if (FeatureFlags.FoodDatabaseEditing && _editingFood?.Id == food.Id)
+                    @if (_editingFood?.Id == food.Id)
                     {
                         <tr class="editing-row">
                             <td>@food.Id</td>
@@ -78,7 +79,7 @@
                             </td>
                         </tr>
                     }
-                    else if (FeatureFlags.FoodDatabaseEditing && _deletingFood?.Id == food.Id)
+                    else if (_deletingFood?.Id == food.Id)
                     {
                         <tr class="delete-confirm-row">
                             <td colspan="14">
@@ -104,52 +105,54 @@
                             <td>@food.ProteinPer100g.ToString("F2")</td>
                             <td>@food.SodiumMgPer100g.ToString("F1")</td>
                             <td>@food.Notes</td>
-                            @if (FeatureFlags.FoodDatabaseEditing)
-                            {
-                                <td class="actions-cell">
-                                    <button class="btn-icon" @onclick="() => StartEdit(food)" title="Edit">✏️</button>
-                                    <button class="btn-icon btn-danger-icon" @onclick="() => StartDelete(food)" title="Delete">🗑️</button>
-                                </td>
-                            }
+                            <td class="actions-cell">
+                                <button class="btn-icon" @onclick="() => StartEdit(food)" title="Edit">✏️</button>
+                                <button class="btn-icon btn-danger-icon" @onclick="() => StartDelete(food)" title="Delete">🗑️</button>
+                            </td>
                         </tr>
                     }
                 }
 
-                @if (FeatureFlags.FoodDatabaseEditing)
-                {
-                    <tr class="add-row">
-                        <td>—</td>
-                        <td><input class="edit-input" @bind="_newFood.Name" placeholder="Name*" /></td>
-                        <td><input class="edit-input" @bind="_newFood.Measure" placeholder="Measure" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.1" @bind="_newFood.GramsPerMeasure" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.1" @bind="_newFood.CaloriesPer100g" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.FatPer100g" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.SaturatedFatPer100g" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.CarbohydratesPer100g" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.DietaryFiberPer100g" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.SugarsPer100g" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.ProteinPer100g" /></td>
-                        <td><input class="edit-input num-input" type="number" step="0.1" @bind="_newFood.SodiumMgPer100g" /></td>
-                        <td><input class="edit-input" @bind="_newFood.Notes" placeholder="Notes" /></td>
-                        <td class="actions-cell">
-                            <button class="btn btn-sm btn-primary"
-                                    @onclick="AddFood"
-                                    disabled="@string.IsNullOrWhiteSpace(_newFood.Name)">
-                                ➕ Add
-                            </button>
-                        </td>
-                    </tr>
-                }
+                <tr class="add-row">
+                    <td>—</td>
+                    <td><input class="edit-input" @bind="_newFood.Name" placeholder="Name*" /></td>
+                    <td><input class="edit-input" @bind="_newFood.Measure" placeholder="Measure" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.1" @bind="_newFood.GramsPerMeasure" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.1" @bind="_newFood.CaloriesPer100g" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.FatPer100g" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.SaturatedFatPer100g" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.CarbohydratesPer100g" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.DietaryFiberPer100g" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.SugarsPer100g" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.01" @bind="_newFood.ProteinPer100g" /></td>
+                    <td><input class="edit-input num-input" type="number" step="0.1" @bind="_newFood.SodiumMgPer100g" /></td>
+                    <td><input class="edit-input" @bind="_newFood.Notes" placeholder="Notes" /></td>
+                    <td class="actions-cell">
+                        <button class="btn btn-sm btn-primary"
+                                @onclick="AddFood"
+                                disabled="@string.IsNullOrWhiteSpace(_newFood.Name)">
+                            ➕ Add
+                        </button>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
         <p class="mt-3"><strong>Total foods: @_foods.Count</strong></p>
     }
 
-    @if (FeatureFlags.FoodDatabaseEditing)
-    {
-        <UsdaSearchDialog IsVisible="_usdaDialogVisible"
-                          OnImport="OnUsdaImport"
-                          OnCancel="() => _usdaDialogVisible = false" />
-    }
+    <UsdaSearchDialog IsVisible="@_usdaDialogVisible"
+                      OnImport="OnUsdaImport"
+                      OnCancel="() => _usdaDialogVisible = false" />
+
+    <FoodEditDialog IsOpen="@_foodDialogOpen"
+                    Food="@_foodDialogFood"
+                    SuggestedName="@_foodDialogSuggestedName"
+                    OnSaved="HandleFoodDialogSaved"
+                    OnCancelled="() => { _foodDialogOpen = false; _foodDialogFood = null; }" />
+
+    <ImportFoodsPreviewDialog IsOpen="@_importDialogOpen"
+                              Items="@_importItems"
+                              OnConfirmed="HandleImportConfirmed"
+                              OnCancelled="() => _importDialogOpen = false" />
 </AuthorizeView>

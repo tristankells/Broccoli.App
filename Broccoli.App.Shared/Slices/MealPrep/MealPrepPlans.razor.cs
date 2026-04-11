@@ -170,7 +170,7 @@ public partial class MealPrepPlans
 
         // Reorder in memory.
         // Insert at toIndex (pre-removal) so dragging down places the card after the
-        // target, and dragging up places it before — the natural "swap" feel.
+        // target, and dragging up places it before ï¿½ the natural "swap" feel.
         var dragged = _plans[fromIndex];
         _plans.RemoveAt(fromIndex);
         _plans.Insert(toIndex, dragged);
@@ -295,6 +295,25 @@ public partial class MealPrepPlans
             Console.WriteLine($"Error adding ingredients to grocery list: {ex.Message}");
         }
     }
-}
 
+    private async Task HandleCartAddToPantry(List<string> foodNames)
+    {
+        if (!foodNames.Any()) return;
+
+        try
+        {
+            var userId = AuthStateService.CurrentUserId!;
+            foreach (var name in foodNames)
+            {
+                if (!await PantryService.ExistsAsync(userId, name))
+                    await PantryService.AddAsync(new PantryItem { Name = name, UserId = userId });
+            }
+            _pantryItems = await PantryService.GetAllAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding items to pantry: {ex.Message}");
+        }
+    }
+}
 

@@ -268,9 +268,8 @@
                                               value="@recipe.Ingredients"
                                               @oninput="OnIngredientsInput"
                                               @onblur="OnIngredientsChanged"
-                                              @onkeyup="OnIngredientsKeyUp"
                                               placeholder="80g smooth peanut butter&#10;1 tsp red curry paste&#10;1 Tbsp soy sauce&#10;..."></textarea>
-                                    <small class="split-panel-hint">One ingredient per line. Nutrition updates on Enter or when you click outside.</small>
+                                    <small class="split-panel-hint">One ingredient per line. Nutrition updates when you click outside.</small>
                                 </div>
 
                                 <!-- Right: per-line parsed results -->
@@ -298,6 +297,7 @@
                                                     <th class="iat-col-macro">Protein</th>
                                                     <th class="iat-col-macro">Carbs</th>
                                                     <th class="iat-col-macro">Fat</th>
+                                                    <th class="iat-col-action"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -311,7 +311,7 @@
                                                     else if (line.TrimStart().StartsWith('#'))
                                                     {
                                                         <tr class="align-row align-row--section-header">
-                                                            <td colspan="7" class="iat-section-header">@line.TrimStart().TrimStart('#').TrimStart()</td>
+                                                            <td colspan="8" class="iat-section-header">@line.TrimStart().TrimStart('#').TrimStart()</td>
                                                         </tr>
                                                     }
                                                     else if (lineMatchMap.TryGetValue(line.Trim(), out var match))
@@ -334,6 +334,14 @@
                                                                 <td class="iat-col-macro">@($"{match.GetProtein():F1}g")</td>
                                                                 <td class="iat-col-macro">@($"{match.GetCarbohydrates():F1}g")</td>
                                                                 <td class="iat-col-macro">@($"{match.GetFat():F1}g")</td>
+                                                                <td class="iat-col-action">
+                                                                    <button type="button" class="btn-iat-action" title="Edit matched food" @onclick="() => OpenFoodEdit(match.MatchedFood!)">
+                                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+                                                                    </button>
+                                                                    <button type="button" class="btn-iat-action btn-iat-add" title="Add new food for this ingredient" @onclick="() => OpenFoodCreate(match.ParsedIngredient.FoodName)">
+                                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                         }
                                                         else
@@ -351,6 +359,11 @@
                                                                 <td class="iat-col-macro">–</td>
                                                                 <td class="iat-col-macro">–</td>
                                                                 <td class="iat-col-macro">–</td>
+                                                                <td class="iat-col-action">
+                                                                    <button type="button" class="btn-iat-action btn-iat-add" title="Add food to database" @onclick="() => OpenFoodCreate(match.ParsedIngredient.FoodName)">
+                                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                         }
                                                     }
@@ -530,4 +543,10 @@
                             AvailableTargets="@_allTargets"
                             OnSave="OnRecipeSettingsSaved"
                             OnCancel="() => _recipeSettingsDialogOpen = false" />
+
+<FoodEditDialog IsOpen="@_foodDialogOpen"
+                Food="@_foodDialogFood"
+                SuggestedName="@_foodDialogSuggestedName"
+                OnSaved="HandleFoodSaved"
+                OnCancelled="HandleFoodDialogCancelled" />
 

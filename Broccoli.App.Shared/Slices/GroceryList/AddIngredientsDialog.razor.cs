@@ -30,6 +30,14 @@ public partial class AddIngredientsDialog
     [Parameter]
     public EventCallback<List<string>> OnConfirm { get; set; }
 
+    /// <summary>
+    /// Optional callback raised when the user wants to add selected items to their pantry.
+    /// Receives the clean food names (not full ingredient lines).
+    /// When not set the "Add to Pantry" button is hidden.
+    /// </summary>
+    [Parameter]
+    public EventCallback<List<string>> OnAddToPantry { get; set; }
+
     private List<IngredientRow> ingredientRows = new();
     private bool isLoading = true;
     private bool _prevVisible = false;
@@ -103,13 +111,21 @@ public partial class AddIngredientsDialog
             if (string.IsNullOrWhiteSpace(displayLine)) continue;
 
             var (status, isChecked) = GetPantryStatus(displayLine);
+
+            // Extract a clean food name for use when adding to pantry:
+            // for matched rows use the matched food name embedded in the display line
+            // (the last word-group after the quantity/unit prefix).
+            // We'll keep it simple — strip the leading "Xg " / "X unit " prefix.
+            string foodName = ExtractFoodName(displayLine);
+
             ingredientRows.Add(new IngredientRow
             {
                 IngredientLine = displayLine,
                 OriginalDisplay = originalDisplay,
                 PantryStatus = status,
                 IsChecked = isChecked,
-                IsMerged = isMerged
+                IsMerged = isMerged,
+                FoodName = foodName
             });
         }
 
@@ -276,6 +292,27 @@ public partial class AddIngredientsDialog
         await OnConfirm.InvokeAsync(selectedLines);
     }
 
+    private async Task AddRowToPantry(IngredientRow row)
+    {
+        if (string.IsNullOrWhiteSpace(row.FoodName)) return;
+        row.WasAddedToPantry = true;  // immediate visual feedback
+        await OnAddToPantry.InvokeAsync(new List<string> { row.FoodName });
+    }
+
+    /// <summary>
+    /// Strips the leading quantity + unit prefix from a display line to get a clean food name.
+    /// E.g. "200g Chicken Breast" → "Chicken Breast", "2 tbsp Olive Oil" → "Olive Oil".
+    /// </summary>
+    private static string ExtractFoodName(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line)) return line;
+        // Match an optional number, optional unit word, then the rest as the food name.
+        var m = System.Text.RegularExpressions.Regex.Match(
+            line.Trim(),
+            @"^[\d.,/]+\s*(?:[a-zA-Z]+\s+)?(.+)$");
+        return m.Success ? m.Groups[1].Value.Trim() : line.Trim();
+    }
+
     private static string GetPantryStatusLabel(PantryMatchStatus status) =>
         status switch
         {
@@ -302,6 +339,12 @@ public partial class AddIngredientsDialog
         /// Empty when no conversion was needed.
         /// </summary>
         public string OriginalDisplay { get; set; } = string.Empty;
+
+        /// <summary>Clean food name (no quantity/unit) used when adding to pantry.</summary>
+        public string FoodName { get; set; } = string.Empty;
+
+        /// <summary>Set to true after the user clicks the pantry button, for immediate visual feedback.</summary>
+        public bool WasAddedToPantry { get; set; }
 
         public PantryMatchStatus PantryStatus { get; set; }
 

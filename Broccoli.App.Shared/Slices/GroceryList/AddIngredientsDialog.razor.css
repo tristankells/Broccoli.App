@@ -196,6 +196,33 @@
     color: var(--color-indigo);
 }
 
+.btn-add-to-pantry {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 0.1rem 0.35rem;
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.15s, border-color 0.15s;
+    line-height: 1;
+}
+
+.btn-add-to-pantry:hover {
+    opacity: 1;
+    border-color: var(--color-success, #198754);
+}
+
+.btn-add-to-pantry--done {
+    opacity: 1;
+    color: var(--color-success, #198754);
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-color: var(--color-success, #198754);
+    cursor: default;
+}
+
 /* ---- Footer ---- */
 .modal-footer-bar {
     display: flex;

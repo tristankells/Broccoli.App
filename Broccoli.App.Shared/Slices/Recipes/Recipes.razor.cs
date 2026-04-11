@@ -18,7 +18,7 @@ public partial class Recipes
     private List<PantryItem> userPantryItems = new();
     private bool showImportDialog;
 
-    // Keyed by recipe.Id — populated progressively by the background scoring pass.
+    // Keyed by recipe.Id ï¿½ populated progressively by the background scoring pass.
     private Dictionary<string, SeasonalityResult?> _seasonalityScores = new();
 
     protected override async Task OnInitializedAsync()
@@ -128,7 +128,7 @@ public partial class Recipes
 
     private async Task ToggleFavorite(Recipe recipe)
     {
-        // Optimistic update — flip the flag and re-sort immediately
+        // Optimistic update ï¿½ flip the flag and re-sort immediately
         recipe.IsFavorite = !recipe.IsFavorite;
         ApplyFilters();
 
@@ -258,6 +258,30 @@ public partial class Recipes
         finally
         {
             selectedRecipe = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleAddIngredientsToPantry(List<string> foodNames)
+    {
+        if (!foodNames.Any()) return;
+
+        try
+        {
+            var userId = AuthStateService.CurrentUserId!;
+            foreach (var name in foodNames)
+            {
+                if (!await PantryService.ExistsAsync(userId, name))
+                    await PantryService.AddAsync(new PantryItem { Name = name, UserId = userId });
+            }
+            userPantryItems = await PantryService.GetAllAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding items to pantry: {ex.Message}");
+        }
+        finally
+        {
             StateHasChanged();
         }
     }

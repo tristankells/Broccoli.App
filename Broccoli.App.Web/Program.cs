@@ -76,6 +76,7 @@ builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
 builder.Services.AddScoped<INavStateService, NavStateService>();
 builder.Services.AddScoped<IWakeLockService, WakeLockService>();
+builder.Services.AddScoped<IFoodFileService, FoodFileService>();
 
 // ── Cloudinary (shared image storage settings) ────────────────────────────
 var cloudinarySettings = new CloudinarySettings();
@@ -100,8 +101,7 @@ if (string.IsNullOrEmpty(foodDatabasePath))
     foodDatabasePath = Path.Combine(builder.Environment.ContentRootPath, "FoodDatabase.json");
 
 // ── Feature flags ─────────────────────────────────────────────────────────
-var featureFlags = new FeatureFlagsSettings();
-builder.Configuration.GetSection(FeatureFlagsSettings.SectionName).Bind(featureFlags);
+// (removed — food editing is always enabled)
 
 // ── Dev credentials (auto-login in Development) ───────────────────────────
 builder.Services.Configure<DevCredentialsSettings>(
@@ -117,8 +117,8 @@ builder.Services.AddIngredientParsing(foodDatabasePath);
 builder.Services.AddSeasonalitySlice();
 builder.Services.AddPantrySlice();
 builder.Services.AddGroceryListSlice();
-builder.Services.AddFoodsSlice(featureFlags);
-if (featureFlags.FoodDatabaseEditing)
+builder.Services.AddFoodsSlice();
+if (!string.IsNullOrWhiteSpace(usdaSettings.ApiKey))
 {
     builder.Services.AddSingleton(usdaSettings);
     builder.Services.AddHttpClient<IUsdaFoodSearchService, UsdaFoodSearchService>(client =>
@@ -145,6 +145,11 @@ var mealPrepPlanService = app.Services.GetRequiredService<IMealPrepPlanService>(
 await mealPrepPlanService.InitializeAsync();
 var dailyFoodPlanService = app.Services.GetRequiredService<IDailyFoodPlanService>();
 await dailyFoodPlanService.InitializeAsync();
+
+// Initialize CosmosFoodService (seeds from JSON if container is empty)
+var foodService = app.Services.GetRequiredService<IFoodService>();
+if (foodService is Broccoli.App.Shared.IngredientParsing.CosmosFoodService cosmosFoodService)
+    await cosmosFoodService.InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

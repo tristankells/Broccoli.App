@@ -2,6 +2,8 @@ namespace Broccoli.App.Shared.Slices.Foods;
 
 public interface IUsdaFoodSearchService
 {
+    /// <summary>True when a real API key is configured; false for the null fallback.</summary>
+    bool IsAvailable { get; }
     Task<UsdaSearchResult> SearchAsync(string query, int page = 1, int pageSize = 10);
 }
 

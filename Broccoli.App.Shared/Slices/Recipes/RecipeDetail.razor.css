@@ -164,6 +164,40 @@
 .iat-col-qty    { width: 70px; text-align: right; }
 .iat-col-cal    { width: 56px; text-align: right; }
 .iat-col-macro  { width: 60px; text-align: right; }
+.iat-col-action { width: 36px; text-align: center; padding: 0 !important; }
+
+/* ── Ingredient table action buttons ────────────────────────────────────── */
+.btn-iat-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.btn-iat-action svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.btn-iat-action:hover {
+    color: var(--color-primary);
+    border-color: var(--color-border);
+    background: var(--color-bg-hover);
+}
+
+.btn-iat-add:hover {
+    color: var(--color-success, #16a34a);
+    border-color: var(--color-border);
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 .align-row td {
     padding: 0.3rem 0.5rem;

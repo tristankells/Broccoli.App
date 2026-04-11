@@ -1,22 +1,19 @@
-﻿using Broccoli.App.Shared.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Broccoli.App.Shared.Slices.Foods;
 
 public static class FoodsSliceExtensions
 {
     /// <summary>
-    /// Registers Foods slice configuration.
-    /// FeatureFlagsSettings is registered here so Foods.razor can inject it.
-    /// IUsdaFoodSearchService must be registered by the host when FoodDatabaseEditing is true
-    /// because AddHttpClient is only available in host projects.
-    /// MAUI always passes FoodDatabaseEditing = false; no USDA service is needed.
+    /// Registers Foods slice services.
+    /// <see cref="NullUsdaFoodSearchService"/> is registered as the default
+    /// <see cref="IUsdaFoodSearchService"/>. Host projects that have a USDA API key
+    /// configured should call AddHttpClient&lt;IUsdaFoodSearchService, UsdaFoodSearchService&gt;
+    /// afterwards to override it with the real implementation.
     /// </summary>
-    public static IServiceCollection AddFoodsSlice(
-        this IServiceCollection services,
-        FeatureFlagsSettings featureFlags)
+    public static IServiceCollection AddFoodsSlice(this IServiceCollection services)
     {
-        services.AddSingleton(featureFlags);
+        services.AddSingleton<IUsdaFoodSearchService, NullUsdaFoodSearchService>();
         return services;
     }
 }

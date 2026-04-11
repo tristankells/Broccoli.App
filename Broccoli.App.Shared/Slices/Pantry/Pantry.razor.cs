@@ -12,6 +12,8 @@ public partial class Pantry
     private bool isLoading = true;
     private bool isAdding;
     private string? errorMessage;
+    private string? _editingItemId;
+    private string _editingName = string.Empty;
 
     private IEnumerable<PantryItem> AlwaysHaveItems => pantryItems.Where(i => i.Category == PantryCategory.AlwaysHave);
 
@@ -89,6 +91,50 @@ public partial class Pantry
         {
             await AddItem();
         }
+    }
+
+    private void StartEdit(PantryItem item)
+    {
+        _editingItemId = item.Id;
+        _editingName = item.Name;
+    }
+
+    private void CancelEdit()
+    {
+        _editingItemId = null;
+        _editingName = string.Empty;
+    }
+
+    private async Task OnEditKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SaveNameAsync();
+        else if (e.Key == "Escape") CancelEdit();
+    }
+
+    private async Task SaveNameAsync()
+    {
+        var name = _editingName.Trim();
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        var item = pantryItems.FirstOrDefault(i => i.Id == _editingItemId);
+        if (item is null) { CancelEdit(); return; }
+
+        var oldName = item.Name;
+        item.Name = name;
+        _editingItemId = null;
+        _editingName = string.Empty;
+
+        try
+        {
+            await PantryService.UpdateAsync(item);
+        }
+        catch (Exception ex)
+        {
+            item.Name = oldName;
+            errorMessage = $"Error updating name: {ex.Message}";
+            Console.WriteLine($"Error renaming pantry item: {ex}");
+        }
+        StateHasChanged();
     }
 
     private async Task ChangeCategoryAsync(PantryItem item, ChangeEventArgs e)

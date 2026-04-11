@@ -72,8 +72,35 @@
                         @foreach (var item in AlwaysHaveItems)
                         {
                             <li class="pantry-item always-have">
-                                <span class="pantry-name">@item.Name</span>
+                                @if (_editingItemId == item.Id)
+                                {
+                                    <div class="pantry-name-edit">
+                                        <input type="text"
+                                               class="form-control form-control-sm"
+                                               @bind="_editingName"
+                                               @bind:event="oninput"
+                                               @onkeyup="OnEditKeyUp"
+                                               maxlength="200" />
+                                        <button class="btn-icon btn-success edit-save-btn"
+                                                @onclick="SaveNameAsync"
+                                                disabled="@string.IsNullOrWhiteSpace(_editingName)"
+                                                title="Save">✓</button>
+                                        <button class="btn-icon btn-secondary edit-cancel-btn"
+                                                @onclick="CancelEdit"
+                                                title="Cancel">✗</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="pantry-name">@item.Name</span>
+                                }
                                 <div class="pantry-actions">
+                                    @if (_editingItemId != item.Id)
+                                    {
+                                        <button class="btn-icon edit-btn"
+                                                @onclick="() => StartEdit(item)"
+                                                title="Edit name">✏️</button>
+                                    }
                                     <select class="form-select form-select-sm category-dropdown"
                                             value="@item.Category"
                                             @onchange="(e) => ChangeCategoryAsync(item, e)">
@@ -103,8 +130,35 @@
                         @foreach (var item in CheckIfHaveItems)
                         {
                             <li class="pantry-item check-if-have">
-                                <span class="pantry-name">@item.Name</span>
+                                @if (_editingItemId == item.Id)
+                                {
+                                    <div class="pantry-name-edit">
+                                        <input type="text"
+                                               class="form-control form-control-sm"
+                                               @bind="_editingName"
+                                               @bind:event="oninput"
+                                               @onkeyup="OnEditKeyUp"
+                                               maxlength="200" />
+                                        <button class="btn-icon btn-success edit-save-btn"
+                                                @onclick="SaveNameAsync"
+                                                disabled="@string.IsNullOrWhiteSpace(_editingName)"
+                                                title="Save">✓</button>
+                                        <button class="btn-icon btn-secondary edit-cancel-btn"
+                                                @onclick="CancelEdit"
+                                                title="Cancel">✗</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="pantry-name">@item.Name</span>
+                                }
                                 <div class="pantry-actions">
+                                    @if (_editingItemId != item.Id)
+                                    {
+                                        <button class="btn-icon edit-btn"
+                                                @onclick="() => StartEdit(item)"
+                                                title="Edit name">✏️</button>
+                                    }
                                     <select class="form-select form-select-sm category-dropdown"
                                             value="@item.Category"
                                             @onchange="(e) => ChangeCategoryAsync(item, e)">

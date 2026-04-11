@@ -136,6 +136,59 @@
     font-weight: 500;
 }
 
+.pantry-name-edit {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 1;
+    margin-right: 0.75rem;
+}
+
+.pantry-name-edit .form-control {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.95rem;
+    padding: 0.25rem 0.5rem;
+    height: auto;
+}
+
+.edit-btn {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.pantry-item:hover .edit-btn {
+    opacity: 1;
+}
+
+.edit-save-btn,
+.edit-cancel-btn {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.edit-save-btn {
+    color: var(--color-success, #198754);
+    border-color: var(--color-success, #198754);
+}
+
+.edit-cancel-btn {
+    color: var(--color-text-secondary);
+}
+
 .pantry-actions {
     display: flex;
     align-items: center;

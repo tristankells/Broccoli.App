@@ -4,10 +4,10 @@ using UserModel = Broccoli.App.Shared.Models.User;
 
 namespace Broccoli.App.Shared._Shared.Infrastructure;
 
-public partial class CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDbService> logger) : ICosmosDbService
+public partial class CosmosDbUserService(CosmosClient cosmosClient, ILogger<CosmosDbUserService> logger) : IUserService
 {
     private readonly CosmosClient _cosmosClient = cosmosClient ?? throw new ArgumentNullException(nameof(cosmosClient));
-    private readonly ILogger<CosmosDbService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILogger<CosmosDbUserService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     private Container? _userContainer;
     private bool _initialized;
@@ -45,16 +45,16 @@ public partial class CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDb
                 });
 
             _userContainer = containerResponse.Container;
-            _logger.LogInformation("Container {ContainerId} ready", UserContainerId);
+            LogContainerReady(UserContainerId);
 
-            // Create container for foods (shared across all users)
+            //TODO: This is a temporary solution to have a container for foods until we implement the food service. We can remove this when we have the food service implemented.
             await database.CreateContainerIfNotExistsAsync(
                 new ContainerProperties
                 {
                     Id = FoodsContainerId,
                     PartitionKeyPath = "/partitionKey"
                 });
-            _logger.LogInformation("Container {ContainerId} ready", FoodsContainerId);
+            LogContainerReady(FoodsContainerId);
 
             _initialized = true;
         }
@@ -81,7 +81,7 @@ public partial class CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDb
             {
                 FeedResponse<UserModel> response = await iterator.ReadNextAsync();
                 UserModel? user = response.FirstOrDefault();
-                if (user != null)
+                if (user is not null)
                 {
                     return user;
                 }
@@ -110,7 +110,7 @@ public partial class CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDb
                 user,
                 new PartitionKey(user.PartitionKey));
 
-            _logger.LogInformation("User {Username} created successfully", user.Username);
+            LogUsernameCreated(user.Username);
             return response.Resource;
         }
         catch (Exception exception)
@@ -131,7 +131,7 @@ public partial class CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDb
                 user.Id,
                 new PartitionKey(user.PartitionKey));
 
-            _logger.LogInformation("User {Username} updated successfully", user.Username);
+            LogUsernameUpdated(user.Username);
             return response.Resource;
         }
         catch (Exception exception)
@@ -151,4 +151,13 @@ public partial class CosmosDbService(CosmosClient cosmosClient, ILogger<CosmosDb
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Database {DatabaseId} ready with shared throughput")]
     private partial void LogDatabaseReady(string databaseId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Container {ContainerId} ready")]
+    private partial void LogContainerReady(string containerId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "User {Username} created successfully")]
+    private partial void LogUsernameCreated(string username);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "User {Username} updated successfully")]
+    private partial void LogUsernameUpdated(string username);
 }

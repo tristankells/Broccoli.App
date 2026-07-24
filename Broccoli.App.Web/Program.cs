@@ -1,6 +1,5 @@
 using Broccoli.App.Web.Components;
 using Broccoli.App.Shared.Configuration;
-using Broccoli.App.Shared.Infrastructure;
 using Broccoli.App.Shared.IngredientParsing;
 using Broccoli.App.Shared.Layout;
 using Broccoli.App.Shared.Platform;
@@ -16,6 +15,7 @@ using Broccoli.App.Shared.Slices.Seasonality;
 using Broccoli.App.Web.Services;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Azure.Cosmos;
+using Broccoli.App.Shared._Shared.Infrastructure;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -131,7 +131,7 @@ builder.Services.AddNutritionSlice();
 WebApplication app = builder.Build();
 
 // Initialize CosmosDB
-var cosmosDbService = app.Services.GetRequiredService<ICosmosDbService>();
+var cosmosDbService = app.Services.GetRequiredService<IUserService>();
 await cosmosDbService.InitializeAsync();
 
 // Initialize Pantry and GroceryList containers

@@ -1,8 +1,8 @@
 using Broccoli.App.Shared.Models;
 
-namespace Broccoli.App.Shared.Infrastructure;
+namespace Broccoli.App.Shared._Shared.Infrastructure;
 
-public interface ICosmosDbService
+public interface IUserService
 {
     Task InitializeAsync();
     Task<User?> GetUserByUsernameAsync(string username);

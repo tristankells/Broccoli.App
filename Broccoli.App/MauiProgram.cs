@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using Broccoli.App.Shared.Configuration;
-using Broccoli.App.Shared.Infrastructure;
 using Broccoli.App.Shared.IngredientParsing;
 using Broccoli.App.Shared.Layout;
 using Broccoli.App.Shared.Platform;
@@ -17,6 +16,7 @@ using Broccoli.App.Shared.Slices.Recipes;
 using Broccoli.App.Shared.Slices.Seasonality;
 using Broccoli.App.Services;
 using Microsoft.Azure.Cosmos;
+using Broccoli.App.Shared._Shared.Infrastructure;
 namespace Broccoli.App;
 public static class MauiProgram
 {
@@ -115,7 +115,7 @@ public static class MauiProgram
         // Initialize CosmosDB and all Cosmos-backed services on startup
         Task.Run(async () =>
         {
-            var cosmosDbService = app.Services.GetRequiredService<ICosmosDbService>();
+            var cosmosDbService = app.Services.GetRequiredService<IUserService>();
             await cosmosDbService.InitializeAsync();
 
             var pantryService = app.Services.GetRequiredService<IPantryService>();

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Broccoli.App.Shared.Infrastructure;
+using Broccoli.App.Shared._Shared.Infrastructure;
 using Broccoli.App.Shared.Models;
 using Microsoft.Extensions.Logging;
 
@@ -8,10 +8,10 @@ namespace Broccoli.App.Shared.Slices.Auth;
 
 public class AuthenticationService : IAuthenticationService
 {
-    private readonly ICosmosDbService _cosmosDbService;
+    private readonly IUserService _cosmosDbService;
     private readonly ILogger<AuthenticationService> _logger;
 
-    public AuthenticationService(ICosmosDbService cosmosDbService, ILogger<AuthenticationService> logger)
+    public AuthenticationService(IUserService cosmosDbService, ILogger<AuthenticationService> logger)
     {
         _cosmosDbService = cosmosDbService;
         _logger = logger;

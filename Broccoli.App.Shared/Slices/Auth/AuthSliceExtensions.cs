@@ -1,5 +1,4 @@
-﻿using Broccoli.App.Shared.Infrastructure;
-using Broccoli.App.Shared.Platform;
+﻿using Broccoli.App.Shared._Shared.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Broccoli.App.Shared.Slices.Auth;
@@ -14,7 +13,7 @@ public static class AuthSliceExtensions
     /// </summary>
     public static IServiceCollection AddAuthSlice(this IServiceCollection services)
     {
-        services.AddSingleton<ICosmosDbService, CosmosDbService>();
+        services.AddSingleton<IUserService, CosmosDbUserService>();
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
         services.AddSingleton<IAuthenticationStateService, AuthenticationStateService>();
         return services;

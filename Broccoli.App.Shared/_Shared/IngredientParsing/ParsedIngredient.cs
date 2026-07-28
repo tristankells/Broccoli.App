@@ -1,4 +1,4 @@
-namespace Broccoli.App.Shared.IngredientParsing;
+namespace Broccoli.App.Shared._Shared.IngredientParsing;
 
 /// <summary>
 /// Represents a parsed ingredient with quantity, unit, and food description.

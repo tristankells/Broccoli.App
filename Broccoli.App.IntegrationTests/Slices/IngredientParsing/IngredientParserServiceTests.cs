@@ -1,7 +1,7 @@
-using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.App.Shared._Shared.IngredientParsing;
 using Microsoft.Extensions.Logging;
 
-namespace Broccoli.App.IntegrationTests;
+namespace Broccoli.App.IntegrationTests.Slices.IngredientParsing;
 
 [TestClass]
 public sealed class IngredientParserServiceTests

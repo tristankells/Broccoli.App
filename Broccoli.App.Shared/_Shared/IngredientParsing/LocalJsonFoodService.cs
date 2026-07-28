@@ -1,11 +1,10 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Broccoli.Data.Models;
-
+using Broccoli.App.Shared.Models;
 using FuzzySharp;
 using Microsoft.Extensions.Logging;
 
-namespace Broccoli.App.Shared.IngredientParsing;
+namespace Broccoli.App.Shared._Shared.IngredientParsing;
 
 /// <summary>
 /// High-performance food lookup service that loads the food database once

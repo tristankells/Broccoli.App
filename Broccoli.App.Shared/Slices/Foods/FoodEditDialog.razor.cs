@@ -1,5 +1,5 @@
-using Broccoli.App.Shared.IngredientParsing;
-using Broccoli.Data.Models;
+using Broccoli.App.Shared._Shared.IngredientParsing;
+using Broccoli.App.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 

@@ -1,4 +1,4 @@
-﻿namespace Broccoli.Data.Models;
+﻿namespace Broccoli.App.Shared.Models;
 
 public enum ImportStatus
 {

@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 
 
-namespace Broccoli.App.Shared.IngredientParsing;
+namespace Broccoli.App.Shared._Shared.IngredientParsing;
 
 /// <summary>
 /// Service for parsing ingredient strings into structured components (quantity, unit, food description)

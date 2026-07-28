@@ -1,4 +1,4 @@
-namespace Broccoli.App.Shared.Platform;
+namespace Broccoli.App.Shared._Shared.Platform;
 
 /// <summary>
 /// Abstraction for platform-specific food database file I/O (export/import).

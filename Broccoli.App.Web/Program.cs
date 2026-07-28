@@ -1,8 +1,6 @@
 using Broccoli.App.Web.Components;
 using Broccoli.App.Shared.Configuration;
-using Broccoli.App.Shared.IngredientParsing;
 using Broccoli.App.Shared.Layout;
-using Broccoli.App.Shared.Platform;
 using Broccoli.App.Shared.Slices.Auth;
 using Broccoli.App.Shared.Slices.AppSettings;
 using Broccoli.App.Shared.Slices.Foods;
@@ -16,6 +14,8 @@ using Broccoli.App.Web.Services;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Azure.Cosmos;
 using Broccoli.App.Shared._Shared.Infrastructure;
+using Broccoli.App.Shared._Shared.Platform;
+using Broccoli.App.Shared._Shared.IngredientParsing;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -148,7 +148,7 @@ await dailyFoodPlanService.InitializeAsync();
 
 // Initialize CosmosFoodService (seeds from JSON if container is empty)
 var foodService = app.Services.GetRequiredService<IFoodService>();
-if (foodService is Broccoli.App.Shared.IngredientParsing.CosmosFoodService cosmosFoodService)
+if (foodService is CosmosFoodService cosmosFoodService)
     await cosmosFoodService.InitializeAsync();
 
 // Configure the HTTP request pipeline.

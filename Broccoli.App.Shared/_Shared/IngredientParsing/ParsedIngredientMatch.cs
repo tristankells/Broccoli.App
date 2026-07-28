@@ -1,6 +1,6 @@
-using Broccoli.Data.Models;
+using Broccoli.App.Shared.Models;
 
-namespace Broccoli.App.Shared.IngredientParsing;
+namespace Broccoli.App.Shared._Shared.IngredientParsing;
 
 /// <summary>
 /// Confidence tier for a matched ingredient, suitable for UI colour-coding.

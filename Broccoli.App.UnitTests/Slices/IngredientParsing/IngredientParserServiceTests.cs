@@ -1,10 +1,10 @@
-using Broccoli.Data.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq; // Using Moq for mocking IFoodService
-using Broccoli.App.Shared.IngredientParsing;
-using Newtonsoft.Json; // Added for JSON deserialization
+using Newtonsoft.Json;
+using Broccoli.App.Shared._Shared.IngredientParsing;
+using Broccoli.App.Shared.Models;
 
-namespace Broccoli.App.Tests.Services;
+namespace Broccoli.App.Tests.Slices.IngredientParsing;
 
 [TestClass]
 public class IngredientParserServiceTests

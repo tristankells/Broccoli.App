@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Broccoli.Data.Models;
+namespace Broccoli.App.Shared.Models;
 
 /// <summary>
 /// Discriminates a row in a <see cref="DailyFoodPlanTab"/> between a visual section header
@@ -85,7 +85,7 @@ public class DailyFoodPlanTab
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Optional ID of a <see cref="Broccoli.Data.Models.MacroTarget"/> profile to compare
+    /// Optional ID of a <see cref="MacroTarget"/> profile to compare
     /// this tab's totals against.
     /// </summary>
     [JsonPropertyName("macroTargetId")]

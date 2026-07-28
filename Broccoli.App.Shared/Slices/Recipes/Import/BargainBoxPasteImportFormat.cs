@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using Broccoli.Data.Models;
+using Broccoli.App.Shared.Models;
 
 namespace Broccoli.App.Shared.Slices.Recipes.Import;
 

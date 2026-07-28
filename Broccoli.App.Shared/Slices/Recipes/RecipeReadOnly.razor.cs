@@ -1,5 +1,5 @@
-using Broccoli.App.Shared.Platform;
-using Broccoli.Data.Models;
+using Broccoli.App.Shared._Shared.Platform;
+using Broccoli.App.Shared.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Broccoli.Data.Models;
+namespace Broccoli.App.Shared.Models;
 
 /// <summary>
 /// A named collection of recipes the user wants to prepare together.

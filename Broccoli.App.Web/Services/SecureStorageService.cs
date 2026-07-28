@@ -1,4 +1,4 @@
-using Broccoli.App.Shared.Platform;
+using Broccoli.App.Shared._Shared.Platform;
 using System.Collections.Concurrent;
 
 namespace Broccoli.App.Web.Services;

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Broccoli.App.Shared.IngredientParsing;
-using Broccoli.Data.Models;
+using Broccoli.App.Shared._Shared.IngredientParsing;
+using Broccoli.App.Shared.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Broccoli.App.Shared.Slices.Seasonality;

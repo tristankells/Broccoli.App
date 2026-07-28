@@ -1,6 +1,6 @@
-using Broccoli.Data.Models;
+using Broccoli.App.Shared.Models;
 
-namespace Broccoli.App.Shared.IngredientParsing;
+namespace Broccoli.App.Shared._Shared.IngredientParsing;
 
 /// <summary>
 /// The result of a multi-stage food matching operation.

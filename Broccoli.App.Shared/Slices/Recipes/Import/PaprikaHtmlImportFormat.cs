@@ -1,6 +1,6 @@
 using AngleSharp;
 using AngleSharp.Dom;
-using Broccoli.Data.Models;
+using Broccoli.App.Shared.Models;
 using System.Text;
 
 namespace Broccoli.App.Shared.Slices.Recipes.Import;

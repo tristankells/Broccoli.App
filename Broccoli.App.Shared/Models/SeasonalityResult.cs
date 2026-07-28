@@ -1,4 +1,4 @@
-﻿namespace Broccoli.Data.Models;
+﻿namespace Broccoli.App.Shared.Models;
 
 /// <summary>
 /// Score classification label for a recipe's seasonality.

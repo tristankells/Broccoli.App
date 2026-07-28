@@ -1,4 +1,4 @@
-using Broccoli.Data.Models;
+using Broccoli.App.Shared.Models;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 

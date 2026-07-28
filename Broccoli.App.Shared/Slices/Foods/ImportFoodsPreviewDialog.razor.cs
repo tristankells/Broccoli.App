@@ -1,4 +1,4 @@
-using Broccoli.Data.Models;
+using Broccoli.App.Shared.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Broccoli.App.Shared.Slices.Foods;

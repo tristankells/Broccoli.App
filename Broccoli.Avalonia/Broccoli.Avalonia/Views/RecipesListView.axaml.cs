@@ -2,7 +2,7 @@
 
 namespace Broccoli.Avalonia.Views;
 
-public partial class RecipesListView : Window
+public partial class RecipesListView : UserControl
 {
     public RecipesListView()
     {

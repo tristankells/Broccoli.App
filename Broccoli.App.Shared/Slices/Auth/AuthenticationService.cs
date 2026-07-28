@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Broccoli.App.Shared._Shared.Infrastructure;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Broccoli.App.Shared.Slices.Auth;

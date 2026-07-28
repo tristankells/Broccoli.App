@@ -1,4 +1,4 @@
-using Broccoli.App.Shared._Shared.Platform;
+using Broccoli.App.Shared.Platform;
 using Microsoft.Extensions.Logging;
 
 namespace Broccoli.App.Shared.Slices.AppSettings;
@@ -26,7 +26,7 @@ public class ThemeService : IThemeService
             var saved = await _secureStorage.GetAsync(ThemeKey);
             if (string.IsNullOrEmpty(saved))
             {
-                // No saved preference — fall back to OS preference (no write yet)
+                // No saved preference ï¿½ fall back to OS preference (no write yet)
                 IsDarkMode = osPrefersDark;
             }
             else

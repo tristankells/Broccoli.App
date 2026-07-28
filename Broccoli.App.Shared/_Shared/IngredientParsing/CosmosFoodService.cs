@@ -1,12 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using FuzzySharp;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
-namespace Broccoli.App.Shared._Shared.IngredientParsing;
+namespace Broccoli.App.Shared.IngredientParsing;
 
 /// <summary>
 /// CosmosDB-backed food lookup service with an in-memory cache for fast matching.

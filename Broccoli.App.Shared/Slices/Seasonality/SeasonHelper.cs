@@ -1,4 +1,4 @@
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 
 namespace Broccoli.App.Shared.Slices.Seasonality;
 
@@ -12,7 +12,7 @@ public static class SeasonHelper
 
     /// <summary>
     /// Returns the NZ season name for a given date (Southern Hemisphere).
-    /// Spring = Sep/Oct/Nov · Summer = Dec/Jan/Feb · Autumn = Mar/Apr/May · Winter = Jun/Jul/Aug
+    /// Spring = Sep/Oct/Nov ï¿½ Summer = Dec/Jan/Feb ï¿½ Autumn = Mar/Apr/May ï¿½ Winter = Jun/Jul/Aug
     /// </summary>
     public static string GetCurrentSeason(DateTime date) => date.Month switch
     {
@@ -20,7 +20,7 @@ public static class SeasonHelper
         12 or 1 or 2  => "summer",
         3 or 4 or 5   => "autumn",
         6 or 7 or 8   => "winter",
-        _             => "summer"   // unreachable — all months are covered
+        _             => "summer"   // unreachable ï¿½ all months are covered
     };
 
     /// <summary>

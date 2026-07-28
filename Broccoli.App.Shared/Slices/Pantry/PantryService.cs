@@ -1,4 +1,4 @@
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 

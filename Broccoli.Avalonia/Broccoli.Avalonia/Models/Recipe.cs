@@ -77,12 +77,6 @@ public class Recipe
     public List<string> Images { get; set; } = new();
 
     /// <summary>
-    /// ID of the user who owns the recipe (partition key for CosmosDB)
-    /// </summary>
-    [JsonPropertyName("userId")]
-    public string UserId { get; set; } = string.Empty;
-
-    /// <summary>
     /// Timestamp when the recipe was created
     /// </summary>
     [JsonPropertyName("createdAt")]

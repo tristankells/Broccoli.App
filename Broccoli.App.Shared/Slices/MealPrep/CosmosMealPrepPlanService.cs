@@ -1,4 +1,4 @@
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using Broccoli.App.Shared.Slices.Auth;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
@@ -47,7 +47,7 @@ public class CosmosMealPrepPlanService : IMealPrepPlanService
                 new ContainerProperties
                 {
                     Id               = ContainerId,
-                    PartitionKeyPath = "/userId"    // no dedicated RU/s — shares database throughput
+                    PartitionKeyPath = "/userId"    // no dedicated RU/s ï¿½ shares database throughput
                 });
 
             _container   = response.Container;
@@ -137,7 +137,7 @@ public class CosmosMealPrepPlanService : IMealPrepPlanService
         {
             if (!planById.TryGetValue(orderedPlanIds[i], out var plan)) continue;
             if (plan.UserId != userId) continue;
-            if (plan.SortOrder == i)   continue; // already correct — skip the write
+            if (plan.SortOrder == i)   continue; // already correct ï¿½ skip the write
 
             plan.SortOrder = i;
             plan.UpdatedAt = DateTime.UtcNow;

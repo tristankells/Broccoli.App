@@ -1,4 +1,4 @@
-using Broccoli.App.Shared._Shared.IngredientParsing;
+using Broccoli.App.Shared.IngredientParsing;
 using Microsoft.Extensions.Logging;
 
 namespace Broccoli.App.IntegrationTests.Slices.IngredientParsing;
@@ -58,13 +58,13 @@ public sealed class IngredientParserServiceTests
                     5, // 150g Singapore laksa paste
                     6, // 1 1/2 pack Malaysian curry powder
                     7, // 400g lite coconut milk
-                    11, // 1/2 cup water — no match
+                    11, // 1/2 cup water ï¿½ no match
                     8, // 1 twin pack baby bok choy, sliced 3cm
                     9, // 1 tsp fish sauce, optional
                     10, // 200g mung bean sprouts
                     12, // 1 pinch of chilli flakes, optional
                 }),
-            // 14 matched ingredients — Tuscan stock blend * 2 and beef stock resolve to the same food item
+            // 14 matched ingredients ï¿½ Tuscan stock blend * 2 and beef stock resolve to the same food item
             ("Herby Beef Meatballs with Mash & Gravy",
                 "5 potato, diced\n3 carrot, diced\n3 parsnip, diced\n1/3 cup milk \n125g sour cream\n1 brown onion, finely chopped\n2 pack Tuscan stock blend\n1500g beef mince\n1 egg \n50g panko breadcrumbs\n1 tsp salt \n1 drizzle of oil \n2 Tbsp butter \n1 pack Tuscan stock blend\n3 Tbsp flour \n1 1/2 cup beef stock",
                 14,
@@ -84,8 +84,8 @@ public sealed class IngredientParserServiceTests
                     2, // 1 drizzle of oil
                     24, // 2 Tbsp butter
                     0, // 1 pack Tuscan stock blend
-                    22, // 3 Tbsp flour — no match
-                    23// 1 1/2 cup beef stock — no match (resolves to same food as Tuscan stock blend)
+                    22, // 3 Tbsp flour ï¿½ no match
+                    23// 1 1/2 cup beef stock ï¿½ no match (resolves to same food as Tuscan stock blend)
                 }),
             // 16 matched ingredients
             ("Honey Miso Noodles",
@@ -163,7 +163,7 @@ public sealed class IngredientParserServiceTests
                     0, // 3 tbsp sweet chili sauce
                     0, // 2 tbsp soy sauce
                     0, // 1 pinch of chili flakes
-                    // 75g chopped cashew nuts — no match
+                    // 75g chopped cashew nuts ï¿½ no match
                 }),
             // 13 matched ingredients
             ("Satay Chicken & Veggie Curry with Rice & Broccoli",

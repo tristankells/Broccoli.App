@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Broccoli.App.Shared._Shared.IngredientParsing;
-using Broccoli.App.Shared.Models;
+using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.Data.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Broccoli.App.Shared.Slices.Seasonality;
@@ -18,7 +18,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     private readonly Dictionary<string, ProduceItem> _produceByNormalisedName;
     private readonly ILogger<LocalJsonSeasonalityService> _logger;
 
-    // Stopwords stripped during name normalisation — same set used by LocalJsonFoodService
+    // Stopwords stripped during name normalisation ï¿½ same set used by LocalJsonFoodService
     // to ensure consistent matching across both datasets.
     private static readonly HashSet<string> s_stopwords = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -59,7 +59,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     };
 
     /// <summary>
-    /// Production constructor — loads <c>nz-produce.json</c> from the embedded resource
+    /// Production constructor ï¿½ loads <c>nz-produce.json</c> from the embedded resource
     /// in the <c>Broccoli.App.Shared</c> assembly.
     /// </summary>
     public LocalJsonSeasonalityService(ILogger<LocalJsonSeasonalityService> logger)
@@ -85,7 +85,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     }
 
     /// <summary>
-    /// Testing constructor — supply produce items directly without loading the embedded resource.
+    /// Testing constructor ï¿½ supply produce items directly without loading the embedded resource.
     /// </summary>
     public LocalJsonSeasonalityService(IEnumerable<ProduceItem> produce, ILogger<LocalJsonSeasonalityService> logger)
     {
@@ -220,7 +220,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         if (_produceByNormalisedName.TryGetValue(key, out var exact))
             return exact;
 
-        // 2. Contains fallback — prefer the match with the shortest produce name
+        // 2. Contains fallback ï¿½ prefer the match with the shortest produce name
         //    to reduce false positives (e.g. "pea" matching "snow pea" before "green pea")
         ProduceItem? best = null;
         int bestLen = int.MaxValue;

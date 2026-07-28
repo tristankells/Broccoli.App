@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+                xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeDetailView"
+                x:DataType="vm:RecipeDetailViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="12" MaxWidth="700" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding BackCommand}" Padding="6" Background="Transparent" BorderThickness="0">
+                    <PathIcon Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                              Width="16" Height="16" />
+                </Button>
+                <TextBlock Text="{Binding Recipe.Name}" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+                <PathIcon IsVisible="{Binding Recipe.IsFavorite}"
+                          Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                          Width="16" Height="16" Foreground="Goldenrod" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <Button Command="{Binding EditCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"
+                                  Width="14" Height="14" />
+                        <TextBlock Text="Edit" />
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding RequestDeleteCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+                                  Width="14" Height="14" />
+                        <TextBlock Text="Delete" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <!-- Inline delete confirmation -->
+            <Border IsVisible="{Binding IsConfirmingDelete}" Background="#FFF4E5" CornerRadius="4" Padding="12">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Delete this recipe? This cannot be undone." TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Delete" Command="{Binding ConfirmDeleteCommand}" Background="IndianRed" Foreground="White" />
+                        <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock Text="{Binding Recipe.Servings, StringFormat='Servings: {0}'}"
+                           IsVisible="{Binding Recipe.Servings, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Text="{Binding Recipe.PrepTimeMinutes, StringFormat='Prep: {0} min'}"
+                           IsVisible="{Binding Recipe.PrepTimeMinutes, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock Text="{Binding Recipe.CookTimeMinutes, StringFormat='Cook: {0} min'}"
+                           IsVisible="{Binding Recipe.CookTimeMinutes, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding ImagePaths}" IsVisible="{Binding ImagePaths.Count}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Image Source="{Binding Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"
+                               Width="140" Height="140" Stretch="UniformToFill" Margin="0,0,8,8" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="Ingredients" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0" />
+            <TextBlock Text="{Binding Recipe.Ingredients}" TextWrapping="Wrap" />
+
+            <TextBlock Text="Directions" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0" />
+            <TextBlock Text="{Binding Recipe.Directions}" TextWrapping="Wrap" />
+
+            <TextBlock Text="Notes" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0"
+                       IsVisible="{Binding Recipe.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock Text="{Binding Recipe.Notes}" TextWrapping="Wrap"
+                       IsVisible="{Binding Recipe.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <TextBlock Text="{Binding Recipe.Tags, Converter={x:Static conv:StringJoinConverter.Instance}, StringFormat='Tags: {0}'}"
+                       IsVisible="{Binding Recipe.Tags.Count}" Foreground="Gray" Margin="0,8,0,0" />
+
+            <TextBlock Text="{Binding Recipe.Source, StringFormat='Source: {0}'}"
+                       IsVisible="{Binding Recipe.Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Foreground="Gray" FontSize="12" />
+            <TextBlock Text="{Binding Recipe.Url}"
+                       IsVisible="{Binding Recipe.Url, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Foreground="Gray" FontSize="12" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

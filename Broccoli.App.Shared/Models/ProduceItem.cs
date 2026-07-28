@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
-namespace Broccoli.App.Shared.Models;
+namespace Broccoli.Data.Models;
 
 /// <summary>
 /// Represents a single produce item from the bundled NZ seasonal produce dataset.

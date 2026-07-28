@@ -1,4 +1,4 @@
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 
 namespace Broccoli.App.Shared.Slices.GroceryList;
 

@@ -1,7 +1,7 @@
 using Broccoli.App.Shared.Slices.Recipes;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 
 namespace Broccoli.App.Shared.Slices.Recipes.Import;
 

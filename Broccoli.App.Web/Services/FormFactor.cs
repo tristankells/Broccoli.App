@@ -1,4 +1,4 @@
-using Broccoli.App.Shared._Shared.Platform;
+using Broccoli.App.Shared.Platform;
 
 namespace Broccoli.App.Web.Services;
 

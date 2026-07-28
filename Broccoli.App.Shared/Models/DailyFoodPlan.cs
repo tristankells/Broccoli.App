@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
-namespace Broccoli.App.Shared.Models;
+namespace Broccoli.Data.Models;
 
 /// <summary>
 /// Discriminates a row in a <see cref="DailyFoodPlanTab"/> between a visual section header

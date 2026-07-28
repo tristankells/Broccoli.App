@@ -1,7 +1,7 @@
 using Broccoli.App.Shared.Slices.Auth;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 
 namespace Broccoli.App.Shared.Slices.Nutrition;
 
@@ -207,7 +207,7 @@ public class CosmosMacroTargetService : IMacroTargetService
                 if (settings != null) return settings;
             }
 
-            // No settings stored yet — return defaults without persisting
+            // No settings stored yet ï¿½ return defaults without persisting
             _logger.LogInformation("No macro settings found for user {UserId}. Returning defaults.", userId);
             return new MacroTargetSettings { UserId = userId };
         }

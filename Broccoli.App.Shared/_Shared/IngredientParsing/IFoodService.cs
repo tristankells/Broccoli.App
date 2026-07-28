@@ -1,6 +1,6 @@
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 
-namespace Broccoli.App.Shared._Shared.IngredientParsing;
+namespace Broccoli.App.Shared.IngredientParsing;
 
 /// <summary>
 /// The result of a multi-stage food matching operation.
@@ -12,7 +12,7 @@ public class FoodMatchResult
 
     /// <summary>
     /// Normalised similarity score in [0, 1].
-    /// 1.0 = perfect match · 0.0 = no similarity.
+    /// 1.0 = perfect match ï¿½ 0.0 = no similarity.
     /// </summary>
     public double Score { get; init; }
 

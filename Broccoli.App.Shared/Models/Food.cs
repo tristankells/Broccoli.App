@@ -1,6 +1,6 @@
-﻿// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 
-namespace Broccoli.App.Shared.Models;
+namespace Broccoli.Data.Models;
 
 public class Food
 {

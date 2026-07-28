@@ -29,6 +29,9 @@ public interface IRecipeMarkdownStore
     /// to append to <see cref="Recipe.Images"/>.
     /// </summary>
     string AddImage(string recipeId, string sourceFilePath);
+
+    /// <summary>Deletes a previously-added image file from the recipe's folder.</summary>
+    void RemoveImage(string recipeId, string fileName);
 }
 
 public class RecipeMarkdownStore : IRecipeMarkdownStore
@@ -89,7 +92,6 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
             Url = meta.Url,
             Tags = meta.Tags ?? new List<string>(),
             Images = meta.Images ?? new List<string>(),
-            UserId = meta.UserId,
             CreatedAt = meta.CreatedAt,
             UpdatedAt = meta.UpdatedAt,
             IsFavorite = meta.IsFavorite
@@ -109,7 +111,6 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
             Url = recipe.Url,
             Tags = recipe.Tags,
             Images = recipe.Images,
-            UserId = recipe.UserId,
             CreatedAt = recipe.CreatedAt,
             UpdatedAt = recipe.UpdatedAt,
             IsFavorite = recipe.IsFavorite
@@ -155,6 +156,15 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
         var destination = Path.Combine(AppPaths.RecipeFolder(recipeId), fileName);
         File.Copy(sourceFilePath, destination, overwrite: true);
         return fileName;
+    }
+
+    public void RemoveImage(string recipeId, string fileName)
+    {
+        var path = Path.Combine(AppPaths.RecipeFolder(recipeId), fileName);
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
     }
 
     private static (string Frontmatter, string Body) SplitFrontmatter(string content)
@@ -234,7 +244,6 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
         public string? Url { get; set; }
         public List<string> Tags { get; set; } = new();
         public List<string> Images { get; set; } = new();
-        public string UserId { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public bool IsFavorite { get; set; }

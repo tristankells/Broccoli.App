@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using Microsoft.Extensions.Logging;
-using Broccoli.App.Shared._Shared.Platform;
+using Broccoli.App.Shared.Platform;
 
 namespace Broccoli.App.Shared.Slices.Auth;
 

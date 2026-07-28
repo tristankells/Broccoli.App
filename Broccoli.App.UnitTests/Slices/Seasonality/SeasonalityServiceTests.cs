@@ -1,6 +1,6 @@
-using Broccoli.App.Shared._Shared.IngredientParsing;
 using Broccoli.App.Shared.IngredientParsing;
-using Broccoli.App.Shared.Models;
+using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.Data.Models;
 using Broccoli.App.Shared.Slices.Seasonality;
 using Broccoli.Data.Models;
 using Microsoft.Extensions.Logging;
@@ -228,7 +228,7 @@ public class SeasonalityServiceTests
     [TestMethod]
     public void Score_AllYearRound_Returns100_InAllSeasons()
     {
-        // Carrot and Broccoli are both year_round=true — recipe always scores 100
+        // Carrot and Broccoli are both year_round=true ï¿½ recipe always scores 100
         var svc = CreateService();
         var matches = new List<ParsedIngredientMatch>
         {
@@ -266,7 +266,7 @@ public class SeasonalityServiceTests
         // Blackberry: 1 season (summer), scarcity=1.0 ? IsLimitedSeason=true when out of season
         var svc = CreateService();
         var matches = new List<ParsedIngredientMatch> { MakeGramsMatch("Blackberry", 100) };
-        var result  = svc.Score(matches, new DateTime(2026, 7, 15)); // winter — out of season
+        var result  = svc.Score(matches, new DateTime(2026, 7, 15)); // winter ï¿½ out of season
 
         Assert.AreEqual(1, result.Breakdown.Count);
         var detail = result.Breakdown[0];

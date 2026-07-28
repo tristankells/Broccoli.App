@@ -1,6 +1,6 @@
 using AngleSharp;
 using AngleSharp.Dom;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using System.Text;
 
 namespace Broccoli.App.Shared.Slices.Recipes.Import;
@@ -11,7 +11,7 @@ namespace Broccoli.App.Shared.Slices.Recipes.Import;
 /// </summary>
 public class PaprikaHtmlImportFormat : IImportFormat
 {
-    public string DisplayName => "Paprika — HTML Export";
+    public string DisplayName => "Paprika ï¿½ HTML Export";
     public string FileExtension => ".html";
 
     public IReadOnlyList<string> ExportInstructions =>
@@ -30,21 +30,21 @@ public class PaprikaHtmlImportFormat : IImportFormat
         var context = BrowsingContext.New(config);
         var document = await context.OpenAsync(req => req.Content(fileContent));
 
-        // Name — required field; throw if missing
+        // Name ï¿½ required field; throw if missing
         var name = document.QuerySelector("[itemprop=\"name\"]")?.TextContent.Trim();
         if (string.IsNullOrWhiteSpace(name))
             throw new InvalidOperationException(
                 "Could not find a recipe name in this file. " +
                 "Please make sure it is a valid Paprika HTML export.");
 
-        // Ingredients — one <p itemprop="recipeIngredient"> per line
+        // Ingredients ï¿½ one <p itemprop="recipeIngredient"> per line
         var ingredientNodes = document.QuerySelectorAll("[itemprop=\"recipeIngredient\"]");
         var ingredients = string.Join("\n",
             ingredientNodes
                 .Select(n => n.TextContent.Trim())
                 .Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        // Directions — paragraphs inside [itemprop="recipeInstructions"]
+        // Directions ï¿½ paragraphs inside [itemprop="recipeInstructions"]
         var directionsEl = document.QuerySelector("[itemprop=\"recipeInstructions\"]");
         var directionParagraphs = directionsEl?
             .QuerySelectorAll("p")
@@ -53,7 +53,7 @@ public class PaprikaHtmlImportFormat : IImportFormat
             .ToList() ?? [];
         var directions = string.Join("\n\n", directionParagraphs);
 
-        // Notes — paragraphs inside [itemprop="comment"]
+        // Notes ï¿½ paragraphs inside [itemprop="comment"]
         var notesEl = document.QuerySelector("[itemprop=\"comment\"]");
         var notesParagraphs = notesEl?
             .QuerySelectorAll("p")
@@ -62,7 +62,7 @@ public class PaprikaHtmlImportFormat : IImportFormat
             .ToList() ?? [];
         var notes = notesParagraphs.Count > 0 ? string.Join("\n", notesParagraphs) : null;
 
-        // Tags — comma-separated .categories text
+        // Tags ï¿½ comma-separated .categories text
         var categoriesText = document.QuerySelector(".categories")?.TextContent.Trim() ?? string.Empty;
         var tags = categoriesText
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -70,7 +70,7 @@ public class PaprikaHtmlImportFormat : IImportFormat
             .Where(t => !string.IsNullOrWhiteSpace(t))
             .ToList();
 
-        // Servings and Total Time — parsed from <b> labels inside .metadata
+        // Servings and Total Time ï¿½ parsed from <b> labels inside .metadata
         int? servings = null;
         int? cookTimeMinutes = null;
         var metadataEl = document.QuerySelector(".metadata");

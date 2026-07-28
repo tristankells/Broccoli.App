@@ -4,8 +4,8 @@ using Broccoli.App.Shared.Slices.Pantry;
 using Broccoli.App.Shared.Slices.Recipes;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
-using Broccoli.App.Shared.Models;
-using Broccoli.App.Shared._Shared.IngredientParsing;
+using Broccoli.Data.Models;
+using Broccoli.App.Shared.IngredientParsing;
 
 namespace Broccoli.App.Shared.Slices.Nutrition;
 

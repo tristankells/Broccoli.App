@@ -1,4 +1,4 @@
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using Microsoft.JSInterop;
 
 namespace Broccoli.App.Shared.Slices.Recipes;

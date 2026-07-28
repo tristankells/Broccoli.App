@@ -3,8 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Broccoli.Avalonia.ViewModels;
-using Broccoli.Avalonia.Views;
+using Broccoli.Avalonia.Shell;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 

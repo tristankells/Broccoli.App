@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Compare Broccoli Legacy w/ New",
+    "Projects": [
+      {
+        "Path": "Broccoli.App.Web\\Broccoli.App.Web.csproj",
+        "Action": "StartWithoutDebugging"
+      },
+      {
+        "Path": "Broccoli.Avalonia\\Broccoli.Avalonia.Desktop\\Broccoli.Avalonia.Desktop.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

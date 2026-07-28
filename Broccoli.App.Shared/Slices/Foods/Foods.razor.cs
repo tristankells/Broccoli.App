@@ -1,7 +1,7 @@
 using System.Text.Json;
-using Broccoli.App.Shared._Shared.IngredientParsing;
-using Broccoli.App.Shared._Shared.Platform;
-using Broccoli.App.Shared.Models;
+using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.App.Shared.Platform;
+using Broccoli.Data.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace Broccoli.App.Shared.Slices.Foods;

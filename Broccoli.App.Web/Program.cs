@@ -14,8 +14,8 @@ using Broccoli.App.Web.Services;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Azure.Cosmos;
 using Broccoli.App.Shared._Shared.Infrastructure;
-using Broccoli.App.Shared._Shared.Platform;
-using Broccoli.App.Shared._Shared.IngredientParsing;
+using Broccoli.App.Shared.Platform;
+using Broccoli.App.Shared.IngredientParsing;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

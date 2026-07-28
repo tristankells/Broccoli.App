@@ -1,6 +1,6 @@
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
-using UserModel = Broccoli.App.Shared.Models.User;
+using UserModel = Broccoli.Data.Models.User;
 
 namespace Broccoli.App.Shared._Shared.Infrastructure;
 

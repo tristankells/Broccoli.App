@@ -1,4 +1,4 @@
-namespace Broccoli.App.Shared._Shared.Platform;
+namespace Broccoli.App.Shared.Platform;
 
 public interface ISecureStorageService
 {

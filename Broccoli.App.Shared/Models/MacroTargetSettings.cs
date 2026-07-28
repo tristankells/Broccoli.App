@@ -1,6 +1,6 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
-namespace Broccoli.App.Shared.Models;
+namespace Broccoli.Data.Models;
 
 public class MacroTargetSettings
 {

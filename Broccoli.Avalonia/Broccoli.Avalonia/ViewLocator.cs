@@ -1,33 +1,45 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Broccoli.Avalonia.ViewModels;
+using Broccoli.Avalonia.Shared;
+using Broccoli.Avalonia.Slices.Groceries;
+using Broccoli.Avalonia.Slices.Planning;
+using Broccoli.Avalonia.Slices.Recipes;
+using Broccoli.Avalonia.Slices.Settings;
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 
 namespace Broccoli.Avalonia;
 
 /// <summary>
-/// Given a view model, returns the corresponding view if possible.
+/// Given a view model, returns the corresponding view. Uses an explicit type map rather than
+/// reflection/naming-convention guessing, so it stays correct regardless of namespace/folder
+/// layout and is safe under trimming/AOT (e.g. for future iOS targets).
 /// </summary>
-[RequiresUnreferencedCode(
-    "Default implementation of ViewLocator involves reflection which may be trimmed away.",
-    Url = "https://docs.avaloniaui.net/docs/concepts/view-locator")]
 public class ViewLocator : IDataTemplate
 {
+    private static readonly Dictionary<Type, Func<Control>> Factories = new()
+    {
+        [typeof(RecipesListViewModel)] = () => new RecipesListView(),
+        [typeof(RecipeListPageViewModel)] = () => new RecipeListPageView(),
+        [typeof(RecipeDetailViewModel)] = () => new RecipeDetailView(),
+        [typeof(RecipeEditViewModel)] = () => new RecipeEditView(),
+        [typeof(PlanningViewModel)] = () => new PlanningView(),
+        [typeof(GroceriesViewModel)] = () => new GroceriesView(),
+        [typeof(SettingsViewModel)] = () => new SettingsView(),
+    };
+
     public Control? Build(object? param)
     {
         if (param is null)
             return null;
 
-        var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
-        var type = Type.GetType(name);
-
-        if (type != null)
+        var viewModelType = param.GetType();
+        if (Factories.TryGetValue(viewModelType, out var factory))
         {
-            return (Control)Activator.CreateInstance(type)!;
+            return factory();
         }
 
-        return new TextBlock { Text = "Not Found: " + name };
+        return new TextBlock { Text = "Not Found: " + viewModelType.FullName };
     }
 
     public bool Match(object? data)

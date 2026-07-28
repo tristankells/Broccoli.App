@@ -1,5 +1,5 @@
-using Broccoli.App.Shared._Shared.IngredientParsing;
-using Broccoli.App.Shared.Models;
+using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.Data.Models;
 
 namespace Broccoli.App.Shared.Slices.Seasonality;
 
@@ -21,7 +21,7 @@ public interface ISeasonalityService
     /// </param>
     /// <param name="asOf">Date to score against; defaults to <see cref="DateTime.Now"/>.</param>
     /// <returns>
-    ///   A <see cref="SeasonalityResult"/> with a 0–100 score and per-ingredient breakdown,
+    ///   A <see cref="SeasonalityResult"/> with a 0ï¿½100 score and per-ingredient breakdown,
     ///   or <see cref="SeasonalityLabel.Unavailable"/> when no produce was matched.
     /// </returns>
     SeasonalityResult Score(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf = null);

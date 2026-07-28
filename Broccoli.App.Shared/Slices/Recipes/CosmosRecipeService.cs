@@ -1,7 +1,7 @@
 using Broccoli.App.Shared.Slices.Auth;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 
 namespace Broccoli.App.Shared.Slices.Recipes;
 

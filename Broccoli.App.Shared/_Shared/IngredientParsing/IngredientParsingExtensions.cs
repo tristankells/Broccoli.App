@@ -1,8 +1,8 @@
-﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Broccoli.App.Shared._Shared.IngredientParsing;
+namespace Broccoli.App.Shared.IngredientParsing;
 
 public static class IngredientParsingExtensions
 {

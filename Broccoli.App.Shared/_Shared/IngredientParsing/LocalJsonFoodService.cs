@@ -1,10 +1,10 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Broccoli.App.Shared.Models;
+using Broccoli.Data.Models;
 using FuzzySharp;
 using Microsoft.Extensions.Logging;
 
-namespace Broccoli.App.Shared._Shared.IngredientParsing;
+namespace Broccoli.App.Shared.IngredientParsing;
 
 /// <summary>
 /// High-performance food lookup service that loads the food database once
@@ -65,7 +65,7 @@ public class LocalJsonFoodService : IFoodService
             return;
         }
 
-        _logger.LogTrace("Deserialised {Count} raw food records. Building lookup dictionary…", foods.Count);
+        _logger.LogTrace("Deserialised {Count} raw food records. Building lookup dictionaryï¿½", foods.Count);
 
         int added = 0, skipped = 0;
         foreach (Food food in foods.Where(f => !string.IsNullOrWhiteSpace(f.Name)))
@@ -168,7 +168,7 @@ public class LocalJsonFoodService : IFoodService
 
 
     /// <summary>
-    /// Legacy fuzzy helper — delegates to <see cref="FindBestMatch"/> and applies the
+    /// Legacy fuzzy helper ï¿½ delegates to <see cref="FindBestMatch"/> and applies the
     /// original Jaccard threshold so existing call-sites continue to work unchanged.
     /// </summary>
     public bool TryGetFoodFuzzy(string name, out Food food)
@@ -304,7 +304,7 @@ public class LocalJsonFoodService : IFoodService
                 bestFood  = candidate;
                 if (score >= 1.0)
                 {
-                    break; // perfect — stop early
+                    break; // perfect ï¿½ stop early
                 }
             }
         }

@@ -6,6 +6,6 @@ using System.Text;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
-internal class PlanningViewModel : ViewModelBase
+public class PlanningViewModel : ViewModelBase
 {
 }

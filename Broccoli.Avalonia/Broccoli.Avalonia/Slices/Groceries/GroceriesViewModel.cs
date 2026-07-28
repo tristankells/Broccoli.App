@@ -6,6 +6,6 @@ using System.Text;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
-internal class GroceriesViewModel : ViewModelBase
+public class GroceriesViewModel : ViewModelBase
 {
 }

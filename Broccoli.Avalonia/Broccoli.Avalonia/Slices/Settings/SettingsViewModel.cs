@@ -38,6 +38,13 @@ public partial class SettingsViewModel : ViewModelBase
     public ObservableCollection<SyncConflict> Conflicts { get; } = new();
 
     /// <summary>
+    /// Explicit bool for the UI to bind visibility to, rather than relying on Avalonia's loose
+    /// int-&gt;bool binding conversion on <c>Conflicts.Count</c>.
+    /// </summary>
+    [ObservableProperty]
+    private bool _hasConflicts;
+
+    /// <summary>
     /// Exposed so the app shell can trigger the best-effort push-on-close sync directly
     /// (bypassing the UI-bound <see cref="SyncNowCommand"/>, since the app may be shutting down).
     /// </summary>
@@ -67,11 +74,17 @@ public partial class SettingsViewModel : ViewModelBase
         ConnectedAtUtc = account?.ConnectedAtUtc;
         LastSyncedAtUtc = _googleDriveSyncService.LastSyncedAtUtc;
 
+        RefreshConflicts();
+    }
+
+    private void RefreshConflicts()
+    {
         Conflicts.Clear();
         foreach (var conflict in _googleDriveSyncService.GetPendingConflicts())
         {
             Conflicts.Add(conflict);
         }
+        HasConflicts = Conflicts.Count > 0;
     }
 
     [RelayCommand]
@@ -136,11 +149,7 @@ public partial class SettingsViewModel : ViewModelBase
             }
 
             LastSyncedAtUtc = _googleDriveSyncService.LastSyncedAtUtc;
-            Conflicts.Clear();
-            foreach (var conflict in _googleDriveSyncService.GetPendingConflicts())
-            {
-                Conflicts.Add(conflict);
-            }
+            RefreshConflicts();
         }
         finally
         {
@@ -153,6 +162,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await _googleDriveSyncService.ResolveConflictKeepLocalAsync(conflict);
         Conflicts.Remove(conflict);
+        HasConflicts = Conflicts.Count > 0;
     }
 
     [RelayCommand]
@@ -160,6 +170,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await _googleDriveSyncService.ResolveConflictUseDriveAsync(conflict);
         Conflicts.Remove(conflict);
+        HasConflicts = Conflicts.Count > 0;
     }
 }
 

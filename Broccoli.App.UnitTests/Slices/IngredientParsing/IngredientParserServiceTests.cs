@@ -1,4 +1,3 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq; // Using Moq for mocking IFoodService
 using Newtonsoft.Json;
 using Broccoli.App.Shared.IngredientParsing;

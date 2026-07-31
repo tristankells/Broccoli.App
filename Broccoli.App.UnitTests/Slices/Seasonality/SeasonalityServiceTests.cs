@@ -1,10 +1,7 @@
 using Broccoli.App.Shared.IngredientParsing;
-using Broccoli.App.Shared.IngredientParsing;
 using Broccoli.Data.Models;
 using Broccoli.App.Shared.Slices.Seasonality;
-using Broccoli.Data.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
 namespace Broccoli.App.Tests.Slices.Seasonality;

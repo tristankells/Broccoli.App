@@ -1,5 +1,4 @@
-﻿using Broccoli.App.Shared.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Broccoli.App.Shared.Slices.Recipes;
 

@@ -5,8 +5,6 @@ using Broccoli.Avalonia.Slices.Groceries;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Settings;
-using System;
-using System.Collections.Generic;
 
 namespace Broccoli.Avalonia;
 

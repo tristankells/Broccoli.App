@@ -10,9 +10,11 @@
                 x:DataType="vm:RecipeListPageViewModel">
 
     <DockPanel Margin="16">
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,220,Auto" Margin="0,0,0,16">
             <TextBlock Grid.Column="0" Text="Recipes" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Command="{Binding AddRecipeCommand}">
+            <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Search recipes..."
+                     VerticalAlignment="Center" Margin="12,0" />
+            <Button Grid.Column="2" Command="{Binding AddRecipeCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="14" Height="14" />
                     <TextBlock Text="Add Recipe" />
@@ -22,23 +24,21 @@
 
         <TextBlock DockPanel.Dock="Top"
                     Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
-                    IsVisible="{Binding !Recipes.Count}"
+                    IsVisible="{Binding !FilteredRecipes.Count}"
                     Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" />
 
         <ScrollViewer>
-            <ItemsControl ItemsSource="{Binding Recipes}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
+            <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MinItemWidth="220" MinColumnSpacing="12" MinRowSpacing="12" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="models:Recipe">
                         <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                CornerRadius="6" Padding="12" Margin="0,0,12,12" Width="220">
+                                CornerRadius="6" Padding="12">
                             <Button Background="Transparent" BorderThickness="0" Padding="0"
                                     HorizontalContentAlignment="Stretch"
-                                    Command="{Binding $parent[ItemsControl].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
+                                    Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
                                     CommandParameter="{Binding}">
                                 <StackPanel Spacing="4">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
@@ -54,8 +54,8 @@
                             </Button>
                         </Border>
                     </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
         </ScrollViewer>
     </DockPanel>
 </UserControl>

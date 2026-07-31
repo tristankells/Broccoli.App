@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using YamlDotNet.Core.Tokens;
 
 namespace Broccoli.Avalonia.Models;
 
@@ -94,4 +95,29 @@ public class Recipe
     /// </summary>
     [JsonPropertyName("isFavorite")]
     public bool IsFavorite { get; set; } = false;
+
+    internal HashSet<SearchWord> SearchWords()
+    {
+        throw new NotImplementedException();
+    }
+
+    // Search
+    internal enum SearchWordType
+    {
+        Title,
+        Tag,
+        Ingredient
+    }
+
+    internal record SearchWord(string Word, SearchWordType Type);
+
+    internal void RecalculateSearchWords()
+    {
+        // Split tag into single word strings
+        HashSet<string> unique = Tags
+            .SelectMany(tag => tag.Split([",", " ", "/", "\\"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(tagWord => tagWord.ToLower())
+            .ToHashSet();
+
+    }
 }

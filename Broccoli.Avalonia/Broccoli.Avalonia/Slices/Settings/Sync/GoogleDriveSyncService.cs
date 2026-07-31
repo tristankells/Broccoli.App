@@ -3,7 +3,6 @@ using System.Text.Json;
 using Broccoli.Avalonia.Storage;
 using Google.Apis.Drive.v3;
 using Microsoft.Data.Sqlite;
-using DriveFile = Google.Apis.Drive.v3.Data.File;
 
 namespace Broccoli.Avalonia.Slices.Settings.Sync;
 

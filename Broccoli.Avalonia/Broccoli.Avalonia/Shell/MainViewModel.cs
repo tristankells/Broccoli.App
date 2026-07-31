@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using Avalonia.Media;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Groceries;
@@ -6,8 +5,6 @@ using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Settings;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
 
 namespace Broccoli.Avalonia.Shell;
 

@@ -3,6 +3,7 @@
                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                 xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+                xmlns:models="using:Broccoli.Avalonia.Models"
                 xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                 x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeDetailView"
@@ -148,6 +149,44 @@
                             <TextBlock Text="> 25%" FontSize="10" Foreground="Gray" />
                         </StackPanel>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Seasonality -->
+            <Border Padding="10" CornerRadius="4"
+                    Background="{DynamicResource AppSidebarBackgroundBrush}"
+                    IsVisible="{Binding HasSeasonality}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Seasonality" FontWeight="SemiBold" FontSize="13" />
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <TextBlock FontSize="11">
+                            <Run Text="Score: " />
+                            <Run Text="{Binding Seasonality.Score, StringFormat='{}{0:F0} / 100'}"
+                                 FontWeight="Bold" FontSize="14" Foreground="{Binding SeasonScoreColor}" />
+                        </TextBlock>
+                        <TextBlock Text="{Binding Seasonality.BestSeasons}" FontSize="11"
+                                   Foreground="Gray" FontStyle="Italic" VerticalAlignment="Center"
+                                   IsVisible="{Binding Seasonality.BestSeasons, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding Seasonality.Breakdown}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:IngredientSeasonalityDetail">
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,1">
+                                    <PathIcon IsVisible="{Binding IsInSeason}"
+                                              Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                                              Width="12" Height="12" Foreground="Green" />
+                                    <PathIcon IsVisible="{Binding !IsInSeason}"
+                                              Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                              Width="12" Height="12" Foreground="Red" />
+                                    <TextBlock Text="{Binding Name}" FontSize="11" Width="100" />
+                                    <TextBlock FontSize="10" Foreground="Gray"
+                                               Text="{Binding WeightInGrams, StringFormat='{}{0:0}g'}" Width="50" />
+                                    <TextBlock FontSize="10" Foreground="Gray"
+                                               Text="{Binding ScarcityWeight, StringFormat='Scarcity: {0:0.0}'}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Border>
 

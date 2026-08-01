@@ -1,4 +1,5 @@
 using Broccoli.Avalonia.IngredientParsing;
+using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shell;
 using Broccoli.Avalonia.Slices.Groceries;
 using Broccoli.Avalonia.Slices.Pantry;
@@ -27,6 +28,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMacroTargetService, MacroTargetService>();
         services.AddSingleton<MacroCalculatorService>();
         services.AddIngredientParsing();
+        services.AddSeasonality();
         services.AddSingleton<IGroceryListService, GroceryListService>();
         services.AddSingleton<IngredientCartService>();
         services.AddSingleton<IDailyFoodPlanService, DailyFoodPlanService>();

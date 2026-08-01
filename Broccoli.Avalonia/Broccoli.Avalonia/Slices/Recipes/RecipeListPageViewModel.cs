@@ -31,11 +31,6 @@ public partial class RecipeListPageViewModel : ViewModelBase
         _allRecipes = [.. _recipeService.GetAll()];
 
         FilteredRecipes = new ObservableCollection<Recipe>(_allRecipes);
-
-        foreach (var recipe in _recipeService.GetAll())
-        {
-            FilteredRecipes.Add(recipe);
-        }
     }
 
     /// <summary>Fires on every keystroke in the search box; wire up filtering of <see cref="Recipes"/> here.</summary>

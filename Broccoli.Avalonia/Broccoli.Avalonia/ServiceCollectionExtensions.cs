@@ -1,3 +1,4 @@
+using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Shell;
 using Broccoli.Avalonia.Slices.Groceries;
 using Broccoli.Avalonia.Slices.Planning;
@@ -24,6 +25,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGoogleDriveSyncService, GoogleDriveSyncService>();
         services.AddSingleton<IMacroTargetService, MacroTargetService>();
         services.AddSingleton<MacroCalculatorService>();
+        services.AddIngredientParsing();
+        services.AddSingleton<IGroceryListService, GroceryListService>();
+        services.AddSingleton<IngredientCartService>();
 
         // Nav page view models: registered as singletons so switching between Recipes/Planning/
         // Groceries and back preserves each page's in-progress state (e.g. Recipes' list/detail/

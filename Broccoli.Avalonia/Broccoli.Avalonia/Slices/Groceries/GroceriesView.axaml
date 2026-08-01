@@ -1,18 +1,99 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                xmlns:vm="using:Broccoli.Avalonia.Slices.Groceries"
-                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                x:Class="Broccoli.Avalonia.Slices.Groceries.GroceriesView"
-                x:DataType="vm:GroceriesViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Groceries"
+             xmlns:models="using:Broccoli.Avalonia.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Broccoli.Avalonia.Slices.Groceries.GroceriesView"
+             x:DataType="vm:GroceriesViewModel">
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:GroceriesViewModel />
     </Design.DataContext>
-    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
-        This is the groceries page
-    </TextBlock>
 
-    </UserControl>
+    <DockPanel Margin="16">
+        <!-- Header -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+            <TextBlock Grid.Column="0" Text="Grocery List" FontSize="22" FontWeight="Bold"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1" Command="{Binding ResetListCommand}"
+                    IsVisible="{Binding Items.Count}">
+                Reset List
+            </Button>
+        </Grid>
+
+        <!-- Error banner -->
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,0,0,8" />
+
+        <!-- Add item row -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+            <Button Grid.Column="0" Content="Add" Command="{Binding AddItemCommand}"
+                    IsEnabled="{Binding NewItemText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Margin="0,0,8,0" />
+            <TextBox Grid.Column="1" Text="{Binding NewItemText}"
+                     PlaceholderText="Add an item..." VerticalContentAlignment="Center"
+                     KeyDown="OnNewItemKeyDown" />
+        </Grid>
+
+        <!-- Loading state -->
+        <TextBlock DockPanel.Dock="Top" Text="Loading..."
+                   IsVisible="{Binding IsLoading}"
+                   Foreground="Gray" HorizontalAlignment="Center" Margin="0,12,0,0" />
+
+        <!-- Empty state -->
+        <TextBlock Text="Your grocery list is empty. Add items above or use the &quot;Add to Cart&quot; button on any recipe."
+                   Foreground="Gray" HorizontalAlignment="Center" Margin="0,24,0,0"
+                   IsVisible="{Binding !Items.Count}"
+                   FontSize="14" TextWrapping="Wrap" />
+
+        <!-- List -->
+        <Grid RowDefinitions="*,Auto" IsVisible="{Binding Items.Count}">
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:GroceryListItem">
+                            <Border Margin="0,1" Padding="8,4"
+                                    Background="{DynamicResource AppSidebarBackgroundBrush}"
+                                    CornerRadius="4">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsChecked}"
+                                              Command="{Binding $parent[ItemsControl].((vm:GroceriesViewModel)DataContext).ToggleItemCommand}"
+                                              CommandParameter="{Binding}"
+                                              VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Name}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0"
+                                               TextWrapping="Wrap" />
+                                    <Button Grid.Column="2" Padding="4"
+                                            Command="{Binding $parent[ItemsControl].((vm:GroceriesViewModel)DataContext).DeleteItemCommand}"
+                                            CommandParameter="{Binding}"
+                                            VerticalAlignment="Center">
+                                        <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                                  Width="10" Height="10" Foreground="Red" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Footer bar -->
+            <Border Grid.Row="1" Margin="0,10,0,0" Padding="8,6"
+                    Background="{DynamicResource AppSidebarBackgroundBrush}" CornerRadius="4">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding StatusText}"
+                               VerticalAlignment="Center" FontSize="12" Foreground="Gray" />
+                    <Button Grid.Column="2" Command="{Binding CopyToClipboardCommand}"
+                            FontSize="12" Padding="8,4">
+                        Copy Unchecked
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>

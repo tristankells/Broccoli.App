@@ -3,6 +3,7 @@ using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
+using Broccoli.Avalonia.Slices.Recipes.Import;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
@@ -14,28 +15,30 @@ public partial class RecipesListViewModel : ViewModelBase
     private readonly IFoodService? _foodService;
     private readonly ISeasonalityService? _seasonalityService;
     private readonly IMacroTargetService? _macroService;
+    private readonly ImportDialogViewModel? _importDialog;
 
     [ObservableProperty]
     private ObservableObject _currentPage;
 
     private readonly RecipeListPageViewModel _listPage;
 
-    public RecipesListViewModel() : this(new RecipeService(), null, null, null, null)
-    {
-    }
+    public RecipesListViewModel() : this(new RecipeService(), null, null, null, null, null) { }
 
     public RecipesListViewModel(IRecipeService recipeService,
         IngredientParserService? parser, IFoodService? foodService,
-        ISeasonalityService? seasonalityService, IMacroTargetService? macroService)
+        ISeasonalityService? seasonalityService, IMacroTargetService? macroService,
+        ImportDialogViewModel? importDialog = null)
     {
         _recipeService = recipeService;
         _parser = parser;
         _foodService = foodService;
         _seasonalityService = seasonalityService;
         _macroService = macroService;
+        _importDialog = importDialog;
         _listPage = new RecipeListPageViewModel(_recipeService)
         {
             AddRecipeRequested = ShowAdd,
+            ImportRecipeRequested = ShowImport,
             RecipeSelected = ShowDetail
         };
         _currentPage = _listPage;
@@ -48,6 +51,16 @@ public partial class RecipesListViewModel : ViewModelBase
     }
 
     private void ShowAdd() => ShowEdit(null);
+
+    private void ShowImport()
+    {
+        if (_importDialog is null) return;
+        var existingNames = _recipeService.GetAll().Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        _importDialog.Closed = ShowList;
+        _importDialog.Open(existingNames);
+        var window = new ImportDialog { DataContext = _importDialog };
+        window.Show();
+    }
 
     private void ShowDetail(Recipe recipe)
     {

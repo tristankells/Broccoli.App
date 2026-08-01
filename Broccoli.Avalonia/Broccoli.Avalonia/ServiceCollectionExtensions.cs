@@ -4,6 +4,7 @@ using Broccoli.Avalonia.Shell;
 using Broccoli.Avalonia.Slices.Groceries;
 using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
+using Broccoli.Avalonia.Slices.Recipes.Import;
 using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
@@ -36,6 +37,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFoodFileService, FoodFileService>();
         services.AddSingleton<IUsdaFoodSearchService, NullUsdaFoodSearchService>();
         services.AddSingleton<IPantryService, PantryService>();
+        services.AddSingleton<IImportFormat, PaprikaHtmlImportFormat>();
+        services.AddSingleton<IImportFormat, BargainBoxPasteImportFormat>();
+        services.AddSingleton<RecipeImportService>();
+        services.AddSingleton<ImportDialogViewModel>();
 
         // Nav page view models: registered as singletons so switching between Recipes/Planning/
         // Groceries and back preserves each page's in-progress state (e.g. Recipes' list/detail/

@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Groceries;
+using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Settings;
@@ -26,6 +27,7 @@ public class ViewLocator : IDataTemplate
         [typeof(DayPlanViewModel)] = () => new DayPlanView(),
         [typeof(MealPrepViewModel)] = () => new MealPrepView(),
         [typeof(GroceriesViewModel)] = () => new GroceriesView(),
+        [typeof(PantryViewModel)] = () => new PantryView(),
         [typeof(SettingsPageViewModel)] = () => new SettingsPageView(),
         [typeof(SettingsViewModel)] = () => new SettingsView(),
         [typeof(FoodDatabaseViewModel)] = () => new FoodDatabaseView(),

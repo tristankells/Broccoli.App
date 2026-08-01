@@ -1,6 +1,7 @@
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Shell;
 using Broccoli.Avalonia.Slices.Groceries;
+using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Settings;
@@ -32,6 +33,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IMealPrepPlanService, MealPrepPlanService>();
         services.AddSingleton<IFoodFileService, FoodFileService>();
         services.AddSingleton<IUsdaFoodSearchService, NullUsdaFoodSearchService>();
+        services.AddSingleton<IPantryService, PantryService>();
 
         // Nav page view models: registered as singletons so switching between Recipes/Planning/
         // Groceries and back preserves each page's in-progress state (e.g. Recipes' list/detail/
@@ -42,6 +44,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<MealPrepViewModel>();
         services.AddSingleton<PlanningPageViewModel>();
         services.AddSingleton<GroceriesViewModel>();
+        services.AddSingleton<PantryViewModel>();
 
         // SettingsViewModel is registered normally, but MainViewModel only ever depends on the
         // Lazy<T> wrapper below, so it isn't constructed - and doesn't touch the file system to

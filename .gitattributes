@@ -1,0 +1,21 @@
+# Set default behavior to automatically normalize line endings.
+* text=auto
+
+# Force bash scripts to always use lf line endings
+*.sh text eol=lf
+
+# Force cmd and batch scripts to always use crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.cs text=auto diff=csharp
+*.csproj text=auto
+*.sln text=auto eol=crlf
+*.slnx text=auto eol=crlf
+*.json text=auto
+*.xml text=auto
+*.axaml text=auto
+
+*.png binary
+*.jpg binary
+*.svg text=auto

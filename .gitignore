@@ -1,10 +1,33 @@
-bin/
-obj/
+# Build results
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+*.binlog
+
+# NuGet
+*.nupkg
+*.snupkg
 /packages/
+
+# IDE
+.idea
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
 riderModule.iml
 /_ReSharper.Caches/
-.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App settings
 **/appsettings.Production.json
 **/appsettings.Development.json
-**/.vs/
+
+# AI
 .aider*

@@ -75,6 +75,82 @@
             <TextBlock Text="Ingredients" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0" />
             <TextBlock Text="{Binding Recipe.Ingredients}" TextWrapping="Wrap" />
 
+            <!-- Meal Macro Comparison -->
+            <Border Padding="10" CornerRadius="4"
+                    Background="{DynamicResource AppSidebarBackgroundBrush}"
+                    IsVisible="{Binding IsComparisonEnabled}">
+                <StackPanel Spacing="6">
+                    <TextBlock FontSize="13" FontWeight="SemiBold">
+                        <Run Text="vs Target (" /><Run Text="{Binding ComparisonPersonName}" /><Run Text=")" />
+                    </TextBlock>
+                    <Grid ColumnDefinitions="Auto,70,70,70,70" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" FontWeight="SemiBold" FontSize="11" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Target" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,6,0" />
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Actual" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,6,0" />
+                        <TextBlock Grid.Row="0" Grid.Column="3" Text="Delta" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,6,0" />
+                        <TextBlock Grid.Row="0" Grid.Column="4" Text="% Off" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Center" />
+
+                        <!-- Calories row -->
+                        <Border Grid.Row="1" Grid.Column="0" Width="4" Background="#E74C3C" VerticalAlignment="Stretch" Margin="0,1" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Calories" FontSize="11" VerticalAlignment="Center" Margin="8,0" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MealTargetCalories, StringFormat='{}{0:0}'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding PerServingCalories, StringFormat='{}{0:0}'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="#E74C3C" />
+                        <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding CalDelta, StringFormat='{}{0:+0;-0;0}'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <Border Grid.Row="1" Grid.Column="4" CornerRadius="8" Padding="4,1" HorizontalAlignment="Center"
+                                Background="{Binding CalColor}">
+                            <TextBlock Text="{Binding CalDeviationPct, StringFormat='{}{0:0}%'}" FontSize="10" Foreground="White" />
+                        </Border>
+
+                        <!-- Protein row -->
+                        <Border Grid.Row="2" Grid.Column="0" Width="4" Background="#3498DB" VerticalAlignment="Stretch" Margin="0,1" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Protein" FontSize="11" VerticalAlignment="Center" Margin="8,0" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MealTargetProteinG, StringFormat='{}{0:0.0}g'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding PerServingProteinG, StringFormat='{}{0:0.0}g'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="#3498DB" />
+                        <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding ProteinDelta, StringFormat='{}{0:+0.0;-0.0;0}'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <Border Grid.Row="2" Grid.Column="4" CornerRadius="8" Padding="4,1" HorizontalAlignment="Center"
+                                Background="{Binding ProteinColor}">
+                            <TextBlock Text="{Binding ProteinDeviationPct, StringFormat='{}{0:0}%'}" FontSize="10" Foreground="White" />
+                        </Border>
+
+                        <!-- Carbs row -->
+                        <Border Grid.Row="3" Grid.Column="0" Width="4" Background="#2ECC71" VerticalAlignment="Stretch" Margin="0,1" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Carbs" FontSize="11" VerticalAlignment="Center" Margin="8,0" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding MealTargetCarbsG, StringFormat='{}{0:0.0}g'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding PerServingCarbsG, StringFormat='{}{0:0.0}g'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="#2ECC71" />
+                        <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding CarbsDelta, StringFormat='{}{0:+0.0;-0.0;0}'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <Border Grid.Row="3" Grid.Column="4" CornerRadius="8" Padding="4,1" HorizontalAlignment="Center"
+                                Background="{Binding CarbsColor}">
+                            <TextBlock Text="{Binding CarbsDeviationPct, StringFormat='{}{0:0}%'}" FontSize="10" Foreground="White" />
+                        </Border>
+
+                        <!-- Fat row -->
+                        <Border Grid.Row="4" Grid.Column="0" Width="4" Background="#F39C12" VerticalAlignment="Stretch" Margin="0,1" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Fat" FontSize="11" VerticalAlignment="Center" Margin="8,0" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MealTargetFatG, StringFormat='{}{0:0.0}g'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding PerServingFatG, StringFormat='{}{0:0.0}g'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="#F39C12" />
+                        <TextBlock Grid.Row="4" Grid.Column="3" Text="{Binding FatDelta, StringFormat='{}{0:+0.0;-0.0;0}'}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <Border Grid.Row="4" Grid.Column="4" CornerRadius="8" Padding="4,1" HorizontalAlignment="Center"
+                                Background="{Binding FatColor}">
+                            <TextBlock Text="{Binding FatDeviationPct, StringFormat='{}{0:0}%'}" FontSize="10" Foreground="White" />
+                        </Border>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="10" Height="10" CornerRadius="2" Background="#2ECC71" />
+                            <TextBlock Text="&lt;= 15%" FontSize="10" Foreground="Gray" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="10" Height="10" CornerRadius="2" Background="#F39C12" />
+                            <TextBlock Text="15–25%" FontSize="10" Foreground="Gray" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="10" Height="10" CornerRadius="2" Background="#E74C3C" />
+                            <TextBlock Text="> 25%" FontSize="10" Foreground="Gray" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="Directions" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0" />
             <TextBlock Text="{Binding Recipe.Directions}" TextWrapping="Wrap" />
 

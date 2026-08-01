@@ -26,7 +26,9 @@ public class ViewLocator : IDataTemplate
         [typeof(DayPlanViewModel)] = () => new DayPlanView(),
         [typeof(MealPrepViewModel)] = () => new MealPrepView(),
         [typeof(GroceriesViewModel)] = () => new GroceriesView(),
+        [typeof(SettingsPageViewModel)] = () => new SettingsPageView(),
         [typeof(SettingsViewModel)] = () => new SettingsView(),
+        [typeof(FoodDatabaseViewModel)] = () => new FoodDatabaseView(),
     };
 
     public Control? Build(object? param)

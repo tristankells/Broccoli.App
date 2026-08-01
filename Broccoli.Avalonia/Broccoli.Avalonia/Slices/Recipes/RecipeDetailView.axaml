@@ -152,11 +152,13 @@
             </Border>
 
             <TextBlock Text="Directions" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0" />
-            <TextBlock Text="{Binding Recipe.Directions}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Recipe.Directions, Converter={x:Static conv:MarkdownToPlainTextConverter.Instance}}"
+                       TextWrapping="Wrap" />
 
             <TextBlock Text="Notes" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0"
                        IsVisible="{Binding Recipe.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            <TextBlock Text="{Binding Recipe.Notes}" TextWrapping="Wrap"
+            <TextBlock Text="{Binding Recipe.Notes, Converter={x:Static conv:MarkdownToPlainTextConverter.Instance}}"
+                       TextWrapping="Wrap"
                        IsVisible="{Binding Recipe.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
             <TextBlock Text="{Binding Recipe.Tags, Converter={x:Static conv:StringJoinConverter.Instance}, StringFormat='Tags: {0}'}"

@@ -9,16 +9,43 @@ main {
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    background-image: linear-gradient(180deg, #1b4332 0%, #2d6a4f 100%);
 }
 
 .top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
+    background-color: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border);
     justify-content: flex-end;
     height: 3.5rem;
     display: flex;
     align-items: center;
+}
+
+.settings-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+    border-radius: 6px;
+    color: var(--color-text-secondary);
+    transition: background 0.15s, color 0.15s;
+    margin-left: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    display: block;
+}
+
+.settings-btn:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text-body);
 }
 
     .top-row ::deep a, .top-row ::deep .btn-link {
@@ -56,6 +83,48 @@ main {
         height: 100vh;
         position: sticky;
         top: 0;
+        transition: width 0.2s ease;
+        overflow: hidden;
+    }
+
+    /* Collapsed sidebar — icon-only rail */
+    .page.nav-collapsed .sidebar {
+        width: 60px;
+    }
+
+    /* Hide nav link text when collapsed (punches through NavMenu component boundary) */
+    .page.nav-collapsed .sidebar ::deep .nav-text {
+        opacity: 0;
+        max-width: 0;
+        overflow: hidden;
+    }
+
+    /* Center collapse button when collapsed */
+    .page.nav-collapsed .sidebar ::deep .nav-collapse-btn {
+        align-self: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Center nav links when collapsed */
+    .page.nav-collapsed .sidebar ::deep .nav-link {
+        justify-content: center;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    /* Hide top-row brand text when collapsed */
+    .page.nav-collapsed .sidebar ::deep .navbar-brand {
+        opacity: 0;
+        overflow: hidden;
+        max-width: 0;
+        padding: 0;
+    }
+
+    /* Hide username & logout when collapsed */
+    .page.nav-collapsed .sidebar ::deep .username,
+    .page.nav-collapsed .sidebar ::deep .logout-btn {
+        display: none;
     }
 
     .top-row {

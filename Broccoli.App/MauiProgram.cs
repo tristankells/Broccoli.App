@@ -1,15 +1,23 @@
-﻿﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
-using Broccoli.App.Shared.Services;
 using Broccoli.App.Shared.Configuration;
+using Broccoli.App.Shared.IngredientParsing;
+using Broccoli.App.Shared.Layout;
+using Broccoli.App.Shared.Platform;
+using Broccoli.App.Shared.Slices.Auth;
+using Broccoli.App.Shared.Slices.AppSettings;
+using Broccoli.App.Shared.Slices.Foods;
+using Broccoli.App.Shared.Slices.GroceryList;
+using Broccoli.App.Shared.Slices.MealPrep;
+using Broccoli.App.Shared.Slices.Nutrition;
+using Broccoli.App.Shared.Slices.Pantry;
+using Broccoli.App.Shared.Slices.Recipes;
+using Broccoli.App.Shared.Slices.Seasonality;
 using Broccoli.App.Services;
-using Broccoli.Shared.Services;
-using Ginger.Data.Services;
 using Microsoft.Azure.Cosmos;
-
+using Broccoli.App.Shared._Shared.Infrastructure;
 namespace Broccoli.App;
-
 public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
@@ -18,42 +26,24 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .ConfigureFonts(fonts => { fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular"); });
-
         // Load configuration from embedded appsettings.json files
         var assembly = Assembly.GetExecutingAssembly();
-        
 #if DEBUG
         var environment = "Development";
 #else
         var environment = "Production";
 #endif
-
         using var streamBase = assembly.GetManifestResourceStream("Broccoli.App.appsettings.json");
-        using var streamEnv = assembly.GetManifestResourceStream($"Broccoli.App.appsettings.{environment}.json");
-
+        using var streamEnv  = assembly.GetManifestResourceStream($"Broccoli.App.appsettings.{environment}.json");
         var configuration = new ConfigurationBuilder();
-        
-        if (streamBase != null)
-        {
-            configuration.AddJsonStream(streamBase);
-        }
-        
-        if (streamEnv != null)
-        {
-            configuration.AddJsonStream(streamEnv);
-        }
-        
+        if (streamBase != null) configuration.AddJsonStream(streamBase);
+        if (streamEnv  != null) configuration.AddJsonStream(streamEnv);
         var config = configuration.Build();
-        
-        // Register configuration
         builder.Configuration.AddConfiguration(config);
-        
-        // Get CosmosDB settings from configuration
+        // -- CosmosDB -------------------------------------------------------
         var cosmosSettings = new CosmosDbSettings();
         config.GetSection(CosmosDbSettings.SectionName).Bind(cosmosSettings);
         builder.Services.AddSingleton(cosmosSettings);
-        
-        // Configure CosmosDB Client with settings
         var cosmosClientOptions = new CosmosClientOptions
         {
             ConnectionMode = ConnectionMode.Gateway,
@@ -62,58 +52,91 @@ public static class MauiProgram
                 PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
             }
         };
-        
-        // Add SSL bypass for emulator
         if (cosmosSettings.BypassSslValidation && cosmosSettings.IsEmulator())
         {
             cosmosClientOptions.HttpClientFactory = () =>
             {
-                var httpMessageHandler = new HttpClientHandler
+                var h = new HttpClientHandler
                 {
                     ServerCertificateCustomValidationCallback = (_, _, _, _) => true
                 };
-                return new HttpClient(httpMessageHandler);
+                return new HttpClient(h);
             };
         }
-
         builder.Services.AddSingleton(new CosmosClient(
-            cosmosSettings.GetConnectionString(), 
+            cosmosSettings.GetConnectionString(),
             cosmosClientOptions));
-
-        // Add device-specific services used by the Broccoli.App.Shared project
+        // -- Cloudinary -----------------------------------------------------
+        var cloudinarySettings = new CloudinarySettings();
+        config.GetSection(CloudinarySettings.SectionName).Bind(cloudinarySettings);
+        builder.Services.AddSingleton(cloudinarySettings);
+        // -- Platform abstractions (host-specific) --------------------------
         builder.Services.AddSingleton<IFormFactor, FormFactor>();
         builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
-        
-        // Add shared services
-        builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
-        builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-        builder.Services.AddSingleton<IAuthenticationStateService, AuthenticationStateService>();
-        builder.Services.AddSingleton<IRecipeService, CosmosRecipeService>();
-
-        builder.Services.AddMauiBlazorWebView();
-        
-        // Register FoodService
-        string foodDatabasePath = Path.Combine(FileSystem.AppDataDirectory, "..", "..", "..", "..", "..", "..", "Ginger.Data", "Data", "FoodDatabase.json");
+        builder.Services.AddScoped<INavStateService, NavStateService>();
+        builder.Services.AddScoped<IWakeLockService, WakeLockService>();
+        builder.Services.AddScoped<IFoodFileService, FoodFileService>();
+        // -- FoodDatabase path ----------------------------------------------
+        string foodDatabasePath = Path.Combine(
+            FileSystem.AppDataDirectory,
+            "..", "..", "..", "..", "..", "..",
+            "Ginger.Data", "Data", "FoodDatabase.json");
         if (!File.Exists(foodDatabasePath))
-        {
-            // Fallback for different deployment scenarios
             foodDatabasePath = Path.Combine(AppContext.BaseDirectory, "FoodDatabase.json");
+        // -- Slice registrations --------------------------------------------
+        builder.Services.AddAuthSlice();
+        builder.Services.AddAppSettingsSlice();
+        builder.Services.AddIngredientParsing(foodDatabasePath);
+        builder.Services.AddSeasonalitySlice();
+        builder.Services.AddPantrySlice();
+        builder.Services.AddGroceryListSlice();
+        builder.Services.AddFoodsSlice();
+        var usdaSettings = new UsdaSettings();
+        config.GetSection(UsdaSettings.SectionName).Bind(usdaSettings);
+        if (!string.IsNullOrWhiteSpace(usdaSettings.ApiKey))
+        {
+            builder.Services.AddSingleton(usdaSettings);
+            var usdaHttp = new HttpClient
+            {
+                BaseAddress = new Uri(usdaSettings.BaseUrl.TrimEnd('/') + "/")
+            };
+            builder.Services.AddSingleton<IUsdaFoodSearchService>(
+                new UsdaFoodSearchService(usdaHttp, usdaSettings));
         }
-        builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
-
-
+        builder.Services.AddRecipesSlice();
+        builder.Services.AddMealPrepSlice();
+        builder.Services.AddNutritionSlice();
+        builder.Services.AddMauiBlazorWebView();
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
         builder.Logging.AddDebug();
 #endif
-
         var app = builder.Build();
-        
-        // Initialize CosmosDB on startup
-        var cosmosDbService = app.Services.GetRequiredService<ICosmosDbService>();
-        Task.Run(async () => await cosmosDbService.InitializeAsync());
+        // Initialize CosmosDB and all Cosmos-backed services on startup
+        Task.Run(async () =>
+        {
+            var cosmosDbService = app.Services.GetRequiredService<IUserService>();
+            await cosmosDbService.InitializeAsync();
 
+            var pantryService = app.Services.GetRequiredService<IPantryService>();
+            await pantryService.InitializeAsync();
+
+            var groceryListService = app.Services.GetRequiredService<IGroceryListService>();
+            await groceryListService.InitializeAsync();
+
+            var macroTargetService = app.Services.GetRequiredService<IMacroTargetService>();
+            await macroTargetService.InitializeAsync();
+
+            var mealPrepPlanService = app.Services.GetRequiredService<IMealPrepPlanService>();
+            await mealPrepPlanService.InitializeAsync();
+
+            var dailyFoodPlanService = app.Services.GetRequiredService<IDailyFoodPlanService>();
+            await dailyFoodPlanService.InitializeAsync();
+
+            var foodService = app.Services.GetRequiredService<IFoodService>();
+            if (foodService is Broccoli.App.Shared.IngredientParsing.CosmosFoodService cosmosFoodService)
+                await cosmosFoodService.InitializeAsync();
+        });
         return app;
     }
 }
-

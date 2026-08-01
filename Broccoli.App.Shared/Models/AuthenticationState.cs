@@ -1,4 +1,4 @@
-namespace Broccoli.App.Shared.Models;
+namespace Broccoli.Data.Models;
 
 public class AuthenticationState
 {

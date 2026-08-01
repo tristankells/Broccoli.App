@@ -1,0 +1,110 @@
+@page "/recipes/{RecipeId}/read"
+@inject IRecipeService RecipeService
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <PageTitle>@(recipe?.Name ?? "Recipe")</PageTitle>
+
+    <div class="recipe-read-page">
+        <div class="read-header">
+            <button class="btn-back" @onclick="NavigateBack">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                Back to Recipes
+            </button>
+            <div class="read-header-actions">
+                <button class="btn-settings" @onclick="OpenSettings" title="Reading settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="settings-icon"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                <button class="btn btn-secondary" @onclick="NavigateToEdit">
+                    View/Edit Recipe
+                </button>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Loading recipe...</p>
+            </div>
+        }
+        else if (recipe == null)
+        {
+            <div class="error-message">
+                <p>@(errorMessage ?? "Recipe not found.")</p>
+                <button class="btn btn-primary" @onclick="NavigateBack">Go Back</button>
+            </div>
+        }
+        else
+        {
+            <article class="read-article">
+                <header class="recipe-hero">
+                    <h1 class="recipe-title">@recipe.Name</h1>
+                </header>
+
+                <section class="ingredients-section">
+                    <h2>Ingredients</h2>
+                    @if (ingredients.Count > 0)
+                    {
+                        <ul class="ingredients-list">
+                            @for (int i = 0; i < ingredients.Count; i++)
+                            {
+                                var ingLine = ingredients[i];
+                                if (ingLine.StartsWith('#'))
+                                {
+                                    <li class="ingredient-section-header" @key="ingLine+i">@ingLine[1..].TrimStart()</li>
+                                }
+                                else
+                                {
+                                    <li @key="ingLine+i">@ingLine</li>
+                                }
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="empty-text">No ingredients listed.</p>
+                    }
+                </section>
+
+                <section class="instructions-section">
+                    <h2>Instructions</h2>
+                    @if (!string.IsNullOrWhiteSpace(directions))
+                    {
+                        <div class="instructions-list markdown-content">
+                            <MarkdownRenderer Content="@directions" />
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="empty-text">No instructions listed.</p>
+                    }
+                </section>
+
+                @if (!string.IsNullOrWhiteSpace(recipe.Notes))
+                {
+                    <section class="notes-section">
+                        <h2>Notes</h2>
+                        <div class="notes-content markdown-content">
+                            <MarkdownRenderer Content="@recipe.Notes" />
+                        </div>
+                    </section>
+                }
+                <header class="recipe-hero">
+                    @if (recipe.Images.Any())
+                    {
+                        <div class="recipe-hero-image">
+                            <img src="@recipe.Images.First()" alt="@recipe.Name" />
+                        </div>
+                    }
+                </header>
+            </article>
+        }
+    </div>
+</AuthorizeView>
+
+<RecipeReadOnlySettingsDialog IsVisible="_settingsDialogOpen"
+                              KeepScreenOn="_keepScreenOn"
+                              OnSave="OnSettingsSaved"
+                              OnCancel="CloseSettings" />
+

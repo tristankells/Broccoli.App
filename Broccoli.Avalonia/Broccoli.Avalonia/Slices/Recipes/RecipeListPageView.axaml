@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+                xmlns:models="using:Broccoli.Avalonia.Models"
+                xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeListPageView"
+                x:DataType="vm:RecipeListPageViewModel">
+
+    <DockPanel Margin="16">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,220,Auto" Margin="0,0,0,16">
+            <TextBlock Grid.Column="0" Text="Recipes" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+            <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Search recipes..."
+                     VerticalAlignment="Center" Margin="12,0" />
+            <Button Grid.Column="2" Command="{Binding AddRecipeCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="14" Height="14" />
+                    <TextBlock Text="Add Recipe" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                    Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
+                    IsVisible="{Binding !FilteredRecipes.Count}"
+                    Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" />
+
+        <ScrollViewer>
+            <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MinItemWidth="220" MinColumnSpacing="12" MinRowSpacing="12" />
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="models:Recipe">
+                        <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
+                                CornerRadius="6" Padding="12">
+                            <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                    HorizontalContentAlignment="Stretch"
+                                    Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
+                                    CommandParameter="{Binding}">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        <PathIcon IsVisible="{Binding IsFavorite}"
+                                                  Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                                                  Width="12" Height="12" Foreground="Goldenrod" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Tags, Converter={x:Static conv:StringJoinConverter.Instance}}"
+                                               Foreground="Gray" FontSize="11" TextWrapping="Wrap"
+                                               IsVisible="{Binding Tags.Count}" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

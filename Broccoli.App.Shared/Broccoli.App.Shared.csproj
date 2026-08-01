@@ -7,12 +7,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <SupportedPlatform Include="browser"/>
+        <SupportedPlatform Include="browser" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0"/>
-        <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.44.1"/>
+        <EmbeddedResource Include="Data\nz-produce.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AngleSharp" Version="1.5.2" />
+        <PackageReference Include="FuzzySharp" Version="2.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
+        <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.62.0" />
+        <PackageReference Include="CloudinaryDotNet" Version="1.*" />
+        <PackageReference Include="Markdig" Version="1.3.2" />
     </ItemGroup>
 
 </Project>

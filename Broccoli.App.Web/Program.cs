@@ -1,11 +1,21 @@
 using Broccoli.App.Web.Components;
-using Broccoli.App.Shared.Services;
 using Broccoli.App.Shared.Configuration;
+using Broccoli.App.Shared.Layout;
+using Broccoli.App.Shared.Slices.Auth;
+using Broccoli.App.Shared.Slices.AppSettings;
+using Broccoli.App.Shared.Slices.Foods;
+using Broccoli.App.Shared.Slices.GroceryList;
+using Broccoli.App.Shared.Slices.MealPrep;
+using Broccoli.App.Shared.Slices.Nutrition;
+using Broccoli.App.Shared.Slices.Pantry;
+using Broccoli.App.Shared.Slices.Recipes;
+using Broccoli.App.Shared.Slices.Seasonality;
 using Broccoli.App.Web.Services;
-using Broccoli.Shared.Services;
-using Ginger.Data.Services;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Azure.Cosmos;
+using Broccoli.App.Shared._Shared.Infrastructure;
+using Broccoli.App.Shared.Platform;
+using Broccoli.App.Shared.IngredientParsing;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -61,18 +71,19 @@ builder.Services.AddSingleton(new CosmosClient(
     cosmosSettings.GetConnectionString(),
     cosmosClientOptions));
 
-// Add device-specific services used by the Broccoli.App.Shared project
+// ── Platform abstractions (host-specific) ────────────────────────────────
 builder.Services.AddSingleton<IFormFactor, FormFactor>();
 builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
+builder.Services.AddScoped<INavStateService, NavStateService>();
+builder.Services.AddScoped<IWakeLockService, WakeLockService>();
+builder.Services.AddScoped<IFoodFileService, FoodFileService>();
 
-// Add shared services
-builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
-builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-builder.Services.AddSingleton<IAuthenticationStateService, AuthenticationStateService>();
-builder.Services.AddSingleton<IRecipeService, CosmosRecipeService>();
+// ── Cloudinary (shared image storage settings) ────────────────────────────
+var cloudinarySettings = new CloudinarySettings();
+builder.Configuration.GetSection(CloudinarySettings.SectionName).Bind(cloudinarySettings);
+builder.Services.AddSingleton(cloudinarySettings);
 
-// Register FoodService
-// Try multiple paths for the FoodDatabase.json file
+// ── Resolve FoodDatabase.json path ───────────────────────────────────────
 string foodDatabasePath = string.Empty;
 var possiblePaths = new[]
 {
@@ -81,31 +92,64 @@ var possiblePaths = new[]
     Path.Combine(AppContext.BaseDirectory, "FoodDatabase.json"),
     Path.Combine(AppContext.BaseDirectory, "Data", "FoodDatabase.json")
 };
-
 foreach (var path in possiblePaths)
 {
     var fullPath = Path.GetFullPath(path);
-    if (File.Exists(fullPath))
-    {
-        foodDatabasePath = fullPath;
-        break;
-    }
+    if (File.Exists(fullPath)) { foodDatabasePath = fullPath; break; }
 }
-
 if (string.IsNullOrEmpty(foodDatabasePath))
-{
-    // If no file found, use a default path (will fail gracefully in the service)
     foodDatabasePath = Path.Combine(builder.Environment.ContentRootPath, "FoodDatabase.json");
-}
 
-builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
-builder.Services.AddSingleton<IFoodService>(_ => new LocalJsonFoodService(foodDatabasePath));
+// ── Feature flags ─────────────────────────────────────────────────────────
+// (removed — food editing is always enabled)
+
+// ── Dev credentials (auto-login in Development) ───────────────────────────
+builder.Services.Configure<DevCredentialsSettings>(
+    builder.Configuration.GetSection(DevCredentialsSettings.SectionName));
+
+var usdaSettings = new UsdaSettings();
+builder.Configuration.GetSection(UsdaSettings.SectionName).Bind(usdaSettings);
+
+// ── Slice registrations ───────────────────────────────────────────────────
+builder.Services.AddAuthSlice();
+builder.Services.AddAppSettingsSlice();
+builder.Services.AddIngredientParsing(foodDatabasePath);
+builder.Services.AddSeasonalitySlice();
+builder.Services.AddPantrySlice();
+builder.Services.AddGroceryListSlice();
+builder.Services.AddFoodsSlice();
+if (!string.IsNullOrWhiteSpace(usdaSettings.ApiKey))
+{
+    builder.Services.AddSingleton(usdaSettings);
+    builder.Services.AddHttpClient<IUsdaFoodSearchService, UsdaFoodSearchService>(client =>
+        client.BaseAddress = new Uri(usdaSettings.BaseUrl.TrimEnd('/') + "/"));
+}
+builder.Services.AddRecipesSlice();
+builder.Services.AddMealPrepSlice();
+builder.Services.AddNutritionSlice();
 
 WebApplication app = builder.Build();
 
 // Initialize CosmosDB
-var cosmosDbService = app.Services.GetRequiredService<ICosmosDbService>();
+var cosmosDbService = app.Services.GetRequiredService<IUserService>();
 await cosmosDbService.InitializeAsync();
+
+// Initialize Pantry and GroceryList containers
+var pantryService = app.Services.GetRequiredService<IPantryService>();
+await pantryService.InitializeAsync();
+var groceryListService = app.Services.GetRequiredService<IGroceryListService>();
+await groceryListService.InitializeAsync();
+var macroTargetService = app.Services.GetRequiredService<IMacroTargetService>();
+await macroTargetService.InitializeAsync();
+var mealPrepPlanService = app.Services.GetRequiredService<IMealPrepPlanService>();
+await mealPrepPlanService.InitializeAsync();
+var dailyFoodPlanService = app.Services.GetRequiredService<IDailyFoodPlanService>();
+await dailyFoodPlanService.InitializeAsync();
+
+// Initialize CosmosFoodService (seeds from JSON if container is empty)
+var foodService = app.Services.GetRequiredService<IFoodService>();
+if (foodService is CosmosFoodService cosmosFoodService)
+    await cosmosFoodService.InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

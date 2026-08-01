@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Broccoli.App.Shared.Models;
+namespace Broccoli.Data.Models;
 
 public class User
 {

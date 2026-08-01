@@ -1,0 +1,113 @@
+@using Broccoli.Data.Models
+
+@if (IsOpen && Items.Count > 0)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Preview</h5>
+                    <button type="button" class="btn-close" @onclick="Cancel"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    @{ var newItems     = Items.Where(i => i.IsNew).ToList(); }
+                    @{ var updatedItems = Items.Where(i => !i.IsNew).ToList(); }
+
+                    @if (newItems.Any())
+                    {
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h6 class="mb-0">New Foods (@newItems.Count)</h6>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => SelectAll(newItems, true)">Select All</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => SelectAll(newItems, false)">Deselect All</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-success">
+                                    <tr>
+                                        <th style="width:40px"></th>
+                                        <th>Name</th>
+                                        <th>Measure</th>
+                                        <th>Cal</th>
+                                        <th>Protein</th>
+                                        <th>Carbs</th>
+                                        <th>Fat</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var item in newItems)
+                                    {
+                                        <tr>
+                                            <td><input type="checkbox" @bind="item.IsSelected" /></td>
+                                            <td>@item.Incoming.Name</td>
+                                            <td>@item.Incoming.Measure</td>
+                                            <td>@item.Incoming.CaloriesPer100g.ToString("F1")</td>
+                                            <td>@item.Incoming.ProteinPer100g.ToString("F2")</td>
+                                            <td>@item.Incoming.CarbohydratesPer100g.ToString("F2")</td>
+                                            <td>@item.Incoming.FatPer100g.ToString("F2")</td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                    @if (updatedItems.Any())
+                    {
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h6 class="mb-0">Updated Foods (@updatedItems.Count)</h6>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => SelectAll(updatedItems, true)">Select All</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => SelectAll(updatedItems, false)">Deselect All</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-warning">
+                                    <tr>
+                                        <th style="width:40px"></th>
+                                        <th>Name</th>
+                                        <th>Match</th>
+                                        <th>Changes</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach (var item in updatedItems)
+                                    {
+                                        <tr>
+                                            <td><input type="checkbox" @bind="item.IsSelected" /></td>
+                                            <td>@item.Incoming.Name</td>
+                                            <td><small class="text-muted">@item.Matched!.Name (@(item.MatchScore.ToString("P0")))</small></td>
+                                            <td>
+                                                @foreach (var field in item.ChangedFields)
+                                                {
+                                                    <span class="badge bg-warning text-dark me-1">@field</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+
+                <div class="modal-footer">
+                    <small class="text-muted me-auto">
+                        @Items.Count(i => i.IsSelected) of @Items.Count selected
+                    </small>
+                    <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                    <button class="btn btn-primary" @onclick="Confirm"
+                            disabled="@(!Items.Any(i => i.IsSelected))">
+                        Import Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

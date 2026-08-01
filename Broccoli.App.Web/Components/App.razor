@@ -10,13 +10,20 @@
     <link rel="stylesheet" href="_content/Broccoli.App.Shared/app.css"/>
     <link rel="stylesheet" href="Broccoli.App.Web.styles.css"/>
     <ImportMap/>
-    <link rel="icon" type="image/png" href="_content/Broccoli.App.Shared/favicon.png"/>
+    <link rel="icon" type="image/svg+xml" href="_content/Broccoli.App.Shared/favicon.svg"/>
+    <link rel="icon" type="image/png" href="_content/Broccoli.App.Shared/favicon.png" sizes="any"/>
     <HeadOutlet @rendermode="InteractiveServer"/>
 </head>
 
 <body>
 <Routes @rendermode="InteractiveServer"/>
 <ReconnectModal/>
+<script src="_content/Broccoli.App.Shared/js/imageDropZone.js"></script>
+<script src="_content/Broccoli.App.Shared/js/ingredientScrollSync.js"></script>
+<script src="_content/Broccoli.App.Shared/js/themeInterop.js"></script>
+<script src="_content/Broccoli.App.Shared/js/navInterop.js"></script>
+<script src="_content/Broccoli.App.Shared/js/wakeLock.js"></script>
+<script src="food-file.js"></script>
 <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
 

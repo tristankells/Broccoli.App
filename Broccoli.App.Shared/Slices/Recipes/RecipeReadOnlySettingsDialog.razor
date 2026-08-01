@@ -1,0 +1,58 @@
+﻿@if (IsVisible)
+{
+    <div class="modal-backdrop" @onclick="HandleCancel"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="recipe-read-settings-title">
+        <div class="settings-modal-box">
+
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="recipe-read-settings-title" class="modal-title-text">⚙️ Reading Settings</h2>
+                <button class="modal-close-btn" @onclick="HandleCancel" title="Close">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body-scroll">
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Keep Screen On</h3>
+                    <p class="settings-hint">Prevent the screen from dimming or locking while reading this recipe.</p>
+                    <div class="toggle-group">
+                        <button class="toggle-btn @(!_draftKeepScreenOn ? "active" : "")"
+                                @onclick="() => _draftKeepScreenOn = false">
+                            Off
+                        </button>
+                        <button class="toggle-btn @(_draftKeepScreenOn ? "active" : "")"
+                                @onclick="() => _draftKeepScreenOn = true">
+                            On
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer-bar">
+                <button class="btn btn-secondary" @onclick="HandleCancel">Cancel</button>
+                <button class="btn btn-primary" @onclick="HandleSave">Save</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public bool KeepScreenOn { get; set; }
+    [Parameter] public EventCallback<bool> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private bool _draftKeepScreenOn;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+            _draftKeepScreenOn = KeepScreenOn;
+    }
+
+    private async Task HandleSave()   => await OnSave.InvokeAsync(_draftKeepScreenOn);
+    private async Task HandleCancel() => await OnCancel.InvokeAsync();
+}
+

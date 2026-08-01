@@ -1,0 +1,214 @@
+@if (IsOpen)
+{
+    <div class="modal-backdrop" @onclick="Cancel"></div>
+    <div class="modal-dialog-container" role="dialog" aria-modal="true" aria-labelledby="food-edit-dialog-title">
+        <div class="modal-content-box food-edit-dialog">
+
+            <!-- Header -->
+            <div class="modal-header-bar">
+                <h2 id="food-edit-dialog-title" class="modal-title-text">
+                    @(_isCreateMode ? "Add Food" : "Edit Food")
+                </h2>
+                <button class="modal-close-btn" @onclick="Cancel" title="Close">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body-scroll food-edit-body">
+                <div class="food-edit-layout">
+
+                    <!-- Left: food fields -->
+                    <div class="food-edit-fields">
+                        <h3 class="food-edit-section-title">Food Details</h3>
+
+                        <div class="food-field-group">
+                            <label class="food-field-label">Name <span class="required">*</span></label>
+                            <input class="form-control @(_nameError ? "is-invalid" : "")"
+                                   type="text"
+                                   @bind="_editFood.Name"
+                                   @oninput="() => _nameError = false"
+                                   placeholder="e.g., Rolled Oats" />
+                            @if (_nameError)
+                            {
+                                <div class="invalid-feedback">Name is required.</div>
+                            }
+                        </div>
+
+                        <div class="food-field-row">
+                            <div class="food-field-group">
+                                <label class="food-field-label">Measure</label>
+                                <input class="form-control" type="text"
+                                       @bind="_editFood.Measure"
+                                       placeholder="e.g., Cup, Tbsp" />
+                            </div>
+                            <div class="food-field-group">
+                                <label class="food-field-label">g / Measure</label>
+                                <input class="form-control"
+                                       type="number" step="0.1" min="0"
+                                       @bind="_editFood.GramsPerMeasure"
+                                       placeholder="100" />
+                            </div>
+                        </div>
+
+                        <h3 class="food-edit-section-title mt-3">Nutrition per 100 g</h3>
+
+                        <div class="food-field-row">
+                            <div class="food-field-group">
+                                <label class="food-field-label">Calories <span class="required">*</span></label>
+                                <input class="form-control" type="number" step="0.1" min="0"
+                                       @bind="_editFood.CaloriesPer100g" />
+                            </div>
+                            <div class="food-field-group">
+                                <label class="food-field-label">Protein (g)</label>
+                                <input class="form-control" type="number" step="0.01" min="0"
+                                       @bind="_editFood.ProteinPer100g" />
+                            </div>
+                        </div>
+
+                        <div class="food-field-row">
+                            <div class="food-field-group">
+                                <label class="food-field-label">Carbohydrates (g)</label>
+                                <input class="form-control" type="number" step="0.01" min="0"
+                                       @bind="_editFood.CarbohydratesPer100g" />
+                            </div>
+                            <div class="food-field-group">
+                                <label class="food-field-label">Fat (g)</label>
+                                <input class="form-control" type="number" step="0.01" min="0"
+                                       @bind="_editFood.FatPer100g" />
+                            </div>
+                        </div>
+
+                        <details class="food-edit-extended">
+                            <summary class="food-edit-extended-toggle">Extended nutrients</summary>
+                            <div class="food-field-row mt-2">
+                                <div class="food-field-group">
+                                    <label class="food-field-label">Sat. Fat (g)</label>
+                                    <input class="form-control" type="number" step="0.01" min="0"
+                                           @bind="_editFood.SaturatedFatPer100g" />
+                                </div>
+                                <div class="food-field-group">
+                                    <label class="food-field-label">Fiber (g)</label>
+                                    <input class="form-control" type="number" step="0.01" min="0"
+                                           @bind="_editFood.DietaryFiberPer100g" />
+                                </div>
+                            </div>
+                            <div class="food-field-row">
+                                <div class="food-field-group">
+                                    <label class="food-field-label">Sugars (g)</label>
+                                    <input class="form-control" type="number" step="0.01" min="0"
+                                           @bind="_editFood.SugarsPer100g" />
+                                </div>
+                                <div class="food-field-group">
+                                    <label class="food-field-label">Sodium (mg)</label>
+                                    <input class="form-control" type="number" step="0.1" min="0"
+                                           @bind="_editFood.SodiumMgPer100g" />
+                                </div>
+                            </div>
+                            <div class="food-field-group">
+                                <label class="food-field-label">Notes</label>
+                                <input class="form-control" type="text"
+                                       @bind="_editFood.Notes"
+                                       placeholder="Optional notes" />
+                            </div>
+                        </details>
+
+                        @if (_saveError != null)
+                        {
+                            <div class="alert alert-danger mt-3">@_saveError</div>
+                        }
+                    </div>
+
+                    <!-- Right: USDA search -->
+                    <div class="food-edit-usda">
+                        <h3 class="food-edit-section-title">Fill from USDA</h3>
+
+                        @if (!UsdaService.IsAvailable)
+                        {
+                            <p class="food-edit-usda-unavailable">
+                                USDA lookup is not configured. Add a USDA API key to <code>appsettings.json</code> to enable it.
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="usda-inline-search">
+                                <div class="usda-search-bar">
+                                    <input class="form-control"
+                                           type="text"
+                                           placeholder="Search USDA foods…"
+                                           @bind="_usdaQuery"
+                                           @bind:event="oninput"
+                                           @onkeydown="HandleUsdaKeyDown"
+                                           disabled="@_usdaSearching" />
+                                    <button class="btn btn-outline-primary ms-2"
+                                            @onclick="UsdaSearchAsync"
+                                            disabled="@(_usdaSearching || string.IsNullOrWhiteSpace(_usdaQuery))">
+                                        @(_usdaSearching ? "Searching…" : "Search")
+                                    </button>
+                                </div>
+
+                                @if (_usdaError != null)
+                                {
+                                    <div class="alert alert-danger mt-2">@_usdaError</div>
+                                }
+
+                                @if (_usdaResults != null)
+                                {
+                                    @if (_usdaResults.Foods.Count == 0)
+                                    {
+                                        <p class="text-muted mt-2">No results found.</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="usda-results-hint">Click a row to fill nutrition fields.</p>
+                                        @if (_appliedUsdaItem != null)
+                                        {
+                                            <div class="usda-applied-name alert alert-info py-1 px-2 mb-1 d-flex align-items-center gap-2">
+                                                <span class="me-1">USDA name: <strong>@_appliedUsdaItem.Description</strong></span>
+                                                <button class="btn btn-sm btn-outline-primary py-0" @onclick="UseUsdaName">Use this name</button>
+                                            </div>
+                                        }
+                                        <div class="usda-results-list">
+                                            @foreach (var item in _usdaResults.Foods)
+                                            {
+                                                <div class="usda-result-row" @onclick="() => ApplyUsdaItem(item)" title="Click to fill nutrition fields">
+                                                    <div class="usda-result-name">@item.Description</div>
+                                                    <div class="usda-result-meta">
+                                                        <span class="badge bg-secondary">@item.DataType</span>
+                                                        <span>@item.Calories.ToString("F0") kcal</span>
+                                                        <span>P @item.Protein.ToString("F1") g</span>
+                                                        <span>C @item.Carbohydrates.ToString("F1") g</span>
+                                                        <span>F @item.Fat.ToString("F1") g</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                        @if (_usdaResults.TotalPages > 1)
+                                        {
+                                            <div class="usda-pagination">
+                                                <button class="btn btn-sm btn-outline-secondary"
+                                                        @onclick="() => UsdaGoToPageAsync(_usdaPage - 1)"
+                                                        disabled="@(_usdaPage <= 1 || _usdaSearching)">← Prev</button>
+                                                <span>@_usdaResults.CurrentPage / @_usdaResults.TotalPages</span>
+                                                <button class="btn btn-sm btn-outline-secondary"
+                                                        @onclick="() => UsdaGoToPageAsync(_usdaPage + 1)"
+                                                        disabled="@(_usdaPage >= _usdaResults.TotalPages || _usdaSearching)">Next →</button>
+                                            </div>
+                                        }
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer-bar">
+                <button class="btn btn-secondary" @onclick="Cancel" disabled="@_saving">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                    @(_saving ? "Saving…" : "Save")
+                </button>
+            </div>
+
+        </div>
+    </div>
+}

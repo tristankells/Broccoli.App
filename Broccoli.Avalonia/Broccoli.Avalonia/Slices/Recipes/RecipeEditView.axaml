@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+                xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+                x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeEditView"
+                x:DataType="vm:RecipeEditViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="10" MaxWidth="700" HorizontalAlignment="Left">
+            <TextBlock Text="Add Recipe" IsVisible="{Binding IsNew}" FontSize="22" FontWeight="Bold" />
+            <TextBlock Text="Edit Recipe" IsVisible="{Binding !IsNew}" FontSize="22" FontWeight="Bold" />
+
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <TextBlock Text="Name" FontWeight="SemiBold" />
+            <TextBox Text="{Binding Name}" PlaceholderText="Recipe name" />
+
+            <CheckBox Content="Mark as favourite" IsChecked="{Binding IsFavorite}" />
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <StackPanel Spacing="4" Width="150">
+                    <TextBlock Text="Servings" FontWeight="SemiBold" />
+                    <NumericUpDown Value="{Binding Servings}" Minimum="0" FormatString="0" />
+                </StackPanel>
+                <StackPanel Spacing="4" Width="150">
+                    <TextBlock Text="Prep time (min)" FontWeight="SemiBold" />
+                    <NumericUpDown Value="{Binding PrepTimeMinutes}" Minimum="0" FormatString="0" />
+                </StackPanel>
+                <StackPanel Spacing="4" Width="150">
+                    <TextBlock Text="Cook time (min)" FontWeight="SemiBold" />
+                    <NumericUpDown Value="{Binding CookTimeMinutes}" Minimum="0" FormatString="0" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Text="Ingredients" FontWeight="SemiBold" />
+            <TextBox Text="{Binding Ingredients}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100"
+                      PlaceholderText="One ingredient per line" />
+
+            <TextBlock Text="Directions" FontWeight="SemiBold" />
+            <TextBox Text="{Binding Directions}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140"
+                      PlaceholderText="Step-by-step directions" />
+
+            <TextBlock Text="Notes" FontWeight="SemiBold" />
+            <TextBox Text="{Binding Notes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                      PlaceholderText="Tips, substitutions, etc. (optional)" />
+
+            <TextBlock Text="Tags (comma-separated)" FontWeight="SemiBold" />
+            <TextBox Text="{Binding TagsText}" PlaceholderText="e.g. Chicken, Freezable, Quick" />
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <StackPanel Spacing="4" Width="340">
+                    <TextBlock Text="Source" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Source}" PlaceholderText="e.g. Grandma's cookbook (optional)" />
+                </StackPanel>
+                <StackPanel Spacing="4" Width="340">
+                    <TextBlock Text="URL" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Url}" PlaceholderText="Link to the recipe online (optional)" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Text="Images" FontWeight="SemiBold" Margin="0,8,0,0" />
+            <ItemsControl ItemsSource="{Binding Images}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:RecipeImageItem">
+                        <Grid Width="120" Height="120" Margin="0,0,8,8">
+                            <Image Source="{Binding FullPath, Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"
+                                   Stretch="UniformToFill" />
+                            <Button HorizontalAlignment="Right" VerticalAlignment="Top" Padding="4"
+                                    Background="#88000000" Margin="4"
+                                    Command="{Binding $parent[ItemsControl].((vm:RecipeEditViewModel)DataContext).RemoveImageCommand}"
+                                    CommandParameter="{Binding}">
+                                <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                          Width="10" Height="10" Foreground="White" />
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Command="{Binding AddImageCommand}" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="M9,3L7.17,5H4A2,2 0 0,0 2,7V19A2,2 0 0,0 4,21H20A2,2 0 0,0 22,19V7A2,2 0 0,0 20,5H16.83L15,3H9M12,18A5,5 0 0,1 7,13A5,5 0 0,1 12,8A5,5 0 0,1 17,13A5,5 0 0,1 12,18M12,10A3,3 0 0,0 9,13A3,3 0 0,0 12,16A3,3 0 0,0 15,13A3,3 0 0,0 12,10Z"
+                              Width="14" Height="14" />
+                    <TextBlock Text="Add Image" />
+                </StackPanel>
+            </Button>
+
+            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
+                <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent" />
+                <Button Content="Cancel" Command="{Binding CancelCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,155 @@
+﻿.meal-macro-comparison {
+    flex: 3 1 400px;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- Header ---- */
+.mmc-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    background: var(--color-bg-subtle);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.mmc-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+}
+
+.mmc-subtitle {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+/* ---- Table ---- */
+.mmc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.mmc-table thead tr {
+    background: var(--color-bg-subtle, #f8f9fa);
+}
+
+.mmc-table th {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.mmc-table td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--color-border-subtle, #eee);
+    white-space: nowrap;
+}
+
+.mmc-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.mmc-table tbody tr:hover {
+    background: var(--color-bg-hover, #f5f5f5);
+}
+
+/* ---- Column widths ---- */
+.col-macro  { width: 80px; }
+.col-target { width: 110px; }
+.col-actual { width: 110px; }
+.col-delta  { width: 100px; }
+.col-pct    { width: 80px; text-align: center; }
+
+/* ---- Macro label colour strips ---- */
+.macro-label {
+    font-weight: 600;
+    padding-left: 0.9rem;
+    border-left: 4px solid transparent;
+}
+
+.calories-label { border-left-color: #f97316; color: #c2410c; }
+.protein-label  { border-left-color: #3b82f6; color: #1d4ed8; }
+.carbs-label    { border-left-color: #22c55e; color: #15803d; }
+.fat-label      { border-left-color: #a855f7; color: #7e22ce; }
+
+/* ---- Delta sign colours ---- */
+.delta-positive { color: var(--color-text-secondary); }
+.delta-negative { color: var(--color-text-secondary); }
+
+/* ---- Deviation badges ---- */
+.mmc-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    min-width: 3rem;
+    text-align: center;
+}
+
+.macro-ok {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.macro-warn {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.macro-over {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ---- Legend ---- */
+.mmc-legend {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-surface);
+    border-top: 1px solid var(--color-border-subtle, #eee);
+    margin: 0;
+}
+
+.legend-chip {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.legend-chip.macro-ok   { color: #065f46; background: transparent; padding: 0; }
+.legend-chip.macro-warn { color: #92400e; background: transparent; padding: 0; }
+.legend-chip.macro-over { color: #991b1b; background: transparent; padding: 0; }
+
+/* ---- Responsive ---- */
+@media (max-width: 480px) {
+    .mmc-table {
+        font-size: 0.8rem;
+    }
+
+    .mmc-table th,
+    .mmc-table td {
+        padding: 0.45rem 0.5rem;
+    }
+
+    .col-delta {
+        display: none;
+    }
+}
+
+

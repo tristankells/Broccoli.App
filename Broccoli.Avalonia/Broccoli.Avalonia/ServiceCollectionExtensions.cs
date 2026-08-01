@@ -30,6 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IngredientCartService>();
         services.AddSingleton<IDailyFoodPlanService, DailyFoodPlanService>();
         services.AddSingleton<IMealPrepPlanService, MealPrepPlanService>();
+        services.AddSingleton<IFoodFileService, FoodFileService>();
+        services.AddSingleton<IUsdaFoodSearchService, NullUsdaFoodSearchService>();
 
         // Nav page view models: registered as singletons so switching between Recipes/Planning/
         // Groceries and back preserves each page's in-progress state (e.g. Recipes' list/detail/
@@ -45,6 +47,8 @@ public static class ServiceCollectionExtensions
         // Lazy<T> wrapper below, so it isn't constructed - and doesn't touch the file system to
         // read the stored Drive account - until the user actually opens the settings flyout.
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<FoodDatabaseViewModel>();
+        services.AddSingleton<SettingsPageViewModel>();
         services.AddSingleton(serviceProvider => new Lazy<SettingsViewModel>(() => serviceProvider.GetRequiredService<SettingsViewModel>()));
 
         services.AddSingleton<MainViewModel>();

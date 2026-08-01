@@ -3,6 +3,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
+    <AnalysisLevel>latest</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>$(NoWarn);NU1902;CS8618;CS0219;CS8604</NoWarn>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>

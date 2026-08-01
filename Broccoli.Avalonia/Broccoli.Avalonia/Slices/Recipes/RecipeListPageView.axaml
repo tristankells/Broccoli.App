@@ -10,11 +10,12 @@
                 x:DataType="vm:RecipeListPageViewModel">
 
     <DockPanel Margin="16">
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,220,Auto" Margin="0,0,0,16">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200,Auto,Auto" Margin="0,0,0,16">
             <TextBlock Grid.Column="0" Text="Recipes" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
             <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Search recipes..."
-                     VerticalAlignment="Center" Margin="12,0" />
-            <Button Grid.Column="2" Command="{Binding AddRecipeCommand}">
+                     VerticalAlignment="Center" Margin="8,0" />
+            <Button Grid.Column="2" Content="Import" Command="{Binding ImportRecipeCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="3" Command="{Binding AddRecipeCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="14" Height="14" />
                     <TextBlock Text="Add Recipe" />

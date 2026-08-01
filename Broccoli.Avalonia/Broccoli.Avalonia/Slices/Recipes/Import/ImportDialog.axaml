@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes.Import"
+        xmlns:models="using:Broccoli.Avalonia.Models"
+        x:Class="Broccoli.Avalonia.Slices.Recipes.Import.ImportDialog"
+        x:DataType="vm:ImportDialogViewModel"
+        Title="Import Recipes" Width="700" Height="520"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top" Text="Import Recipes" FontSize="18" FontWeight="Bold" Margin="0,0,0,12" />
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,0,0,8" />
+
+        <!-- Step 1: Format + Input -->
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,16"
+                    IsVisible="{Binding !ShowPreview}">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Format" FontWeight="SemiBold" />
+                <ComboBox SelectedIndex="{Binding SelectedFormatIndex}" Width="300">
+                    <ComboBoxItem>Paprika — HTML Export</ComboBoxItem>
+                    <ComboBoxItem>Bargain Box — Paste</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+
+            <Button Content="Browse for files..." Command="{Binding PickFilesCommand}"
+                    IsVisible="{Binding IsFileBased}" HorizontalAlignment="Left" Padding="12,6" />
+
+            <TextBox Text="{Binding PasteContent}" AcceptsReturn="True" TextWrapping="Wrap"
+                     MinHeight="200" IsVisible="{Binding IsPasteBased}"
+                     PlaceholderText="Paste the recipe text here..." />
+            <Button Content="Parse" Command="{Binding ParsePasteCommand}"
+                    IsVisible="{Binding IsPasteBased}" HorizontalAlignment="Left" Padding="12,6" />
+        </StackPanel>
+
+        <!-- Step 2: Preview -->
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12"
+                    IsVisible="{Binding ShowPreview}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="← Back" Command="{Binding CloseCommand}" />
+                <TextBlock VerticalAlignment="Center" FontSize="12">
+                    <Run Text="{Binding Results.Count}" /><Run Text=" recipes parsed" />
+                </TextBlock>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid RowDefinitions="*,Auto" IsVisible="{Binding ShowPreview}">
+            <ScrollViewer Grid.Row="0">
+                <ItemsControl ItemsSource="{Binding Results}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:ImportRecipeResult">
+                            <Border Margin="0,1" Padding="8,4" CornerRadius="2"
+                                    Background="{DynamicResource AppSidebarBackgroundBrush}">
+                                <StackPanel Spacing="2">
+                                    <TextBlock FontWeight="SemiBold" FontSize="12" Text="{Binding FileName}" />
+                                    <TextBlock Text="{Binding Recipe.Name}" FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+                                    <TextBlock FontSize="10">
+                                        <Run Text="{Binding Status}" />
+                                        <Run Text=" — " />
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" FontSize="10"
+                                               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                <Button Content="Import All" Command="{Binding ImportSelectedCommand}" Classes="accent" />
+                <Button Content="Close" Command="{Binding CloseCommand}" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>

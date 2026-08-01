@@ -12,6 +12,7 @@ public partial class RecipeListPageViewModel : ViewModelBase
     private List<Recipe> _allRecipes;
 
     public Action? AddRecipeRequested { get; set; }
+    public Action? ImportRecipeRequested { get; set; }
 
     public Action<Recipe>? RecipeSelected { get; set; }
 
@@ -47,6 +48,9 @@ public partial class RecipeListPageViewModel : ViewModelBase
 
     [RelayCommand]
     private void AddRecipe() => AddRecipeRequested?.Invoke();
+
+    [RelayCommand]
+    private void ImportRecipe() => ImportRecipeRequested?.Invoke();
 
     [RelayCommand]
     private void SelectRecipe(Recipe recipe) => RecipeSelected?.Invoke(recipe);

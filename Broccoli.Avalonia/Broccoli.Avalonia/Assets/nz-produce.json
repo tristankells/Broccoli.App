@@ -1,0 +1,574 @@
+{
+  "meta": {
+    "region": "New Zealand",
+    "seasons": {
+      "spring": ["September", "October", "November"],
+      "summer": ["December", "January", "February"],
+      "autumn": ["March", "April", "May"],
+      "winter": ["June", "July", "August"]
+    },
+    "notes": "Season coverage drives the scarcity weight. Ingredients in 1 season get weight 1.0, 2 seasons 0.75, 3 seasons 0.5, year-round 0.25."
+  },
+  "produce": [
+    {
+      "id": "apple",
+      "name": "Apple",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": true,
+      "peak_seasons": ["autumn"],
+      "notes": "Available year-round, best Feb–May"
+    },
+    {
+      "id": "apricot",
+      "name": "Apricot",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "blackberry",
+      "name": "Blackberry",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "blackcurrant",
+      "name": "Blackcurrant",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "blueberry",
+      "name": "Blueberry",
+      "type": "fruit",
+      "seasons": ["autumn"],
+      "year_round": false
+    },
+    {
+      "id": "boysenberry",
+      "name": "Boysenberry",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "cherry",
+      "name": "Cherry",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "feijoa",
+      "name": "Feijoa",
+      "type": "fruit",
+      "seasons": ["autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "gooseberry",
+      "name": "Gooseberry",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "grapefruit",
+      "name": "Grapefruit",
+      "type": "fruit",
+      "seasons": ["spring", "summer", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "honeydew",
+      "name": "Honeydew",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "kiwifruit_gold",
+      "name": "Gold Kiwifruit",
+      "type": "fruit",
+      "seasons": ["spring", "autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "kiwifruit_green",
+      "name": "Green Kiwifruit",
+      "type": "fruit",
+      "seasons": ["spring", "summer", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "lemon",
+      "name": "Lemon",
+      "type": "fruit",
+      "seasons": ["spring", "summer", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "lime",
+      "name": "Lime",
+      "type": "fruit",
+      "seasons": ["autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "mandarin",
+      "name": "Mandarin",
+      "type": "fruit",
+      "seasons": ["autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "nashi_pear",
+      "name": "Nashi Pear",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "navel_orange",
+      "name": "Navel Orange",
+      "type": "fruit",
+      "seasons": ["spring", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "nectarine",
+      "name": "Nectarine",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "orange_valencia",
+      "name": "Valencia Orange",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "passionfruit",
+      "name": "Passionfruit",
+      "type": "fruit",
+      "seasons": ["autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "peach",
+      "name": "Peach",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "pear",
+      "name": "Pear",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "persimmon",
+      "name": "Persimmon",
+      "type": "fruit",
+      "seasons": ["autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "plum",
+      "name": "Plum",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "raspberry",
+      "name": "Raspberry",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "redcurrant",
+      "name": "Redcurrant",
+      "type": "fruit",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "rock_melon",
+      "name": "Rock Melon",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "strawberry",
+      "name": "Strawberry",
+      "type": "fruit",
+      "seasons": ["spring", "summer"],
+      "year_round": false,
+      "notes": "Sep–Mar"
+    },
+    {
+      "id": "tamarillo",
+      "name": "Tamarillo",
+      "type": "fruit",
+      "seasons": ["winter"],
+      "year_round": false
+    },
+    {
+      "id": "tangelo",
+      "name": "Tangelo",
+      "type": "fruit",
+      "seasons": ["spring", "summer"],
+      "year_round": false
+    },
+    {
+      "id": "watermelon",
+      "name": "Watermelon",
+      "type": "fruit",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "artichoke",
+      "name": "Artichoke",
+      "type": "vegetable",
+      "seasons": ["spring", "summer"],
+      "year_round": false
+    },
+    {
+      "id": "asparagus",
+      "name": "Asparagus",
+      "type": "vegetable",
+      "seasons": ["spring", "summer"],
+      "year_round": false
+    },
+    {
+      "id": "avocado",
+      "name": "Avocado",
+      "type": "vegetable",
+      "seasons": ["summer"],
+      "year_round": false
+    },
+    {
+      "id": "beans",
+      "name": "Beans",
+      "type": "vegetable",
+      "seasons": ["spring", "summer"],
+      "year_round": false
+    },
+    {
+      "id": "beetroot",
+      "name": "Beetroot",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn"],
+      "year_round": true,
+      "peak_seasons": ["spring", "summer"],
+      "notes": "Most plentiful Nov–Apr"
+    },
+    {
+      "id": "broccoli",
+      "name": "Broccoli",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "brussels_sprout",
+      "name": "Brussels Sprout",
+      "type": "vegetable",
+      "seasons": ["spring", "autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "buttercup_squash",
+      "name": "Buttercup Squash",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "butternut",
+      "name": "Butternut",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "cabbage_green",
+      "name": "Green Cabbage",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "capsicum",
+      "name": "Capsicum",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "carrot",
+      "name": "Carrot",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "peak_seasons": ["winter"],
+      "notes": "Available year-round, best in winter"
+    },
+    {
+      "id": "cauliflower",
+      "name": "Cauliflower",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "celery",
+      "name": "Celery",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "chilli_pepper",
+      "name": "Chilli Pepper",
+      "type": "vegetable",
+      "seasons": ["autumn"],
+      "year_round": false
+    },
+    {
+      "id": "courgette",
+      "name": "Courgette",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn"],
+      "year_round": true,
+      "peak_seasons": ["spring", "summer"],
+      "notes": "Main growing season Oct–May"
+    },
+    {
+      "id": "cucumber",
+      "name": "Cucumber",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Summer best for short/apple varieties, telegraph available May–Jun"
+    },
+    {
+      "id": "eggplant",
+      "name": "Eggplant",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "fennel",
+      "name": "Fennel",
+      "type": "vegetable",
+      "seasons": ["autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "garlic",
+      "name": "Garlic",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "kale",
+      "name": "Kale",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Curly kale available year-round"
+    },
+    {
+      "id": "kohlrabi",
+      "name": "Kohlrabi",
+      "type": "vegetable",
+      "seasons": ["autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "kumara",
+      "name": "Kumara",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "leek",
+      "name": "Leek",
+      "type": "vegetable",
+      "seasons": ["spring", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Hard to find Nov–Feb"
+    },
+    {
+      "id": "lettuce",
+      "name": "Lettuce",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "mushroom",
+      "name": "Mushroom",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round; wild varieties have limited availability"
+    },
+    {
+      "id": "onion",
+      "name": "Onion",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn"],
+      "year_round": true,
+      "notes": "Main crop available year-round"
+    },
+    {
+      "id": "parsnip",
+      "name": "Parsnip",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "peas_green",
+      "name": "Green Peas",
+      "type": "vegetable",
+      "seasons": ["spring", "summer"],
+      "year_round": false
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "New season potatoes Aug–Feb; available year-round"
+    },
+    {
+      "id": "pumpkin",
+      "name": "Pumpkin",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round depending on variety"
+    },
+    {
+      "id": "radish",
+      "name": "Radish",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "rhubarb",
+      "name": "Rhubarb",
+      "type": "vegetable",
+      "seasons": ["spring", "autumn", "winter"],
+      "year_round": true,
+      "peak_seasons": ["winter"],
+      "notes": "Available year-round, best May–Oct"
+    },
+    {
+      "id": "silverbeet",
+      "name": "Silverbeet",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn", "winter"],
+      "year_round": true,
+      "notes": "Available year-round"
+    },
+    {
+      "id": "snow_peas",
+      "name": "Snow Peas",
+      "type": "vegetable",
+      "seasons": ["spring", "summer"],
+      "year_round": false
+    },
+    {
+      "id": "spinach",
+      "name": "Spinach",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "spring_onion",
+      "name": "Spring Onion",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "swede",
+      "name": "Swede",
+      "type": "vegetable",
+      "seasons": ["autumn", "winter"],
+      "year_round": true,
+      "notes": "Limited in Dec–Jan"
+    },
+    {
+      "id": "sweetcorn",
+      "name": "Sweetcorn",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn"],
+      "year_round": false
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "type": "vegetable",
+      "seasons": ["summer", "autumn", "winter"],
+      "year_round": true,
+      "peak_seasons": ["summer", "autumn"],
+      "notes": "Plentiful Oct–May"
+    },
+    {
+      "id": "turnip",
+      "name": "Turnip",
+      "type": "vegetable",
+      "seasons": ["autumn", "winter"],
+      "year_round": false
+    },
+    {
+      "id": "watercress",
+      "name": "Watercress",
+      "type": "vegetable",
+      "seasons": ["spring", "summer", "autumn", "winter"],
+      "year_round": true,
+      "peak_seasons": ["autumn", "winter"],
+      "notes": "Plentiful May–Dec"
+    },
+    {
+      "id": "yam",
+      "name": "Yam",
+      "type": "vegetable",
+      "seasons": ["spring", "winter"],
+      "year_round": false
+    }
+  ]
+}

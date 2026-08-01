@@ -1,5 +1,6 @@
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,6 +12,7 @@ public partial class RecipeDetailViewModel : ViewModelBase
 {
     private readonly IRecipeService _recipeService;
     private readonly IngredientParserService? _parser;
+    private readonly ISeasonalityService? _seasonalityService;
     private readonly IMacroTargetService? _macroService;
 
     public Action? BackRequested { get; set; }
@@ -57,21 +59,32 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     private static string DeviationColor(double pct) => pct <= 15 ? "#2ECC71" : pct <= 25 ? "#F39C12" : "#E74C3C";
 
-    public RecipeDetailViewModel(IRecipeService recipeService, Recipe recipe)
-        : this(recipeService, null, null, recipe)
+    public SeasonalityResult? Seasonality { get; private set; }
+    public bool HasSeasonality => Seasonality?.Breakdown.Count > 0;
+    public string SeasonScoreColor => Seasonality?.Label switch
     {
-    }
+        SeasonalityLabel.PeakSeason => "#2ECC71",
+        SeasonalityLabel.PartiallyInSeason => "#F39C12",
+        SeasonalityLabel.OffSeason => "#E74C3C",
+        _ => "Gray"
+    };
+
+    public RecipeDetailViewModel(IRecipeService recipeService, Recipe recipe)
+        : this(recipeService, null, null, null, recipe) { }
 
     public RecipeDetailViewModel(IRecipeService recipeService, IngredientParserService? parser, Recipe recipe)
-        : this(recipeService, parser, null, recipe)
-    {
-    }
+        : this(recipeService, parser, null, null, recipe) { }
 
     public RecipeDetailViewModel(IRecipeService recipeService, IngredientParserService? parser,
         IMacroTargetService? macroService, Recipe recipe)
+        : this(recipeService, parser, null, macroService, recipe) { }
+
+    public RecipeDetailViewModel(IRecipeService recipeService, IngredientParserService? parser,
+        ISeasonalityService? seasonalityService, IMacroTargetService? macroService, Recipe recipe)
     {
         _recipeService = recipeService;
         _parser = parser;
+        _seasonalityService = seasonalityService;
         _macroService = macroService;
         _recipe = recipe;
         foreach (var image in recipe.Images)
@@ -127,6 +140,16 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
         RefreshNutrition();
         RefreshComparison();
+        ScoreSeasonality(matches);
+    }
+
+    private void ScoreSeasonality(List<ParsedIngredientMatch> matches)
+    {
+        if (_seasonalityService is null) return;
+        Seasonality = _seasonalityService.Score(matches);
+        OnPropertyChanged(nameof(Seasonality));
+        OnPropertyChanged(nameof(HasSeasonality));
+        OnPropertyChanged(nameof(SeasonScoreColor));
     }
 
     private void RefreshNutrition()

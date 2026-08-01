@@ -1,29 +1,31 @@
+using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
 
-/// <summary>
-/// Recipes section shell: swaps between the recipe list, a read-only detail view, and the
-/// add/edit form, all within the Recipes area of the app (the main nav stays on "Recipes").
-/// </summary>
 public partial class RecipesListViewModel : ViewModelBase
 {
     private readonly IRecipeService _recipeService;
+    private readonly IngredientParserService? _parser;
+    private readonly IFoodService? _foodService;
 
     [ObservableProperty]
     private ObservableObject _currentPage;
 
     private readonly RecipeListPageViewModel _listPage;
 
-    public RecipesListViewModel() : this(new RecipeService())
+    public RecipesListViewModel() : this(new RecipeService(), null, null)
     {
     }
 
-    public RecipesListViewModel(IRecipeService recipeService)
+    public RecipesListViewModel(IRecipeService recipeService,
+        IngredientParserService? parser, IFoodService? foodService)
     {
         _recipeService = recipeService;
+        _parser = parser;
+        _foodService = foodService;
         _listPage = new RecipeListPageViewModel(_recipeService)
         {
             AddRecipeRequested = ShowAdd,
@@ -42,7 +44,7 @@ public partial class RecipesListViewModel : ViewModelBase
 
     private void ShowDetail(Recipe recipe)
     {
-        var detail = new RecipeDetailViewModel(_recipeService, recipe)
+        var detail = new RecipeDetailViewModel(_recipeService, _parser, recipe)
         {
             BackRequested = ShowList,
             EditRequested = ShowEdit,
@@ -53,7 +55,7 @@ public partial class RecipesListViewModel : ViewModelBase
 
     private void ShowEdit(Recipe? existingRecipe)
     {
-        var edit = new RecipeEditViewModel(_recipeService, existingRecipe)
+        var edit = new RecipeEditViewModel(_recipeService, existingRecipe, _parser, _foodService)
         {
             Saved = ShowList,
             Cancelled = ShowList
@@ -61,4 +63,3 @@ public partial class RecipesListViewModel : ViewModelBase
         CurrentPage = edit;
     }
 }
-

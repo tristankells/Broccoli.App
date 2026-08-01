@@ -1,12 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
-                xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
-                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeDetailView"
-                x:DataType="vm:RecipeDetailViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+             xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeDetailView"
+             x:DataType="vm:RecipeDetailViewModel">
 
     <ScrollViewer>
         <StackPanel Margin="16" Spacing="12" MaxWidth="700" HorizontalAlignment="Left">
@@ -38,7 +38,6 @@
                 </Button>
             </StackPanel>
 
-            <!-- Inline delete confirmation -->
             <Border IsVisible="{Binding IsConfirmingDelete}" Background="#FFF4E5" CornerRadius="4" Padding="12">
                 <StackPanel Spacing="8">
                     <TextBlock Text="Delete this recipe? This cannot be undone." TextWrapping="Wrap" />
@@ -60,9 +59,7 @@
 
             <ItemsControl ItemsSource="{Binding ImagePaths}" IsVisible="{Binding ImagePaths.Count}">
                 <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
+                    <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -74,6 +71,34 @@
 
             <TextBlock Text="Ingredients" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0" />
             <TextBlock Text="{Binding Recipe.Ingredients}" TextWrapping="Wrap" />
+
+            <!-- Nutrition Summary -->
+            <Border Padding="10" CornerRadius="4"
+                    Background="{DynamicResource AppSidebarBackgroundBrush}"
+                    IsVisible="{Binding TotalCalories, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Nutrition" FontWeight="SemiBold" FontSize="12" />
+                    <StackPanel Spacing="2">
+                        <TextBlock FontSize="11">
+                            <Run Text="Recipe: " FontWeight="SemiBold" />
+                            <Run Text="{Binding TotalCalories, StringFormat='{}{0:0} kcal'}" Foreground="#E74C3C" />
+                            <Run Text="  |  " />
+                            <Run Text="P:" /><Run Text="{Binding TotalProteinG, StringFormat='{}{0:0}g'}" Foreground="#3498DB" />
+                            <Run Text="  C:" /><Run Text="{Binding TotalCarbsG, StringFormat='{}{0:0}g'}" Foreground="#2ECC71" />
+                            <Run Text="  F:" /><Run Text="{Binding TotalFatG, StringFormat='{}{0:0}g'}" Foreground="#F39C12" />
+                        </TextBlock>
+                        <TextBlock FontSize="11"
+                                   IsVisible="{Binding Recipe.Servings, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <Run Text="Per serving: " FontWeight="SemiBold" />
+                            <Run Text="{Binding PerServingCalories, StringFormat='{}{0:0} kcal'}" Foreground="#E74C3C" />
+                            <Run Text="  |  " />
+                            <Run Text="P:" /><Run Text="{Binding PerServingProteinG, StringFormat='{}{0:0}g'}" Foreground="#3498DB" />
+                            <Run Text="  C:" /><Run Text="{Binding PerServingCarbsG, StringFormat='{}{0:0}g'}" Foreground="#2ECC71" />
+                            <Run Text="  F:" /><Run Text="{Binding PerServingFatG, StringFormat='{}{0:0}g'}" Foreground="#F39C12" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
 
             <TextBlock Text="Directions" FontWeight="SemiBold" FontSize="16" Margin="0,8,0,0" />
             <TextBlock Text="{Binding Recipe.Directions}" TextWrapping="Wrap" />

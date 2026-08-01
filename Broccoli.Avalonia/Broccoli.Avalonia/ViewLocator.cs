@@ -21,7 +21,10 @@ public class ViewLocator : IDataTemplate
         [typeof(RecipeListPageViewModel)] = () => new RecipeListPageView(),
         [typeof(RecipeDetailViewModel)] = () => new RecipeDetailView(),
         [typeof(RecipeEditViewModel)] = () => new RecipeEditView(),
-        [typeof(PlanningViewModel)] = () => new PlanningView(),
+        [typeof(PlanningPageViewModel)] = () => new PlanningPageView(),
+        [typeof(MacroTargetsViewModel)] = () => new MacroTargetsView(),
+        [typeof(DayPlanViewModel)] = () => new DayPlanView(),
+        [typeof(MealPrepViewModel)] = () => new MealPrepView(),
         [typeof(GroceriesViewModel)] = () => new GroceriesView(),
         [typeof(SettingsViewModel)] = () => new SettingsView(),
     };

@@ -1,0 +1,146 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Planning"
+             xmlns:models="using:Broccoli.Avalonia.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Broccoli.Avalonia.Slices.Planning.DayPlanView"
+             x:DataType="vm:DayPlanViewModel">
+    <Design.DataContext>
+        <vm:DayPlanViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,0,0,8" />
+
+        <!-- Plan list view -->
+        <Grid IsVisible="{Binding IsListVisible}" RowDefinitions="Auto,*">
+            <Button Grid.Row="0" Content="＋ New Plan" Command="{Binding NewPlanCommand}"
+                    HorizontalAlignment="Left" Margin="0,0,0,12" />
+            <ScrollViewer Grid.Row="1">
+                <ItemsControl ItemsSource="{Binding Plans}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:DailyFoodPlan">
+                            <Border Margin="0,2" Padding="12,8" CornerRadius="4"
+                                    Background="{DynamicResource AppSidebarBackgroundBrush}">
+                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                                               Foreground="Gray" FontSize="11" Margin="0,0,12,0">
+                                        <Run Text="{Binding Tabs.Count}" /><Run Text=" tabs" />
+                                    </TextBlock>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                                        <Button Content="Open" Padding="8,2" FontSize="11"
+                                                Command="{Binding $parent[ItemsControl].((vm:DayPlanViewModel)DataContext).OpenPlanCommand}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Padding="4,2"
+                                                Command="{Binding $parent[ItemsControl].((vm:DayPlanViewModel)DataContext).DeletePlanCommand}"
+                                                CommandParameter="{Binding}">
+                                            <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                                      Width="10" Height="10" Foreground="Red" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- In-plan editor -->
+        <DockPanel IsVisible="{Binding IsEditorVisible}">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                <Button Content="← Back" Command="{Binding BackToListCommand}" />
+                <TextBox Text="{Binding SelectedPlan.Name}" FontSize="14" Width="250"
+                         VerticalContentAlignment="Center" />
+                <Button Content="Save Plan" Command="{Binding SavePlanCommand}" Classes="accent" />
+            </StackPanel>
+
+            <Grid RowDefinitions="Auto,Auto,*">
+                <!-- Tab bar with native ListBox selection -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="0" Margin="0,0,0,12">
+                    <ListBox ItemsSource="{Binding SelectedPlan.Tabs}"
+                             SelectedIndex="{Binding SelectedTabIndex}"
+                             SelectionMode="Single">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:DailyFoodPlanTab">
+                                <Border Padding="12,6" MinWidth="80">
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                                               HorizontalAlignment="Center" />
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Button Content="＋ Tab" Command="{Binding AddTabCommand}" FontSize="11" Padding="8,6" Margin="4,0,0,0" />
+                </StackPanel>
+
+                <!-- Row controls -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                    <Button Content="＋ Add Food Row" Command="{Binding AddFoodRowCommand}"
+                            FontSize="11" Padding="8,4" />
+                    <Button Content="Add Header" Command="{Binding AddHeaderCommand}"
+                            FontSize="11" Padding="8,4" />
+                </StackPanel>
+
+                <!-- Row list -->
+                <ScrollViewer Grid.Row="2" Margin="0,8,0,0">
+                    <ItemsControl ItemsSource="{Binding SelectedPlan.Tabs[0].Rows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:DailyFoodPlanRow">
+                                <Border Margin="0,1" Padding="8,4" CornerRadius="2"
+                                        Background="{DynamicResource AppSidebarBackgroundBrush}">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="2">
+                                            <Button Padding="2"
+                                                    Command="{Binding $parent[ItemsControl].((vm:DayPlanViewModel)DataContext).MoveRowUpCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <PathIcon Data="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z"
+                                                          Width="12" Height="12" />
+                                            </Button>
+                                            <Button Padding="2"
+                                                    Command="{Binding $parent[ItemsControl].((vm:DayPlanViewModel)DataContext).MoveRowDownCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <PathIcon Data="M7.41,8.59L12,13.17L16.59,8.59L18,10L12,16L6,10L7.41,8.59Z"
+                                                          Width="12" Height="12" />
+                                            </Button>
+                                            <Button Padding="4"
+                                                    Command="{Binding $parent[ItemsControl].((vm:DayPlanViewModel)DataContext).DeleteRowCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                                          Width="10" Height="10" Foreground="Red" />
+                                            </Button>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBox Text="{Binding HeaderName}" FontSize="12"
+                                                     VerticalContentAlignment="Center" Width="150"
+                                                     PlaceholderText="Section" />
+                                            <TextBox Text="{Binding FoodOrRecipeId}" FontSize="12" Width="180"
+                                                     VerticalContentAlignment="Center"
+                                                     PlaceholderText="Food or recipe ID" />
+                                            <TextBox Text="{Binding ServingName}" FontSize="12" Width="80"
+                                                     VerticalContentAlignment="Center" PlaceholderText="unit" />
+                                            <NumericUpDown Value="{Binding Quantity}" Minimum="0.1" Maximum="100"
+                                                           Increment="0.5" FormatString="0.0" FontSize="11" Width="60" />
+                                            <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="Gray"
+                                                       Text="{Binding Calories, StringFormat='{}{0:0} kcal'}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </DockPanel>
+    </DockPanel>
+</UserControl>

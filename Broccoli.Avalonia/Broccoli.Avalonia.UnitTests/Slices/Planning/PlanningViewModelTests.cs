@@ -5,7 +5,7 @@ using Moq;
 namespace Broccoli.Avalonia.Tests.Slices.Planning;
 
 [TestClass]
-public class PlanningViewModelTests
+public class MacroTargetsViewModelTests
 {
     private readonly Mock<IMacroTargetService> _serviceMock = new();
     private readonly MacroCalculatorService _calculator = new();
@@ -21,7 +21,7 @@ public class PlanningViewModelTests
         FatPercent = 30
     };
 
-    private PlanningViewModel CreateViewModel(
+    private MacroTargetsViewModel CreateViewModel(
         List<MacroTarget>? existingTargets = null)
     {
         var settings = DefaultSettings();
@@ -30,7 +30,7 @@ public class PlanningViewModelTests
         _serviceMock.Setup(s => s.GetSettings()).Returns(settings);
         _serviceMock.Setup(s => s.GetAll()).Returns(targets);
 
-        return new PlanningViewModel(_serviceMock.Object, _calculator);
+        return new MacroTargetsViewModel(_serviceMock.Object, _calculator);
     }
 
     [TestMethod]

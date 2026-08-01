@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
-public partial class PlanningViewModel : ViewModelBase
+public partial class MacroTargetsViewModel : ViewModelBase
 {
     private readonly IMacroTargetService _macroTargetService;
     private readonly MacroCalculatorService _calculator;
@@ -68,11 +68,11 @@ public partial class PlanningViewModel : ViewModelBase
     public bool DraftMacroSumValid => Math.Abs(DraftMacroSum - 100) < 0.01;
     public bool DraftCanSave => DraftProteinMethod == ProteinMethod.GramsPerKg || DraftMacroSumValid;
 
-    public PlanningViewModel() : this(new MacroTargetService(), new MacroCalculatorService())
+    public MacroTargetsViewModel() : this(new MacroTargetService(), new MacroCalculatorService())
     {
     }
 
-    public PlanningViewModel(IMacroTargetService macroTargetService, MacroCalculatorService calculator)
+    public MacroTargetsViewModel(IMacroTargetService macroTargetService, MacroCalculatorService calculator)
     {
         _macroTargetService = macroTargetService;
         _calculator = calculator;

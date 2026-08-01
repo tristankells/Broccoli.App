@@ -5,10 +5,10 @@
              xmlns:vm="using:Broccoli.Avalonia.Slices.Planning"
              xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="600"
-             x:Class="Broccoli.Avalonia.Slices.Planning.PlanningView"
-             x:DataType="vm:PlanningViewModel">
+             x:Class="Broccoli.Avalonia.Slices.Planning.MacroTargetsView"
+             x:DataType="vm:MacroTargetsViewModel">
     <Design.DataContext>
-        <vm:PlanningViewModel />
+        <vm:MacroTargetsViewModel />
     </Design.DataContext>
 
     <DockPanel Margin="16">
@@ -215,7 +215,7 @@
 
                                     <Button Grid.Column="18" Padding="4"
                                             VerticalAlignment="Center" HorizontalAlignment="Center"
-                                            Command="{Binding $parent[ItemsControl].((vm:PlanningViewModel)DataContext).DeletePersonCommand}"
+                                            Command="{Binding $parent[ItemsControl].((vm:MacroTargetsViewModel)DataContext).DeletePersonCommand}"
                                             CommandParameter="{Binding}">
                                         <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
                                                   Width="10" Height="10" Foreground="Red" />

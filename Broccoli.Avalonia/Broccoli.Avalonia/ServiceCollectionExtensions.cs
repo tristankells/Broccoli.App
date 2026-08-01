@@ -28,12 +28,17 @@ public static class ServiceCollectionExtensions
         services.AddIngredientParsing();
         services.AddSingleton<IGroceryListService, GroceryListService>();
         services.AddSingleton<IngredientCartService>();
+        services.AddSingleton<IDailyFoodPlanService, DailyFoodPlanService>();
+        services.AddSingleton<IMealPrepPlanService, MealPrepPlanService>();
 
         // Nav page view models: registered as singletons so switching between Recipes/Planning/
         // Groceries and back preserves each page's in-progress state (e.g. Recipes' list/detail/
         // edit sub-navigation) instead of resetting it every time.
         services.AddSingleton<RecipesListViewModel>();
-        services.AddSingleton<PlanningViewModel>();
+        services.AddSingleton<MacroTargetsViewModel>();
+        services.AddSingleton<DayPlanViewModel>();
+        services.AddSingleton<MealPrepViewModel>();
+        services.AddSingleton<PlanningPageViewModel>();
         services.AddSingleton<GroceriesViewModel>();
 
         // SettingsViewModel is registered normally, but MainViewModel only ever depends on the

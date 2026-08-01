@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Planning"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="600"
+             x:Class="Broccoli.Avalonia.Slices.Planning.PlanningPageView"
+             x:DataType="vm:PlanningPageViewModel">
+    <Design.DataContext>
+        <vm:PlanningPageViewModel />
+    </Design.DataContext>
+
+    <TabControl SelectedIndex="{Binding CurrentTabIndex}">
+        <TabItem Header="Macro Targets">
+            <ScrollViewer>
+                <ContentControl Content="{Binding MacroTargets}" />
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Day Plans">
+            <ScrollViewer>
+                <ContentControl Content="{Binding DayPlans}" />
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Meal Prep">
+            <ScrollViewer>
+                <ContentControl Content="{Binding MealPrep}" />
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
+</UserControl>

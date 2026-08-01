@@ -38,7 +38,7 @@ public partial class MainViewModel : ViewModelBase
     /// resolves the constructor below).</summary>
     public MainViewModel() : this(
         new RecipesListViewModel(),
-        new PlanningViewModel(),
+        new PlanningPageViewModel(),
         new GroceriesViewModel(),
         new Lazy<SettingsViewModel>(() => new SettingsViewModel()))
     {
@@ -46,7 +46,7 @@ public partial class MainViewModel : ViewModelBase
 
     public MainViewModel(
         RecipesListViewModel recipesViewModel,
-        PlanningViewModel planningViewModel,
+        PlanningPageViewModel planningViewModel,
         GroceriesViewModel groceriesViewModel,
         Lazy<SettingsViewModel> settingsViewModel)
     {

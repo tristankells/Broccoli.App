@@ -9,13 +9,13 @@ namespace Broccoli.Avalonia.Slices.Recipes;
 public partial class RecipeListPageViewModel : ViewModelBase
 {
     private readonly IRecipeService _recipeService;
-    private readonly List<Recipe> _allRecipes;
+    private List<Recipe> _allRecipes;
 
     public Action? AddRecipeRequested { get; set; }
 
     public Action<Recipe>? RecipeSelected { get; set; }
 
-    public ObservableCollection<Recipe> FilteredRecipes { get; } = new();
+    public ObservableCollection<Recipe> FilteredRecipes { get; set; }
 
     [ObservableProperty]
     public partial string SearchText { get; set; }
@@ -28,10 +28,13 @@ public partial class RecipeListPageViewModel : ViewModelBase
 
     public void Reload()
     {
-        //recipes.Clear();
+        _allRecipes = [.. _recipeService.GetAll()];
+
+        FilteredRecipes = new ObservableCollection<Recipe>(_allRecipes);
+
         foreach (var recipe in _recipeService.GetAll())
         {
-            _allRecipes.Add(recipe);
+            FilteredRecipes.Add(recipe);
         }
     }
 

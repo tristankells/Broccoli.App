@@ -22,6 +22,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRecipeService, RecipeService>();
         services.AddSingleton<IGoogleDriveAuthService, GoogleDriveAuthService>();
         services.AddSingleton<IGoogleDriveSyncService, GoogleDriveSyncService>();
+        services.AddSingleton<IMacroTargetService, MacroTargetService>();
+        services.AddSingleton<MacroCalculatorService>();
 
         // Nav page view models: registered as singletons so switching between Recipes/Planning/
         // Groceries and back preserves each page's in-progress state (e.g. Recipes' list/detail/

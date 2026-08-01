@@ -26,7 +26,7 @@ public class RecipeListPageViewModelFilteringTests
     {
         var viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
 
-        Assert.AreEqual(2, viewModel.Recipes.Count);
+        Assert.AreEqual(2, viewModel.FilteredRecipes.Count);
     }
 
     [TestMethod]
@@ -36,8 +36,8 @@ public class RecipeListPageViewModelFilteringTests
 
         viewModel.SearchText = "chicken";
 
-        Assert.AreEqual(1, viewModel.Recipes.Count);
-        Assert.AreEqual("Chicken Curry", viewModel.Recipes[0].Name);
+        Assert.AreEqual(1, viewModel.FilteredRecipes.Count);
+        Assert.AreEqual("Chicken Curry", viewModel.FilteredRecipes[0].Name);
     }
 
     [TestMethod]
@@ -47,7 +47,7 @@ public class RecipeListPageViewModelFilteringTests
 
         viewModel.SearchText = "BANANA";
 
-        Assert.AreEqual(1, viewModel.Recipes.Count);
+        Assert.AreEqual(1, viewModel.FilteredRecipes.Count);
     }
 
     [TestMethod]
@@ -57,7 +57,7 @@ public class RecipeListPageViewModelFilteringTests
 
         viewModel.SearchText = "pizza";
 
-        Assert.AreEqual(0, viewModel.Recipes.Count);
+        Assert.AreEqual(0, viewModel.FilteredRecipes.Count);
     }
 
     [TestMethod]
@@ -68,6 +68,6 @@ public class RecipeListPageViewModelFilteringTests
         viewModel.SearchText = "chicken";
         viewModel.SearchText = string.Empty;
 
-        Assert.AreEqual(2, viewModel.Recipes.Count);
+        Assert.AreEqual(2, viewModel.FilteredRecipes.Count);
     }
 }

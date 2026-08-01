@@ -1,18 +1,251 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                xmlns:vm="using:Broccoli.Avalonia.Slices.Planning"
-                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                x:Class="Broccoli.Avalonia.Slices.Planning.PlanningView"
-                x:DataType="vm:PlanningViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Planning"
+             xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="600"
+             x:Class="Broccoli.Avalonia.Slices.Planning.PlanningView"
+             x:DataType="vm:PlanningViewModel">
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:PlanningViewModel />
     </Design.DataContext>
-    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
-        This is the planning page
-    </TextBlock>
 
-    </UserControl>
+    <DockPanel Margin="16">
+        <!-- Header -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
+            <TextBlock Grid.Column="0" Text="Macro / Calorie Targets" FontSize="22" FontWeight="Bold"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="Settings" Command="{Binding OpenSettingsCommand}"
+                    Margin="0,0,8,0" />
+            <Button Grid.Column="2" Command="{Binding AddPersonCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
+                              Width="14" Height="14" />
+                    <TextBlock Text="Add Person" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Error banner -->
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,0,0,8" />
+
+        <!-- ===================== Settings overlay ===================== -->
+        <ScrollViewer IsVisible="{Binding IsSettingsOpen}">
+            <Border MaxWidth="520" Margin="24" Padding="24" CornerRadius="8"
+                    Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="Macro Target Settings" FontSize="18" FontWeight="Bold" />
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Unit System" FontWeight="SemiBold" />
+                        <ComboBox SelectedIndex="{Binding DraftUnitSystemIndex}" Width="220">
+                            <ComboBoxItem>Metric (kg / cm)</ComboBoxItem>
+                            <ComboBoxItem>Imperial (lbs / in)</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="BMR Formula" FontWeight="SemiBold" />
+                        <ComboBox SelectedIndex="{Binding DraftBmrFormulaIndex}" Width="300">
+                            <ComboBoxItem>Mifflin-St Jeor (Recommended, 1990)</ComboBoxItem>
+                            <ComboBoxItem>Harris-Benedict (Roza &amp; Shizgal, 1984)</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Protein Calculation" FontWeight="SemiBold" />
+                        <ComboBox SelectedIndex="{Binding DraftProteinMethodIndex}" Width="240">
+                            <ComboBoxItem>% of Calories</ComboBoxItem>
+                            <ComboBoxItem>g per kg bodyweight</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding DraftIsRatioPercent}" Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Spacing="2" Width="110">
+                                <TextBlock Text="Protein %" FontSize="12" />
+                                <NumericUpDown Value="{Binding DraftProteinPercent}"
+                                               Minimum="0" Maximum="100" FormatString="0" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="110">
+                                <TextBlock Text="Carbs %" FontSize="12" />
+                                <NumericUpDown Value="{Binding DraftCarbPercent}"
+                                               Minimum="0" Maximum="100" FormatString="0" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="110">
+                                <TextBlock Text="Fat %" FontSize="12" />
+                                <NumericUpDown Value="{Binding DraftFatPercent}"
+                                               Minimum="0" Maximum="100" FormatString="0" />
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Text="{Binding DraftMacroSum, StringFormat='Total: {0}%'}" FontSize="13" />
+                        <TextBlock Text="Total must equal 100%"
+                                   IsVisible="{Binding !DraftMacroSumValid}"
+                                   Foreground="Red" FontSize="12" />
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding DraftIsGramsPerKg}" Spacing="8">
+                        <StackPanel Spacing="2" Width="160">
+                            <TextBlock Text="Protein (g/kg)" FontSize="12" />
+                            <NumericUpDown Value="{Binding DraftProteinGramsPerKg}"
+                                           Minimum="0.5" Maximum="4" FormatString="0.0"
+                                           Increment="0.1" />
+                        </StackPanel>
+                        <TextBlock Text="Typical: 1.6&#x2013;2.2 g/kg for active individuals"
+                                   Foreground="Gray" FontSize="11" />
+                        <TextBlock Text="Carbs &amp; fat split the remaining calories:"
+                                   FontSize="12" Margin="0,4,0,0" />
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Spacing="2" Width="110">
+                                <TextBlock Text="Carbs %" FontSize="12" />
+                                <NumericUpDown Value="{Binding DraftCarbPercent}"
+                                               Minimum="0" Maximum="100" FormatString="0" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="110">
+                                <TextBlock Text="Fat %" FontSize="12" />
+                                <NumericUpDown Value="{Binding DraftFatPercent}"
+                                               Minimum="0" Maximum="100" FormatString="0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Separator />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Content="Cancel" Command="{Binding CancelSettingsCommand}" />
+                        <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}"
+                                IsEnabled="{Binding DraftCanSave}" Classes="accent" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
+
+        <!-- ===================== Table view ===================== -->
+        <Grid IsVisible="{Binding !IsSettingsOpen}" RowDefinitions="Auto,*">
+            <TextBlock Grid.Row="0"
+                       Text="No targets yet. Click &#x201c;Add Person&#x201d; to create your first profile."
+                       Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center"
+                       IsVisible="{Binding !Targets.Count}" />
+
+            <ScrollViewer Grid.Row="1" IsVisible="{Binding Targets.Count}"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0,8,0,0">
+                    <!-- Column group header -->
+                    <Grid ColumnDefinitions="12*,7*,9*,9*,5*,13*,8*,6*,6*,6*,7*,7*,7*,6*,6*,6*,6*,6*,4*"
+                          Margin="0,2,0,2">
+                        <TextBlock Grid.Column="0" /><TextBlock Grid.Column="1" />
+                        <TextBlock Grid.Column="2" /><TextBlock Grid.Column="3" />
+                        <TextBlock Grid.Column="4" /><TextBlock Grid.Column="5" />
+                        <TextBlock Grid.Column="6" /><TextBlock Grid.Column="7" />
+                        <TextBlock Grid.Column="8"  Text="Targets / Day" FontWeight="Bold"
+                                   FontSize="10" Grid.ColumnSpan="6"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="14" Text="Per Meal (&#x00F7;3)" FontWeight="Bold"
+                                   FontSize="10" Grid.ColumnSpan="4"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <!-- Column labels -->
+                    <Grid ColumnDefinitions="12*,7*,9*,9*,5*,13*,8*,6*,6*,6*,7*,7*,7*,6*,6*,6*,6*,6*,4*"
+                          Margin="0,0,0,4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                        <TextBlock Grid.Column="0"  Text="Name"     FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"  Text="Gender"   FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2"  FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"><Run Text="Weight" /><LineBreak /><Run Text="{Binding WeightUnit, StringFormat='({0})'}" FontSize="9" Foreground="Gray" /></TextBlock>
+                        <TextBlock Grid.Column="3"  FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"><Run Text="Height" /><LineBreak /><Run Text="{Binding HeightUnit, StringFormat='({0})'}" FontSize="9" Foreground="Gray" /></TextBlock>
+                        <TextBlock Grid.Column="4"  Text="Age"      FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="5"  Text="Activity" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="6"  Text="Goal"     FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="7"  FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"><Run Text="Cal" /><LineBreak /><Run Text="&#x0394;" FontSize="9" Foreground="Gray" /></TextBlock>
+                        <TextBlock Grid.Column="8"  Text="BMR"      FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip.Tip="Basal Metabolic Rate (kcal)" />
+                        <TextBlock Grid.Column="9"  Text="TDEE"     FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip.Tip="Total Daily Energy Expenditure (kcal)" />
+                        <TextBlock Grid.Column="10" Text="Calories" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip.Tip="Recommended calories (kcal)" />
+                        <TextBlock Grid.Column="11" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"><Run Text="Protein" /><LineBreak /><Run Text="{Binding ProteinPercentLabel}" FontSize="9" Foreground="Gray" /></TextBlock>
+                        <TextBlock Grid.Column="12" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"><Run Text="Carbs" /><LineBreak /><Run Text="{Binding CarbPercentLabel}" FontSize="9" Foreground="Gray" /></TextBlock>
+                        <TextBlock Grid.Column="13" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"><Run Text="Fat" /><LineBreak /><Run Text="{Binding FatPercentLabel}" FontSize="9" Foreground="Gray" /></TextBlock>
+                        <TextBlock Grid.Column="14" Text="Cal"       FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip.Tip="Calories per meal (kcal)" />
+                        <TextBlock Grid.Column="15" Text="Prot"      FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="16" Text="Carb"      FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="17" Text="Fat"       FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="18" />
+                    </Grid>
+
+                    <!-- Data rows -->
+                    <ItemsControl ItemsSource="{Binding Targets}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:MacroTargetRowViewModel">
+                                <Grid ColumnDefinitions="12*,7*,9*,9*,5*,13*,8*,6*,6*,6*,7*,7*,7*,6*,6*,6*,6*,6*,4*"
+                                      Margin="0,1" MinHeight="28"
+                                      Background="{DynamicResource AppSidebarBackgroundBrush}">
+                                    <TextBox       Grid.Column="0"  Text="{Binding Name}"            FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center" />
+                                    <ComboBox      Grid.Column="1"  SelectedIndex="{Binding GenderIndex}" FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center">
+                                        <ComboBoxItem>Male</ComboBoxItem>
+                                        <ComboBoxItem>Female</ComboBoxItem>
+                                        <ComboBoxItem>Other</ComboBoxItem>
+                                    </ComboBox>
+                                    <TextBox Grid.Column="2"  Text="{Binding WeightDisplay, Converter={x:Static conv:SafeDoubleConverter.Instance}}"     FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center" />
+                                    <TextBox Grid.Column="3"  Text="{Binding HeightDisplay, Converter={x:Static conv:SafeDoubleConverter.Instance}}"     FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center" />
+                                    <TextBox Grid.Column="4"  Text="{Binding Age, Converter={x:Static conv:SafeIntConverter.Instance}}"               FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center" />
+                                    <ComboBox      Grid.Column="5"  SelectedIndex="{Binding ActivityIndex}" FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center">
+                                        <ComboBoxItem>Sedentary</ComboBoxItem>
+                                        <ComboBoxItem>Lightly Active</ComboBoxItem>
+                                        <ComboBoxItem>Moderately Active</ComboBoxItem>
+                                        <ComboBoxItem>Very Active</ComboBoxItem>
+                                        <ComboBoxItem>Extra Active</ComboBoxItem>
+                                    </ComboBox>
+                                    <ComboBox      Grid.Column="6"  SelectedIndex="{Binding GoalIndex}"  FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center">
+                                        <ComboBoxItem>Maintain</ComboBoxItem>
+                                        <ComboBoxItem>Lose</ComboBoxItem>
+                                        <ComboBoxItem>Gain</ComboBoxItem>
+                                    </ComboBox>
+                                    <TextBox Grid.Column="7"  Text="{Binding GoalCalorieDelta, Converter={x:Static conv:SafeIntConverter.Instance}}"  FontSize="11" Height="24" Margin="1,0" Padding="2,0" VerticalContentAlignment="Center" />
+
+                                    <TextBlock Grid.Column="8"  Text="{Binding BmrText}"         VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="9"  Text="{Binding TdeeText}"        VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="10" Text="{Binding CaloriesText}"    VerticalAlignment="Center" FontSize="11" FontWeight="Bold"      Foreground="#E74C3C" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="11" Text="{Binding ProteinText}"     VerticalAlignment="Center" FontSize="11" FontWeight="Bold"      Foreground="#3498DB" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="12" Text="{Binding CarbsText}"       VerticalAlignment="Center" FontSize="11" FontWeight="Bold"      Foreground="#2ECC71" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="13" Text="{Binding FatText}"         VerticalAlignment="Center" FontSize="11" FontWeight="Bold"      Foreground="#F39C12" HorizontalAlignment="Center" />
+                                    <TextBlock Grid.Column="14" Text="{Binding MealCaloriesText}" VerticalAlignment="Center" FontSize="11" HorizontalAlignment="Center" Foreground="Gray" />
+                                    <TextBlock Grid.Column="15" Text="{Binding MealProteinText}"  VerticalAlignment="Center" FontSize="11" HorizontalAlignment="Center" Foreground="Gray" />
+                                    <TextBlock Grid.Column="16" Text="{Binding MealCarbsText}"    VerticalAlignment="Center" FontSize="11" HorizontalAlignment="Center" Foreground="Gray" />
+                                    <TextBlock Grid.Column="17" Text="{Binding MealFatText}"      VerticalAlignment="Center" FontSize="11" HorizontalAlignment="Center" Foreground="Gray" />
+
+                                    <Button Grid.Column="18" Padding="4"
+                                            VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            Command="{Binding $parent[ItemsControl].((vm:PlanningViewModel)DataContext).DeletePersonCommand}"
+                                            CommandParameter="{Binding}">
+                                        <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                                  Width="10" Height="10" Foreground="Red" />
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Legend -->
+                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="4,14,4,4">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="10" Height="10" CornerRadius="2" Background="#E74C3C" />
+                            <TextBlock Text="Calories" FontSize="11" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="10" Height="10" CornerRadius="2" Background="#3498DB" />
+                            <TextBlock Text="Protein" FontSize="11" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="10" Height="10" CornerRadius="2" Background="#2ECC71" />
+                            <TextBlock Text="Carbs" FontSize="11" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Border Width="10" Height="10" CornerRadius="2" Background="#F39C12" />
+                            <TextBlock Text="Fat" FontSize="11" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</UserControl>

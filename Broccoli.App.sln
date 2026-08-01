@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.Avalonia.iOS", "Br
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.Avalonia.Browser", "Broccoli.Avalonia\Broccoli.Avalonia.Browser\Broccoli.Avalonia.Browser.csproj", "{2EBBA6E5-A241-482B-A6B9-788972B86749}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Broccoli.Avalonia", "Broccoli.Avalonia", "{AA1B5721-3B8A-67F3-DA67-3E6518E79389}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Broccoli.Avalonia.UnitTests", "Broccoli.Avalonia\Broccoli.Avalonia.UnitTests\Broccoli.Avalonia.UnitTests.csproj", "{66F2A480-5A82-4ED2-A0CE-2EEB9F2D6558}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
@@ -22,13 +20,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		global.json = global.json
+		AGENTS.md = AGENTS.md
 		Directory.Build.props = Directory.Build.props
+		Broccoli.Avalonia\Directory.Packages.props = Broccoli.Avalonia\Directory.Packages.props
+		global.json = global.json
 		LICENSE = LICENSE
 		NuGet.config = NuGet.config
-		AGENTS.md = AGENTS.md
 		README.md = README.md
-		Broccoli.Avalonia\Directory.Packages.props = Broccoli.Avalonia\Directory.Packages.props
 	EndProjectSection
 EndProject
 Global
@@ -120,9 +118,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{66F2A480-5A82-4ED2-A0CE-2EEB9F2D6558} = {AA1B5721-3B8A-67F3-DA67-3E6518E79389}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ABF3146B-F127-4936-8C43-1204F82EE2F7}

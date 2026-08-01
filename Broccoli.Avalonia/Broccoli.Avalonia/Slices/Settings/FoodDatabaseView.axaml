@@ -5,6 +5,7 @@
              xmlns:vm="using:Broccoli.Avalonia.Slices.Settings"
              xmlns:models="using:Broccoli.Avalonia.Models"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="500"
+             xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
              x:Class="Broccoli.Avalonia.Slices.Settings.FoodDatabaseView"
              x:DataType="vm:FoodDatabaseViewModel">
     <Design.DataContext>
@@ -25,26 +26,26 @@
                    Margin="0,0,0,8" />
 
         <!-- Add Food form -->
-        <Border IsVisible="{Binding !!NewFood.Name, Converter={x:Static ObjectConverters.IsNull}}"
+        <Border IsVisible="{Binding IsAddFormVisible}"
                 DockPanel.Dock="Top" Margin="0,0,0,12" Padding="12" CornerRadius="4"
                 Background="{DynamicResource AppSidebarBackgroundBrush}">
             <StackPanel Spacing="8">
                 <TextBlock Text="Add New Food" FontWeight="SemiBold" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <StackPanel Spacing="2" Width="200"><TextBlock Text="Name" FontSize="11" />
-                        <TextBox Text="{Binding NewFood.Name}" VerticalContentAlignment="Center" /></StackPanel>
-                    <StackPanel Spacing="2" Width="100"><TextBlock Text="Measure" FontSize="11" />
-                        <TextBox Text="{Binding NewFood.Measure}" VerticalContentAlignment="Center" /></StackPanel>
-                    <StackPanel Spacing="2" Width="90"><TextBlock Text="g/Measure" FontSize="11" />
-                        <NumericUpDown Value="{Binding NewFood.GramsPerMeasure}" FormatString="0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Cal/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding NewFood.CaloriesPer100g}" FormatString="0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Fat/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding NewFood.FatPer100g}" FormatString="0.0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Protein/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding NewFood.ProteinPer100g}" FormatString="0.0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Carbs/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding NewFood.CarbohydratesPer100g}" FormatString="0.0" Minimum="0" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="180"><TextBlock Text="Name" FontSize="11" />
+                        <TextBox Text="{Binding NewFood.Name}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="90"><TextBlock Text="Measure" FontSize="11" />
+                        <TextBox Text="{Binding NewFood.Measure}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="80"><TextBlock Text="g/Measure" FontSize="11" />
+                        <TextBox Text="{Binding NewFood.GramsPerMeasure, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="70"><TextBlock Text="Cal/100g" FontSize="11" />
+                        <TextBox Text="{Binding NewFood.CaloriesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="60"><TextBlock Text="Fat" FontSize="11" />
+                        <TextBox Text="{Binding NewFood.FatPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="65"><TextBlock Text="Protein" FontSize="11" />
+                        <TextBox Text="{Binding NewFood.ProteinPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="65"><TextBlock Text="Carbs" FontSize="11" />
+                        <TextBox Text="{Binding NewFood.CarbohydratesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button Content="Save" Command="{Binding SaveNewFoodCommand}" Classes="accent" />
@@ -54,26 +55,26 @@
         </Border>
 
         <!-- Edit Food form -->
-        <Border IsVisible="{Binding !!EditingFood.Name, Converter={x:Static ObjectConverters.IsNull}}"
+        <Border IsVisible="{Binding IsEditFormVisible}"
                 DockPanel.Dock="Top" Margin="0,0,0,12" Padding="12" CornerRadius="4"
                 Background="{DynamicResource AppSidebarBackgroundBrush}">
             <StackPanel Spacing="8">
                 <TextBlock Text="{Binding EditingFood.Name, StringFormat='Edit: {0}'}" FontWeight="SemiBold" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <StackPanel Spacing="2" Width="200"><TextBlock Text="Name" FontSize="11" />
-                        <TextBox Text="{Binding EditingFood.Name}" VerticalContentAlignment="Center" /></StackPanel>
-                    <StackPanel Spacing="2" Width="100"><TextBlock Text="Measure" FontSize="11" />
-                        <TextBox Text="{Binding EditingFood.Measure}" VerticalContentAlignment="Center" /></StackPanel>
-                    <StackPanel Spacing="2" Width="90"><TextBlock Text="g/Measure" FontSize="11" />
-                        <NumericUpDown Value="{Binding EditingFood.GramsPerMeasure}" FormatString="0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Cal/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding EditingFood.CaloriesPer100g}" FormatString="0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Fat/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding EditingFood.FatPer100g}" FormatString="0.0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Protein/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding EditingFood.ProteinPer100g}" FormatString="0.0" Minimum="0" FontSize="11" /></StackPanel>
-                    <StackPanel Spacing="2" Width="80"><TextBlock Text="Carbs/100g" FontSize="11" />
-                        <NumericUpDown Value="{Binding EditingFood.CarbohydratesPer100g}" FormatString="0.0" Minimum="0" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="180"><TextBlock Text="Name" FontSize="11" />
+                        <TextBox Text="{Binding EditingFood.Name}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="90"><TextBlock Text="Measure" FontSize="11" />
+                        <TextBox Text="{Binding EditingFood.Measure}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="80"><TextBlock Text="g/Measure" FontSize="11" />
+                        <TextBox Text="{Binding EditingFood.GramsPerMeasure, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="70"><TextBlock Text="Cal/100g" FontSize="11" />
+                        <TextBox Text="{Binding EditingFood.CaloriesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="60"><TextBlock Text="Fat" FontSize="11" />
+                        <TextBox Text="{Binding EditingFood.FatPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="65"><TextBlock Text="Protein" FontSize="11" />
+                        <TextBox Text="{Binding EditingFood.ProteinPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
+                    <StackPanel Spacing="2" Width="65"><TextBlock Text="Carbs" FontSize="11" />
+                        <TextBox Text="{Binding EditingFood.CarbohydratesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" VerticalContentAlignment="Center" Height="24" FontSize="11" /></StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button Content="Save" Command="{Binding SaveEditCommand}" Classes="accent" />

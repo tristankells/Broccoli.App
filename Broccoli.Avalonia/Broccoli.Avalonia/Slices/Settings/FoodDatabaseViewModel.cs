@@ -19,6 +19,9 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private Food? _editingFood;
     [ObservableProperty] private Food? _newFood;
+
+    public bool IsAddFormVisible => NewFood is not null;
+    public bool IsEditFormVisible => EditingFood is not null;
     [ObservableProperty] private string _usdaQuery = string.Empty;
     [ObservableProperty] private bool _isUsdaSearchOpen;
     [ObservableProperty] private UsdaSearchResult? _usdaResult;
@@ -269,5 +272,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         catch (Exception ex) { ErrorMessage = $"Failed to import: {ex.Message}"; }
     }
 
+    partial void OnNewFoodChanged(Food? value) => OnPropertyChanged(nameof(IsAddFormVisible));
+    partial void OnEditingFoodChanged(Food? value) => OnPropertyChanged(nameof(IsEditFormVisible));
     partial void OnUsdaResultChanged(UsdaSearchResult? value) => OnPropertyChanged(nameof(IsUsdaResultVisible));
 }

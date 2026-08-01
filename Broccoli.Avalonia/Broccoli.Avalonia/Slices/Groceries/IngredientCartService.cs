@@ -164,7 +164,7 @@ public class IngredientCartService(
 
     public static string BuildLine(double qty, string unit, string food)
     {
-        string qtyStr = qty.ToString("0.##");
+        string qtyStr = qty.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
 
         if (string.IsNullOrEmpty(unit)) return $"{qtyStr} {food}";
 

@@ -1,4 +1,6 @@
 # Build results
+bin/
+obj/
 [Dd]ebug/
 [Rr]elease/
 artifacts/

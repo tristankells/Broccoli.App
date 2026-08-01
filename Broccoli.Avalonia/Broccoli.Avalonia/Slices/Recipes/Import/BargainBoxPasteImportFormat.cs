@@ -42,8 +42,6 @@ public class BargainBoxPasteImportFormat : IImportFormat
 
         var ingredients = new List<string>();
         var directions = new List<string>();
-        bool inDirections = false;
-        string? currentSection = null;
 
         foreach (var line in lines)
         {
@@ -56,17 +54,6 @@ public class BargainBoxPasteImportFormat : IImportFormat
             if (line.Contains("Contains ", StringComparison.OrdinalIgnoreCase) ||
                 line.Contains("May contain ", StringComparison.OrdinalIgnoreCase))
                 continue;
-
-            if (!string.IsNullOrEmpty(currentSection))
-            {
-                if (line.StartsWith("## "))
-                {
-                    directions.Add(line);
-                    continue;
-                }
-                directions.Add(line);
-                continue;
-            }
         }
 
         for (int i = 0; i < lines.Count; i++)
@@ -88,7 +75,6 @@ public class BargainBoxPasteImportFormat : IImportFormat
 
         if (directionsStart >= 0)
         {
-            int sectionNum = 0;
             string? sectionTitle = null;
             for (int i = directionsStart; i < lines.Count; i++)
             {

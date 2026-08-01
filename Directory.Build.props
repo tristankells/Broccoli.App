@@ -5,8 +5,9 @@
     <LangVersion>preview</LangVersion>
     <AnalysisLevel>latest</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>$(NoWarn);NU1902;CS8618;CS0219;CS8604</NoWarn>
+    <NoWarn>$(NoWarn);NU1902;CS1591</NoWarn>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <DebugType>embedded</DebugType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 </Project>

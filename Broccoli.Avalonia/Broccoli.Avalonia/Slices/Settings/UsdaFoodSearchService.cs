@@ -72,7 +72,7 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
         };
     }
 
-    private class FdcSearchResponse
+    private sealed class FdcSearchResponse
     {
         public int TotalHits   { get; set; }
         public int CurrentPage { get; set; }
@@ -80,7 +80,7 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
         public List<FdcFood> Foods { get; set; } = new();
     }
 
-    private class FdcFood
+    private sealed class FdcFood
     {
         public int    FdcId       { get; set; }
         public string Description { get; set; } = string.Empty;
@@ -88,7 +88,7 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
         public List<FdcNutrient> FoodNutrients { get; set; } = new();
     }
 
-    private class FdcNutrient
+    private sealed class FdcNutrient
     {
         public int    NutrientId { get; set; }
         public double Value      { get; set; }

@@ -36,7 +36,7 @@ public class MealPrepPlan
     /// <summary>
     /// User-defined display order. Lower values appear first.
     /// Defaults to 0 so new plans sort to the top (tiebroken by CreatedAt DESC).
-    /// Assigned as a clean 0-based integer by <see cref="IMealPrepPlanService.ReorderAsync"/>
+    /// Assigned as a clean 0-based integer by IMealPrepPlanService.Reorder
     /// whenever the user drags to reorder.
     /// </summary>
     [JsonPropertyName("sortOrder")]

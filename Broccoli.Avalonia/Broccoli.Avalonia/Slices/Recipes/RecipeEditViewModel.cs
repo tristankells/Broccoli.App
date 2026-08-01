@@ -1,3 +1,4 @@
+using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,6 +15,8 @@ public record RecipeImageItem(string FileName, string FullPath);
 public partial class RecipeEditViewModel : ViewModelBase
 {
     private readonly IRecipeService _recipeService;
+    private readonly IngredientParserService? _parser;
+    private readonly IFoodService? _foodService;
     private readonly bool _wasExistingOnOpen;
 
     /// <summary>
@@ -75,9 +78,25 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     public string RecipeIdForImages => _recipe.Id;
 
+    public ObservableCollection<ParsedIngredientMatch> ParsedMatches { get; } = new();
+    public double TotalCalories { get; private set; }
+    public double TotalProteinG { get; private set; }
+    public double TotalCarbsG { get; private set; }
+    public double TotalFatG { get; private set; }
+    public double PerServingCalories => Servings > 0 ? TotalCalories / Servings.Value : 0;
+    public double PerServingProteinG => Servings > 0 ? TotalProteinG / Servings.Value : 0;
+    public double PerServingCarbsG => Servings > 0 ? TotalCarbsG / Servings.Value : 0;
+    public double PerServingFatG => Servings > 0 ? TotalFatG / Servings.Value : 0;
+
     public RecipeEditViewModel(IRecipeService recipeService, Recipe? existingRecipe)
+        : this(recipeService, existingRecipe, null, null) { }
+
+    public RecipeEditViewModel(IRecipeService recipeService, Recipe? existingRecipe,
+        IngredientParserService? parser, IFoodService? foodService)
     {
         _recipeService = recipeService;
+        _parser = parser;
+        _foodService = foodService;
         _wasExistingOnOpen = existingRecipe is not null;
         _persisted = _wasExistingOnOpen;
         _recipe = existingRecipe ?? new Recipe();
@@ -186,4 +205,29 @@ public partial class RecipeEditViewModel : ViewModelBase
     }
 
     private bool _persisted;
+
+    partial void OnIngredientsChanged(string value) => ParseIngredients();
+
+    private void ParseIngredients()
+    {
+        if (_parser is null || string.IsNullOrWhiteSpace(Ingredients)) { ParsedMatches.Clear(); RefreshNutrition(); return; }
+        var matches = _parser.ParseAndMatchIngredients(Ingredients);
+        ParsedMatches.Clear();
+        double cal = 0, pro = 0, carb = 0, fat = 0;
+        foreach (var m in matches)
+        {
+            ParsedMatches.Add(m);
+            if (m.IsMatched) { cal += m.GetCalories(); pro += m.GetProtein(); carb += m.GetCarbohydrates(); fat += m.GetFat(); }
+        }
+        TotalCalories = cal; TotalProteinG = pro; TotalCarbsG = carb; TotalFatG = fat;
+        RefreshNutrition();
+    }
+
+    private void RefreshNutrition()
+    {
+        OnPropertyChanged(nameof(TotalCalories)); OnPropertyChanged(nameof(TotalProteinG));
+        OnPropertyChanged(nameof(TotalCarbsG)); OnPropertyChanged(nameof(TotalFatG));
+        OnPropertyChanged(nameof(PerServingCalories)); OnPropertyChanged(nameof(PerServingProteinG));
+        OnPropertyChanged(nameof(PerServingCarbsG)); OnPropertyChanged(nameof(PerServingFatG));
+    }
 }

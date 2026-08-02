@@ -35,7 +35,7 @@
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="vm:RecipeCardViewModel">
                         <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                CornerRadius="6" Padding="0">
+                                CornerRadius="6" Padding="0" ClipToBounds="True">
                             <StackPanel>
                                 <!-- Image with overlays -->
                                 <Panel IsVisible="{Binding HasImage}" Height="120">
@@ -67,7 +67,7 @@
                                         <!-- Name + favorite (when no image) -->
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
-                                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="250" />
+                                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                             <PathIcon IsVisible="{Binding IsFavorite}"
                                                       Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
                                                       Width="12" Height="12" Foreground="Goldenrod"
@@ -80,16 +80,17 @@
                                                    IsVisible="{Binding HasTags}" />
 
                                         <!-- Nutrition row -->
-                                        <StackPanel Orientation="Horizontal" Spacing="6"
+                                        <StackPanel Orientation="Horizontal" Spacing="4"
                                                     IsVisible="{Binding HasNutrition}">
                                             <TextBlock Text="{Binding CaloriesText}" FontSize="10"
-                                                       Foreground="#E74C3C" FontWeight="SemiBold" />
+                                                       Foreground="#E74C3C" FontWeight="SemiBold"
+                                                       TextWrapping="NoWrap" />
                                             <TextBlock Text="{Binding ProteinText}" FontSize="10"
-                                                       Foreground="#3498DB" />
+                                                       Foreground="#3498DB" TextWrapping="NoWrap" />
                                             <TextBlock Text="{Binding CarbsText}" FontSize="10"
-                                                       Foreground="#2ECC71" />
+                                                       Foreground="#2ECC71" TextWrapping="NoWrap" />
                                             <TextBlock Text="{Binding FatText}" FontSize="10"
-                                                       Foreground="#F39C12" />
+                                                       Foreground="#F39C12" TextWrapping="NoWrap" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Button>

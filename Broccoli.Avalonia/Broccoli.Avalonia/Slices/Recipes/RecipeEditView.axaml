@@ -1,102 +1,190 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
-                xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
-                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-                x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeEditView"
-                x:DataType="vm:RecipeEditViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+             xmlns:ing="using:Broccoli.Avalonia.IngredientParsing"
+             xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+             x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeEditView"
+             x:DataType="vm:RecipeEditViewModel">
 
     <ScrollViewer>
-        <StackPanel Margin="16" Spacing="10" MaxWidth="700" HorizontalAlignment="Left">
-            <TextBlock Text="Add Recipe" IsVisible="{Binding IsNew}" FontSize="22" FontWeight="Bold" />
-            <TextBlock Text="Edit Recipe" IsVisible="{Binding !IsNew}" FontSize="22" FontWeight="Bold" />
+        <Grid ColumnDefinitions="*,*" Margin="16">
+            <!-- Left: Form -->
+            <StackPanel Grid.Column="0" Spacing="10" Margin="0,0,16,0">
+                <TextBlock Text="Add Recipe" IsVisible="{Binding IsNew}" FontSize="22" FontWeight="Bold" />
+                <TextBlock Text="Edit Recipe" IsVisible="{Binding !IsNew}" FontSize="22" FontWeight="Bold" />
 
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
-                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-            <TextBlock Text="Name" FontWeight="SemiBold" />
-            <TextBox Text="{Binding Name}" PlaceholderText="Recipe name" />
+                <TextBlock Text="Name" FontWeight="SemiBold" />
+                <TextBox Text="{Binding Name}" PlaceholderText="Recipe name" />
 
-            <CheckBox Content="Mark as favourite" IsChecked="{Binding IsFavorite}" />
+                <CheckBox Content="Mark as favourite" IsChecked="{Binding IsFavorite}" />
 
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <StackPanel Spacing="4" Width="150">
-                    <TextBlock Text="Servings" FontWeight="SemiBold" />
-                    <NumericUpDown Value="{Binding Servings}" Minimum="0" FormatString="0" />
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <StackPanel Spacing="4" Width="120">
+                        <TextBlock Text="Servings" FontWeight="SemiBold" />
+                        <NumericUpDown Value="{Binding Servings}" Minimum="0" FormatString="0" />
+                    </StackPanel>
+                    <StackPanel Spacing="4" Width="130">
+                        <TextBlock Text="Prep (min)" FontWeight="SemiBold" />
+                        <NumericUpDown Value="{Binding PrepTimeMinutes}" Minimum="0" FormatString="0" />
+                    </StackPanel>
+                    <StackPanel Spacing="4" Width="130">
+                        <TextBlock Text="Cook (min)" FontWeight="SemiBold" />
+                        <NumericUpDown Value="{Binding CookTimeMinutes}" Minimum="0" FormatString="0" />
+                    </StackPanel>
                 </StackPanel>
-                <StackPanel Spacing="4" Width="150">
-                    <TextBlock Text="Prep time (min)" FontWeight="SemiBold" />
-                    <NumericUpDown Value="{Binding PrepTimeMinutes}" Minimum="0" FormatString="0" />
+
+                <TextBlock Text="Ingredients" FontWeight="SemiBold" />
+                <TextBox Text="{Binding Ingredients}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140"
+                         PlaceholderText="One ingredient per line, e.g. 250g chicken breast" />
+
+                <TextBlock Text="Directions" FontWeight="SemiBold" />
+                <TextBox Text="{Binding Directions}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140"
+                         PlaceholderText="Step-by-step directions" />
+
+                <TextBlock Text="Notes" FontWeight="SemiBold" />
+                <TextBox Text="{Binding Notes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                         PlaceholderText="Tips, substitutions, etc. (optional)" />
+
+                <TextBlock Text="Tags (comma-separated)" FontWeight="SemiBold" />
+                <TextBox Text="{Binding TagsText}" PlaceholderText="e.g. Chicken, Freezable, Quick" />
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <StackPanel Spacing="4" Width="280">
+                        <TextBlock Text="Source" FontWeight="SemiBold" />
+                        <TextBox Text="{Binding Source}" PlaceholderText="e.g. Grandma's cookbook" />
+                    </StackPanel>
+                    <StackPanel Spacing="4" Width="280">
+                        <TextBlock Text="URL" FontWeight="SemiBold" />
+                        <TextBox Text="{Binding Url}" PlaceholderText="Link to recipe online" />
+                    </StackPanel>
                 </StackPanel>
-                <StackPanel Spacing="4" Width="150">
-                    <TextBlock Text="Cook time (min)" FontWeight="SemiBold" />
-                    <NumericUpDown Value="{Binding CookTimeMinutes}" Minimum="0" FormatString="0" />
+
+                <TextBlock Text="Images" FontWeight="SemiBold" Margin="0,8,0,0" />
+                <ItemsControl ItemsSource="{Binding Images}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RecipeImageItem">
+                            <Grid Width="100" Height="100" Margin="0,0,8,8">
+                                <Image Source="{Binding FullPath, Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"
+                                       Stretch="UniformToFill" />
+                                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Padding="2"
+                                        Background="#88000000" Margin="2"
+                                        Command="{Binding $parent[ItemsControl].((vm:RecipeEditViewModel)DataContext).RemoveImageCommand}"
+                                        CommandParameter="{Binding}">
+                                    <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                              Width="8" Height="8" Foreground="White" />
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Command="{Binding AddImageCommand}" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <PathIcon Data="M9,3L7.17,5H4A2,2 0 0,0 2,7V19A2,2 0 0,0 4,21H20A2,2 0 0,0 22,19V7A2,2 0 0,0 20,5H16.83L15,3H9M12,18A5,5 0 0,1 7,13A5,5 0 0,1 12,8A5,5 0 0,1 17,13A5,5 0 0,1 12,18M12,10A3,3 0 0,0 9,13A3,3 0 0,0 12,16A3,3 0 0,0 15,13A3,3 0 0,0 12,10Z" Width="14" Height="14" />
+                        <TextBlock Text="Add Image" />
+                    </StackPanel>
+                </Button>
+
+                <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
+                    <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent" />
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" />
                 </StackPanel>
             </StackPanel>
 
-            <TextBlock Text="Ingredients" FontWeight="SemiBold" />
-            <TextBox Text="{Binding Ingredients}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="100"
-                      PlaceholderText="One ingredient per line" />
+            <!-- Right: Parsed Ingredients + Nutrition -->
+            <Border Grid.Column="1" Padding="12" CornerRadius="4"
+                    Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <ScrollViewer>
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Parsed Ingredients" FontWeight="SemiBold" FontSize="14"
+                                   IsVisible="{Binding ParsedMatches.Count}" />
 
-            <TextBlock Text="Directions" FontWeight="SemiBold" />
-            <TextBox Text="{Binding Directions}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140"
-                      PlaceholderText="Step-by-step directions" />
+                        <ItemsControl ItemsSource="{Binding ParsedMatches}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="ing:ParsedIngredientMatch">
+                                    <Border Margin="0,1" Padding="6,3" CornerRadius="2">
+                                        <DockPanel>
+                                            <DockPanel.Styles>
+                                                <Style Selector="TextBlock.macro-label">
+                                                    <Setter Property="FontSize" Value="10" />
+                                                    <Setter Property="Foreground" Value="Gray" />
+                                                </Style>
+                                            </DockPanel.Styles>
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding GetCalories, StringFormat='{}{0:0} kcal'}"
+                                                           FontSize="11" Foreground="#E74C3C" />
+                                                <TextBlock Text="{Binding GetProtein, StringFormat='P:{0:0}g'}"
+                                                           FontSize="10" Foreground="#3498DB" />
+                                                <TextBlock Text="{Binding GetCarbohydrates, StringFormat='C:{0:0}g'}"
+                                                           FontSize="10" Foreground="#2ECC71" />
+                                                <TextBlock Text="{Binding GetFat, StringFormat='F:{0:0}g'}"
+                                                           FontSize="10" Foreground="#F39C12" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <PathIcon IsVisible="{Binding IsMatched}"
+                                                              Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                                                              Width="12" Height="12" Foreground="Green" />
+                                                    <PathIcon IsVisible="{Binding !IsMatched}"
+                                                              Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                                              Width="12" Height="12" Foreground="Red" />
+                                                    <TextBlock FontSize="11" FontWeight="SemiBold"
+                                                               Text="{Binding ParsedIngredient.FoodDescription}" />
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding GetQuantityDisplay}" FontSize="10"
+                                                           Foreground="Gray" Margin="16,0,0,0" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
-            <TextBlock Text="Notes" FontWeight="SemiBold" />
-            <TextBox Text="{Binding Notes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
-                      PlaceholderText="Tips, substitutions, etc. (optional)" />
+                        <!-- Nutrition Summary -->
+                        <Border Padding="10" CornerRadius="4"
+                                Background="{DynamicResource AppContentBackgroundBrush}"
+                                IsVisible="{Binding TotalCalories, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Nutrition Summary" FontWeight="SemiBold" FontSize="13" />
 
-            <TextBlock Text="Tags (comma-separated)" FontWeight="SemiBold" />
-            <TextBox Text="{Binding TagsText}" PlaceholderText="e.g. Chicken, Freezable, Quick" />
+                                <StackPanel Spacing="2">
+                                    <TextBlock FontSize="11">
+                                        <Run Text="Recipe Total: " FontWeight="SemiBold" />
+                                        <Run Text="{Binding TotalCalories, StringFormat='{}{0:0} kcal'}" Foreground="#E74C3C" />
+                                        <Run Text="  |  " />
+                                        <Run Text="Protein: " /><Run Text="{Binding TotalProteinG, StringFormat='{}{0:0.0}g'}" Foreground="#3498DB" />
+                                        <Run Text="  |  " />
+                                        <Run Text="Carbs: " /><Run Text="{Binding TotalCarbsG, StringFormat='{}{0:0.0}g'}" Foreground="#2ECC71" />
+                                        <Run Text="  |  " />
+                                        <Run Text="Fat: " /><Run Text="{Binding TotalFatG, StringFormat='{}{0:0.0}g'}" Foreground="#F39C12" />
+                                    </TextBlock>
 
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <StackPanel Spacing="4" Width="340">
-                    <TextBlock Text="Source" FontWeight="SemiBold" />
-                    <TextBox Text="{Binding Source}" PlaceholderText="e.g. Grandma's cookbook (optional)" />
-                </StackPanel>
-                <StackPanel Spacing="4" Width="340">
-                    <TextBlock Text="URL" FontWeight="SemiBold" />
-                    <TextBox Text="{Binding Url}" PlaceholderText="Link to the recipe online (optional)" />
-                </StackPanel>
-            </StackPanel>
-
-            <TextBlock Text="Images" FontWeight="SemiBold" Margin="0,8,0,0" />
-            <ItemsControl ItemsSource="{Binding Images}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:RecipeImageItem">
-                        <Grid Width="120" Height="120" Margin="0,0,8,8">
-                            <Image Source="{Binding FullPath, Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"
-                                   Stretch="UniformToFill" />
-                            <Button HorizontalAlignment="Right" VerticalAlignment="Top" Padding="4"
-                                    Background="#88000000" Margin="4"
-                                    Command="{Binding $parent[ItemsControl].((vm:RecipeEditViewModel)DataContext).RemoveImageCommand}"
-                                    CommandParameter="{Binding}">
-                                <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                                          Width="10" Height="10" Foreground="White" />
-                            </Button>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <Button Command="{Binding AddImageCommand}" HorizontalAlignment="Left">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="M9,3L7.17,5H4A2,2 0 0,0 2,7V19A2,2 0 0,0 4,21H20A2,2 0 0,0 22,19V7A2,2 0 0,0 20,5H16.83L15,3H9M12,18A5,5 0 0,1 7,13A5,5 0 0,1 12,8A5,5 0 0,1 17,13A5,5 0 0,1 12,18M12,10A3,3 0 0,0 9,13A3,3 0 0,0 12,16A3,3 0 0,0 15,13A3,3 0 0,0 12,10Z"
-                              Width="14" Height="14" />
-                    <TextBlock Text="Add Image" />
-                </StackPanel>
-            </Button>
-
-            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
-                <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent" />
-                <Button Content="Cancel" Command="{Binding CancelCommand}" />
-            </StackPanel>
-        </StackPanel>
+                                    <TextBlock FontSize="11"
+                                               IsVisible="{Binding Servings, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <Run Text="Per Serving: " FontWeight="SemiBold" />
+                                        <Run Text="{Binding PerServingCalories, StringFormat='{}{0:0} kcal'}" Foreground="#E74C3C" />
+                                        <Run Text="  |  " />
+                                        <Run Text="Protein: " /><Run Text="{Binding PerServingProteinG, StringFormat='{}{0:0.0}g'}" Foreground="#3498DB" />
+                                        <Run Text="  |  " />
+                                        <Run Text="Carbs: " /><Run Text="{Binding PerServingCarbsG, StringFormat='{}{0:0.0}g'}" Foreground="#2ECC71" />
+                                        <Run Text="  |  " />
+                                        <Run Text="Fat: " /><Run Text="{Binding PerServingFatG, StringFormat='{}{0:0.0}g'}" Foreground="#F39C12" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
     </ScrollViewer>
 </UserControl>

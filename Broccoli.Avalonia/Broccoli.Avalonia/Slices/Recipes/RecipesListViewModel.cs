@@ -35,27 +35,18 @@ public partial class RecipesListViewModel : ViewModelBase
         _seasonalityService = seasonalityService;
         _macroService = macroService;
         _importDialog = importDialog;
-        _listPage = new RecipeListPageViewModel(_recipeService, _parser, _seasonalityService)
+        _listPage = new RecipeListPageViewModel(_recipeService, _parser, _seasonalityService, _macroService)
         {
             AddRecipeRequested = ShowAdd,
             ImportRecipeRequested = ShowImport,
             RecipeSelected = ShowDetail
         };
-        LoadCardSettings();
         _listPage.Reload();
         _currentPage = _listPage;
     }
 
-    private void LoadCardSettings()
-    {
-        if (_macroService is null) return;
-        var settings = _macroService.GetSettings();
-        _listPage.LoadCardSettings(settings);
-    }
-
     private void ShowList()
     {
-        LoadCardSettings();
         _listPage.Reload();
         CurrentPage = _listPage;
     }

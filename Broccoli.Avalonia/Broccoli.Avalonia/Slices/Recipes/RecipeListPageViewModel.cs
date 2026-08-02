@@ -2,6 +2,7 @@ using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
+using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
@@ -13,6 +14,7 @@ public partial class RecipeListPageViewModel : ViewModelBase
     private readonly IRecipeService _recipeService;
     private readonly IngredientParserService? _parser;
     private readonly ISeasonalityService? _seasonalityService;
+    private readonly IMacroTargetService? _macroService;
 
     private List<Recipe> _allRecipes = [];
     private readonly List<RecipeCardViewModel> _allCards = [];
@@ -32,18 +34,22 @@ public partial class RecipeListPageViewModel : ViewModelBase
     public bool ShowNutrition { get; set; } = true;
 
     public RecipeListPageViewModel(IRecipeService recipeService)
-        : this(recipeService, null, null) { }
+        : this(recipeService, null, null, null) { }
 
     public RecipeListPageViewModel(IRecipeService recipeService,
-        IngredientParserService? parser, ISeasonalityService? seasonalityService)
+        IngredientParserService? parser, ISeasonalityService? seasonalityService,
+        IMacroTargetService? macroService = null)
     {
         _recipeService = recipeService;
         _parser = parser;
         _seasonalityService = seasonalityService;
+        _macroService = macroService;
     }
 
-    public void LoadCardSettings(MacroTargetSettings settings)
+    private void LoadCardSettings()
     {
+        if (_macroService is null) return;
+        var settings = _macroService.GetSettings();
         ShowImages = settings.ShowCardImage;
         ShowTags = settings.ShowCardTags;
         ShowSeasonality = settings.ShowCardSeasonality;
@@ -52,6 +58,7 @@ public partial class RecipeListPageViewModel : ViewModelBase
 
     public void Reload()
     {
+        LoadCardSettings();
         _allRecipes = [.. _recipeService.GetAll()];
         _allCards.Clear();
 

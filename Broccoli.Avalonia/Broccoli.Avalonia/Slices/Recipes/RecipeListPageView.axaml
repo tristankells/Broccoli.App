@@ -36,7 +36,7 @@
                     <DataTemplate x:DataType="vm:RecipeCardViewModel">
                         <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
                                 CornerRadius="6" Padding="0" ClipToBounds="True">
-                            <StackPanel>
+                            <StackPanel Height="180">
                                 <!-- Image with overlays -->
                                 <Panel IsVisible="{Binding HasImage}" Height="120">
                                     <Image Source="{Binding ImagePath, Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"

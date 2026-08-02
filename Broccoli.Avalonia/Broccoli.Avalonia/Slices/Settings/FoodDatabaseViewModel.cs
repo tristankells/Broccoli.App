@@ -138,7 +138,10 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportAsync()
     {
-        if (_fileService is null) return;
+        if (_fileService is null)
+        {
+            return;
+        }
         try
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
@@ -151,15 +154,24 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportAsync()
     {
-        if (_fileService is null) return;
+        if (_fileService is null)
+        {
+            return;
+        }
         try
         {
             string? json = await _fileService.ImportFoodsAsync();
-            if (string.IsNullOrWhiteSpace(json)) return;
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return;
+            }
 
             var incoming = JsonSerializer.Deserialize<List<Food>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            if (incoming == null || incoming.Count == 0) return;
+            if (incoming == null || incoming.Count == 0)
+            {
+                return;
+            }
 
             int added = 0, updated = 0;
             foreach (var food in incoming.Where(f => !string.IsNullOrWhiteSpace(f.Name)))
@@ -201,7 +213,10 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private async Task SearchUsdaAsync()
     {
-        if (_usdaService is not { IsAvailable: true } || string.IsNullOrWhiteSpace(UsdaQuery)) return;
+        if (_usdaService is not { IsAvailable: true } || string.IsNullOrWhiteSpace(UsdaQuery))
+        {
+            return;
+        }
         IsUsdaSearching = true;
         UsdaPage = 1;
         try
@@ -215,9 +230,15 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private async Task UsdaNextPageAsync()
     {
-        if (_usdaService is not { IsAvailable: true } || UsdaResult is null) return;
+        if (_usdaService is not { IsAvailable: true } || UsdaResult is null)
+        {
+            return;
+        }
         int nextPage = UsdaPage + 1;
-        if (nextPage > UsdaResult.TotalPages) return;
+        if (nextPage > UsdaResult.TotalPages)
+        {
+            return;
+        }
         IsUsdaSearching = true;
         try
         {
@@ -231,9 +252,15 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private async Task UsdaPrevPageAsync()
     {
-        if (_usdaService is not { IsAvailable: true } || UsdaResult is null) return;
+        if (_usdaService is not { IsAvailable: true } || UsdaResult is null)
+        {
+            return;
+        }
         int prevPage = UsdaPage - 1;
-        if (prevPage < 1) return;
+        if (prevPage < 1)
+        {
+            return;
+        }
         IsUsdaSearching = true;
         try
         {

@@ -1,3 +1,4 @@
+using System.Globalization;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -151,7 +152,7 @@ public partial class MacroTargetRowViewModel : ViewModelBase
     }
 
     private static string FormatCalc(double value) =>
-        value > 0 ? ((int)Math.Ceiling(value)).ToString("N0") : "—";
+        value > 0 ? ((int)Math.Ceiling(value)).ToString("N0", CultureInfo.InvariantCulture) : "—";
 
     partial void OnNameChanged(string value)            => NotifyChanged();
     partial void OnWeightDisplayChanged(double value)     => NotifyChanged();
@@ -188,6 +189,9 @@ public partial class MacroTargetRowViewModel : ViewModelBase
 
     private void NotifyChanged()
     {
-        if (!_suppressChanged) Changed?.Invoke(this);
+        if (!_suppressChanged)
+        {
+            Changed?.Invoke(this);
+        }
     }
 }

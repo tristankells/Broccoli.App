@@ -9,16 +9,17 @@ namespace Broccoli.Avalonia.Slices.Recipes;
 public partial class RecipeListPageViewModel : ViewModelBase
 {
     private readonly IRecipeService _recipeService;
-    private List<Recipe> _allRecipes;
+    private List<Recipe> _allRecipes = [];
 
     public Action? AddRecipeRequested { get; set; }
+    public Action? ImportRecipeRequested { get; set; }
 
     public Action<Recipe>? RecipeSelected { get; set; }
 
-    public ObservableCollection<Recipe> FilteredRecipes { get; set; }
+    public ObservableCollection<Recipe> FilteredRecipes { get; set; } = new();
 
     [ObservableProperty]
-    public partial string SearchText { get; set; }
+    public partial string SearchText { get; set; } = string.Empty;
 
     public RecipeListPageViewModel(IRecipeService recipeService)
     {
@@ -47,6 +48,9 @@ public partial class RecipeListPageViewModel : ViewModelBase
 
     [RelayCommand]
     private void AddRecipe() => AddRecipeRequested?.Invoke();
+
+    [RelayCommand]
+    private void ImportRecipe() => ImportRecipeRequested?.Invoke();
 
     [RelayCommand]
     private void SelectRecipe(Recipe recipe) => RecipeSelected?.Invoke(recipe);

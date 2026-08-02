@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <IsTestProject>true</IsTestProject>
         <RootNamespace>Broccoli.Avalonia.Tests</RootNamespace>
+        <NoWarn>$(NoWarn);CA2201;CA1510;CA1511;CA1512;CA1513</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

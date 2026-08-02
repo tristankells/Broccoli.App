@@ -101,7 +101,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             var conflicts = LoadConflicts();
             var didPushAnything = false;
 
-            didPushAnything |= await SyncTombstonesAsync(drive, recipesFolderId, mergedTombstones, result, cancellationToken);
+            didPushAnything |= await SyncTombstonesAsync(drive, recipesFolderId, mergedTombstones, cancellationToken);
             didPushAnything |= await SyncRecipesAsync(drive, recipesFolderId, mergedTombstones, sinceUtc, conflicts, result, cancellationToken);
             didPushAnything |= await SyncDatabaseAsync(drive, rootFolderId, sinceUtc, conflicts, result, cancellationToken);
 
@@ -249,7 +249,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     // ── Recipes ──────────────────────────────────────────────────────────────
 
-    private async Task<bool> SyncRecipesAsync(
+    private static async Task<bool> SyncRecipesAsync(
         DriveService drive, string recipesFolderId, TombstoneFile tombstones, DateTime sinceUtc,
         List<SyncConflict> conflicts, SyncResult result, CancellationToken ct)
     {
@@ -350,7 +350,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         return didPush;
     }
 
-    private async Task<bool> PushChangedRecipesOnlyAsync(
+    private static async Task<bool> PushChangedRecipesOnlyAsync(
         DriveService drive, string recipesFolderId, DateTime sinceUtc, SyncResult result, CancellationToken ct)
     {
         if (!Directory.Exists(AppPaths.RecipesFolder))
@@ -422,7 +422,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     // ── Database (whole-file unit) ──────────────────────────────────────────
 
-    private async Task<bool> SyncDatabaseAsync(
+    private static async Task<bool> SyncDatabaseAsync(
         DriveService drive, string rootFolderId, DateTime sinceUtc,
         List<SyncConflict> conflicts, SyncResult result, CancellationToken ct)
     {
@@ -486,7 +486,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         return true;
     }
 
-    private async Task<bool> PushDatabaseIfChangedAsync(
+    private static async Task<bool> PushDatabaseIfChangedAsync(
         DriveService drive, string rootFolderId, DateTime sinceUtc, SyncResult result, CancellationToken ct)
     {
         if (!File.Exists(AppPaths.DatabaseFilePath) || File.GetLastWriteTimeUtc(AppPaths.DatabaseFilePath) <= sinceUtc)
@@ -530,7 +530,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     // ── Tombstones ───────────────────────────────────────────────────────────
 
     private static async Task<bool> SyncTombstonesAsync(
-        DriveService drive, string recipesFolderId, TombstoneFile mergedTombstones, SyncResult result, CancellationToken ct)
+        DriveService drive, string recipesFolderId, TombstoneFile mergedTombstones, CancellationToken ct)
     {
         var remoteFolders = await DriveFileHelper.ListChildrenAsync(drive, recipesFolderId, ct);
         var remoteFoldersByName = remoteFolders.ToDictionary(f => f.Name);
@@ -579,7 +579,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     // ── Conflict bookkeeping ─────────────────────────────────────────────────
 
-    private void RemoveConflictAndCleanup(SyncConflict conflict)
+    private static void RemoveConflictAndCleanup(SyncConflict conflict)
     {
         var conflicts = LoadConflicts();
         conflicts.RemoveAll(c => c.ConflictCopyPath == conflict.ConflictCopyPath && c.Kind == conflict.Kind);

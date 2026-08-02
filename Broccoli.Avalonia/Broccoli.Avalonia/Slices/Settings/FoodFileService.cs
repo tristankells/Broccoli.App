@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 
@@ -9,7 +8,10 @@ public class FoodFileService : IFoodFileService
     public async Task ExportFoodsAsync(string filename, string jsonContent)
     {
         var storage = GetStorage();
-        if (storage is null) return;
+        if (storage is null)
+        {
+            return;
+        }
 
         var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
         {
@@ -22,7 +24,10 @@ public class FoodFileService : IFoodFileService
             }
         });
 
-        if (file is null) return;
+        if (file is null)
+        {
+            return;
+        }
 
         await using var stream = await file.OpenWriteAsync();
         await using var writer = new StreamWriter(stream);
@@ -32,7 +37,10 @@ public class FoodFileService : IFoodFileService
     public async Task<string?> ImportFoodsAsync()
     {
         var storage = GetStorage();
-        if (storage is null) return null;
+        if (storage is null)
+        {
+            return null;
+        }
 
         var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
         {
@@ -44,7 +52,10 @@ public class FoodFileService : IFoodFileService
             }
         });
 
-        if (files.Count == 0) return null;
+        if (files.Count == 0)
+        {
+            return null;
+        }
 
         await using var stream = await files[0].OpenReadAsync();
         using var reader = new StreamReader(stream);

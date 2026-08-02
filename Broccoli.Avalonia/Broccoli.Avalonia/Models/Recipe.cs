@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using YamlDotNet.Core.Tokens;
 
 namespace Broccoli.Avalonia.Models;
 
@@ -109,7 +108,7 @@ public class Recipe
         Ingredient
     }
 
-    internal record SearchWord(string Word, SearchWordType Type);
+    internal sealed record SearchWord(string Word, SearchWordType Type);
 
     internal void RecalculateSearchWords()
     {

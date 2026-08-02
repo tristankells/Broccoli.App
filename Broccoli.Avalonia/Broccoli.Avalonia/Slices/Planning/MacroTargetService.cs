@@ -52,7 +52,10 @@ public class MacroTargetService : IMacroTargetService
     {
         using var context = BroccoliDbContext.CreateForApp();
         var settings = context.MacroTargetSettings.Find(SettingsRowId);
-        if (settings is not null) return settings;
+        if (settings is not null)
+        {
+            return settings;
+        }
 
         return new MacroTargetSettings { Id = SettingsRowId };
     }

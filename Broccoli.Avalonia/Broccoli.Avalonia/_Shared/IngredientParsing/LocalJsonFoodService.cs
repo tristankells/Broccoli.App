@@ -9,7 +9,6 @@ namespace Broccoli.Avalonia.IngredientParsing;
 public class LocalJsonFoodService : IFoodService
 {
     private readonly Dictionary<string, Food> _foodByName;
-    private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     private static readonly HashSet<string> s_stopwords = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -146,7 +145,10 @@ public class LocalJsonFoodService : IFoodService
 
         foreach (Food candidate in _foodByName.Values)
         {
-            if (string.IsNullOrWhiteSpace(candidate.Name)) continue;
+            if (string.IsNullOrWhiteSpace(candidate.Name))
+            {
+                continue;
+            }
 
             HashSet<string> candidateTokens = Tokenise(candidate.Name.Replace(",", " "));
             candidateTokens.ExceptWith(s_stopwords);
@@ -156,7 +158,10 @@ public class LocalJsonFoodService : IFoodService
             {
                 bestScore = score;
                 bestFood  = candidate;
-                if (score >= 1.0) break;
+                if (score >= 1.0)
+                {
+                    break;
+                }
             }
         }
 
@@ -170,7 +175,10 @@ public class LocalJsonFoodService : IFoodService
 
         foreach (Food candidate in _foodByName.Values)
         {
-            if (string.IsNullOrWhiteSpace(candidate.Name)) continue;
+            if (string.IsNullOrWhiteSpace(candidate.Name))
+            {
+                continue;
+            }
 
             string target  = candidate.Name.ToLowerInvariant();
             int distance   = LevenshteinDistance(input, target);
@@ -194,14 +202,20 @@ public class LocalJsonFoodService : IFoodService
 
         foreach (Food candidate in _foodByName.Values)
         {
-            if (string.IsNullOrWhiteSpace(candidate.Name)) continue;
+            if (string.IsNullOrWhiteSpace(candidate.Name))
+            {
+                continue;
+            }
 
             int score = Fuzz.TokenSetRatio(input, candidate.Name.ToLowerInvariant());
             if (score > bestRaw)
             {
                 bestRaw  = score;
                 bestFood = candidate;
-                if (score == 100) break;
+                if (score == 100)
+                {
+                    break;
+                }
             }
         }
 
@@ -216,8 +230,14 @@ public class LocalJsonFoodService : IFoodService
 
     private static double JaccardSimilarity(HashSet<string> a, HashSet<string> b)
     {
-        if (a.Count == 0 && b.Count == 0) return 1.0;
-        if (a.Count == 0 || b.Count == 0) return 0.0;
+        if (a.Count == 0 && b.Count == 0)
+        {
+            return 1.0;
+        }
+        if (a.Count == 0 || b.Count == 0)
+        {
+            return 0.0;
+        }
 
         int intersection = a.Count(t => b.Contains(t));
         int union        = a.Count + b.Count - intersection;
@@ -226,14 +246,26 @@ public class LocalJsonFoodService : IFoodService
 
     private static int LevenshteinDistance(string source, string target)
     {
-        if (source == target) return 0;
-        if (source.Length == 0) return target.Length;
-        if (target.Length == 0) return source.Length;
+        if (source == target)
+        {
+            return 0;
+        }
+        if (source.Length == 0)
+        {
+            return target.Length;
+        }
+        if (target.Length == 0)
+        {
+            return source.Length;
+        }
 
         int[] prev = new int[target.Length + 1];
         int[] curr = new int[target.Length + 1];
 
-        for (int j = 0; j <= target.Length; j++) prev[j] = j;
+        for (int j = 0; j <= target.Length; j++)
+        {
+            prev[j] = j;
+        }
 
         for (int i = 1; i <= source.Length; i++)
         {

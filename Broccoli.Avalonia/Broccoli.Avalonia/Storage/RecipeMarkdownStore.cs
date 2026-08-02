@@ -233,7 +233,7 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
     }
 
     /// <summary>YAML-serializable subset of <see cref="Recipe"/> stored in the frontmatter block.</summary>
-    private class RecipeFrontmatter
+    private sealed class RecipeFrontmatter
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;

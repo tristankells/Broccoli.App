@@ -104,7 +104,10 @@ public partial class ImportDialogViewModel : ViewModelBase
     [RelayCommand]
     private async Task ParsePasteAsync()
     {
-        if (SelectedFormat is null || string.IsNullOrWhiteSpace(PasteContent)) return;
+        if (SelectedFormat is null || string.IsNullOrWhiteSpace(PasteContent))
+        {
+            return;
+        }
         IsBusy = true;
         ErrorMessage = null;
         try
@@ -127,7 +130,7 @@ public partial class ImportDialogViewModel : ViewModelBase
         {
             foreach (var r in Results.Where(r => r.IsSelected && r.Status == ImportStatus.ReadyToImport && r.Recipe is not null))
             {
-                try { _recipeService.Create(r.Recipe); r.SaveSuccess = true; }
+                try { _recipeService.Create(r.Recipe!); r.SaveSuccess = true; }
                 catch (Exception ex) { r.SaveSuccess = false; r.SaveError = ex.Message; }
             }
         }
@@ -149,7 +152,9 @@ public partial class ImportDialogViewModel : ViewModelBase
     {
         if (global::Avalonia.Application.Current?.ApplicationLifetime is
             global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
             return desktop.MainWindow?.StorageProvider;
+        }
         return null;
     }
 }

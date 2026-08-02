@@ -42,6 +42,7 @@ public partial class RecipesListViewModel : ViewModelBase
             RecipeSelected = ShowDetail
         };
         LoadCardSettings();
+        _listPage.Reload();
         _currentPage = _listPage;
     }
 

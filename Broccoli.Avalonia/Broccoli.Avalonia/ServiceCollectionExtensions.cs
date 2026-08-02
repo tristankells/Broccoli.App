@@ -58,6 +58,7 @@ public static class ServiceCollectionExtensions
         // read the stored Drive account - until the user actually opens the settings flyout.
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<FoodDatabaseViewModel>();
+        services.AddSingleton<RecipeSettingsViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
         services.AddSingleton(serviceProvider => new Lazy<SettingsViewModel>(() => serviceProvider.GetRequiredService<SettingsViewModel>()));
 

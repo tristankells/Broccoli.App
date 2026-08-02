@@ -30,6 +30,7 @@ public class ViewLocator : IDataTemplate
         [typeof(PantryViewModel)] = () => new PantryView(),
         [typeof(SettingsPageViewModel)] = () => new SettingsPageView(),
         [typeof(SettingsViewModel)] = () => new SettingsView(),
+        [typeof(RecipeSettingsViewModel)] = () => new RecipeSettingsView(),
         [typeof(FoodDatabaseViewModel)] = () => new FoodDatabaseView(),
     };
 

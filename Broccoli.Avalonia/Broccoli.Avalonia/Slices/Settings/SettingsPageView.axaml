@@ -16,6 +16,11 @@
                 <ContentControl Content="{Binding Sync}" />
             </ScrollViewer>
         </TabItem>
+        <TabItem Header="Recipes">
+            <ScrollViewer>
+                <ContentControl Content="{Binding RecipeSettings}" />
+            </ScrollViewer>
+        </TabItem>
         <TabItem Header="Food Database">
             <ScrollViewer>
                 <ContentControl Content="{Binding FoodDatabase}" />

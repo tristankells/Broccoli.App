@@ -27,6 +27,9 @@ riderModule.iml
 .DS_Store
 Thumbs.db
 
+# Deploy output
+publish/
+
 # App settings
 **/appsettings.Production.json
 **/appsettings.Development.json

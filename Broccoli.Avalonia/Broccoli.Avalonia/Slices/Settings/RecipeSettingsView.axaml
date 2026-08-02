@@ -3,37 +3,60 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Broccoli.Avalonia.Slices.Settings"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
              x:Class="Broccoli.Avalonia.Slices.Settings.RecipeSettingsView"
              x:DataType="vm:RecipeSettingsViewModel">
     <Design.DataContext>
         <vm:RecipeSettingsViewModel />
     </Design.DataContext>
 
-    <StackPanel Margin="16" Spacing="12" MaxWidth="500">
-        <TextBlock Text="Recipe Settings" FontWeight="Bold" FontSize="16" />
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16" MaxWidth="500">
+            <TextBlock Text="Recipe Settings" FontWeight="Bold" FontSize="16" />
 
-        <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
-            <StackPanel Spacing="8">
-                <TextBlock Text="Meal Macro Comparison" FontWeight="SemiBold" />
-
-                <CheckBox IsChecked="{Binding ComparisonEnabled}">
-                    <TextBlock Text="Show macro comparison on recipe pages" TextWrapping="Wrap" />
-                </CheckBox>
-
-                <StackPanel Spacing="4" IsVisible="{Binding ComparisonEnabled}">
-                    <TextBlock Text="Compare against" FontSize="12" Margin="0,4,0,0" />
-                    <ComboBox x:Name="TargetComboBox" SelectedIndex="{Binding SelectedTargetIndex}" Width="250" />
-                    <Button Content="Refresh profiles" Command="{Binding RefreshTargetsCommand}"
-                            FontSize="11" Padding="6,2" HorizontalAlignment="Left" />
+            <!-- Card Display -->
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Recipe Card Display" FontWeight="SemiBold" />
+                    <TextBlock Text="Choose what to show on recipe list cards." FontSize="11" Foreground="Gray" />
+                    <CheckBox IsChecked="{Binding ShowCardImage}">
+                        <TextBlock Text="Show image" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding ShowCardTags}">
+                        <TextBlock Text="Show tags" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding ShowCardSeasonality}">
+                        <TextBlock Text="Show seasonality badge" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding ShowCardNutrition}">
+                        <TextBlock Text="Show nutrition (per serving)" />
+                    </CheckBox>
                 </StackPanel>
+            </Border>
 
-                <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="Gray"
-                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            </StackPanel>
-        </Border>
+            <!-- Meal Comparison -->
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Meal Macro Comparison" FontWeight="SemiBold" />
 
-        <Button Content="Save Settings" Command="{Binding SaveCommand}" Classes="accent"
-                HorizontalAlignment="Left" Padding="12,6" />
-    </StackPanel>
+                    <CheckBox IsChecked="{Binding ComparisonEnabled}">
+                        <TextBlock Text="Show macro comparison on recipe pages" TextWrapping="Wrap" />
+                    </CheckBox>
+
+                    <StackPanel Spacing="4" IsVisible="{Binding ComparisonEnabled}">
+                        <TextBlock Text="Compare against" FontSize="12" />
+                        <ComboBox x:Name="TargetComboBox" SelectedIndex="{Binding SelectedTargetIndex}" Width="250" />
+                        <Button Content="Refresh profiles" Command="{Binding RefreshTargetsCommand}"
+                                FontSize="11" Padding="6,2" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="Gray"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <Button Content="Save Settings" Command="{Binding SaveCommand}" Classes="accent"
+                    HorizontalAlignment="Left" Padding="12,6" />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

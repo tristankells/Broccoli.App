@@ -1,13 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
-                xmlns:models="using:Broccoli.Avalonia.Models"
-                xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
-                mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeListPageView"
-                x:DataType="vm:RecipeListPageViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+             xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeListPageView"
+             x:DataType="vm:RecipeListPageViewModel">
 
     <DockPanel Margin="16">
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200,Auto,Auto" Margin="0,0,0,16">
@@ -24,9 +23,9 @@
         </Grid>
 
         <TextBlock DockPanel.Dock="Top"
-                    Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
-                    IsVisible="{Binding !FilteredRecipes.Count}"
-                    Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" />
+                   Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
+                   IsVisible="{Binding !FilteredRecipes.Count}"
+                   Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" />
 
         <ScrollViewer>
             <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
@@ -34,25 +33,57 @@
                     <UniformGridLayout MinItemWidth="220" MinColumnSpacing="12" MinRowSpacing="12" />
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="models:Recipe">
+                    <DataTemplate x:DataType="vm:RecipeCardViewModel">
                         <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                CornerRadius="6" Padding="12">
-                            <Button Background="Transparent" BorderThickness="0" Padding="0"
-                                    HorizontalContentAlignment="Stretch"
-                                    Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
-                                    CommandParameter="{Binding}">
-                                <StackPanel Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                        <PathIcon IsVisible="{Binding IsFavorite}"
-                                                  Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-                                                  Width="12" Height="12" Foreground="Goldenrod" />
+                                CornerRadius="6" Padding="0">
+                            <Grid RowDefinitions="120,Auto,Auto,Auto">
+                                <!-- Image -->
+                                <Image Grid.Row="0" Source="{Binding ImagePath, Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"
+                                       Stretch="UniformToFill" IsVisible="{Binding HasImage}" />
+
+                                <!-- Seasonality badge overlay -->
+                                <Border Grid.Row="0" CornerRadius="0,6,0,6" Padding="6,2"
+                                        Background="{Binding SeasonColor}" Opacity="0.85"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                                        IsVisible="{Binding HasSeasonality}">
+                                    <TextBlock Text="{Binding SeasonScore}" FontSize="10" Foreground="White"
+                                               FontWeight="Bold" />
+                                </Border>
+
+                                <!-- Favorite star overlay -->
+                                <PathIcon Grid.Row="0" IsVisible="{Binding IsFavorite}"
+                                          Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                                          Width="14" Height="14" Foreground="Goldenrod"
+                                          HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6" />
+
+                                <!-- Content area -->
+                                <Button Grid.Row="1" Grid.RowSpan="3" Background="Transparent"
+                                        BorderThickness="0" Padding="12,8" HorizontalContentAlignment="Stretch"
+                                        Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
+                                        CommandParameter="{Binding}">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
+                                                   TextWrapping="Wrap" />
+
+                                        <!-- Tags -->
+                                        <TextBlock Text="{Binding Tags}" Foreground="Gray" FontSize="10"
+                                                   TextWrapping="Wrap" IsVisible="{Binding HasTags}" />
+
+                                        <!-- Nutrition row -->
+                                        <StackPanel Orientation="Horizontal" Spacing="6"
+                                                    IsVisible="{Binding HasNutrition}">
+                                            <TextBlock Text="{Binding CaloriesText}" FontSize="10"
+                                                       Foreground="#E74C3C" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding ProteinText}" FontSize="10"
+                                                       Foreground="#3498DB" />
+                                            <TextBlock Text="{Binding CarbsText}" FontSize="10"
+                                                       Foreground="#2ECC71" />
+                                            <TextBlock Text="{Binding FatText}" FontSize="10"
+                                                       Foreground="#F39C12" />
+                                        </StackPanel>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding Tags, Converter={x:Static conv:StringJoinConverter.Instance}}"
-                                               Foreground="Gray" FontSize="11" TextWrapping="Wrap"
-                                               IsVisible="{Binding Tags.Count}" />
-                                </StackPanel>
-                            </Button>
+                                </Button>
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>

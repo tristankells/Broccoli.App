@@ -47,6 +47,18 @@ public class MacroTargetSettings
     [JsonPropertyName("recipeMealComparisonPersonId")]
     public string RecipeMealComparisonPersonId { get; set; } = string.Empty;
 
+    [JsonPropertyName("showCardImage")]
+    public bool ShowCardImage { get; set; } = true;
+
+    [JsonPropertyName("showCardTags")]
+    public bool ShowCardTags { get; set; } = true;
+
+    [JsonPropertyName("showCardSeasonality")]
+    public bool ShowCardSeasonality { get; set; } = true;
+
+    [JsonPropertyName("showCardNutrition")]
+    public bool ShowCardNutrition { get; set; } = true;
+
     [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

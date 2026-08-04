@@ -27,7 +27,10 @@ public class MacroCalculatorService
         target.Tdee  = Math.Ceiling(target.Bmr * ActivityMultipliers[target.ActivityLevel]);
 
         target.RecommendedCalories = Math.Ceiling(target.Tdee + target.GoalCalorieDelta);
-        if (target.RecommendedCalories < 0) target.RecommendedCalories = 0;
+        if (target.RecommendedCalories < 0)
+        {
+            target.RecommendedCalories = 0;
+        }
 
         CalculateMacros(target, weightKg, settings);
     }
@@ -35,7 +38,10 @@ public class MacroCalculatorService
     private static double CalculateBmr(
         GenderType gender, double weightKg, double heightCm, int age, BmrFormula formula)
     {
-        if (weightKg <= 0 || heightCm <= 0 || age <= 0) return 0;
+        if (weightKg <= 0 || heightCm <= 0 || age <= 0)
+        {
+            return 0;
+        }
 
         return formula switch
         {

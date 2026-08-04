@@ -50,8 +50,15 @@ public class PaprikaHtmlImportFormat : IImportFormat
             {
                 var label = b.TextContent.Trim().ToLowerInvariant();
                 var value = b.NextSibling?.TextContent.Trim();
-                if (label.Contains("serving") && int.TryParse(value, out var s)) servings = s;
-                if (label.Contains("cook") && int.TryParse(value, out var ct)) cookTime = ct;
+                if (label.Contains("serving") && int.TryParse(value, out var s))
+                {
+                    servings = s;
+                }
+
+                if (label.Contains("cook") && int.TryParse(value, out var ct))
+                {
+                    cookTime = ct;
+                }
             }
         }
 
@@ -72,8 +79,16 @@ public class PaprikaHtmlImportFormat : IImportFormat
 
     private static string GetPlainText(INode node)
     {
-        if (node is IText text) return text.TextContent;
-        if (node.NodeName.Equals("BR", StringComparison.OrdinalIgnoreCase)) return "\n";
+        if (node is IText text)
+        {
+            return text.TextContent;
+        }
+
+        if (node.NodeName.Equals("BR", StringComparison.OrdinalIgnoreCase))
+        {
+            return "\n";
+        }
+
         return string.Join("", node.ChildNodes.Select(GetPlainText));
     }
 }

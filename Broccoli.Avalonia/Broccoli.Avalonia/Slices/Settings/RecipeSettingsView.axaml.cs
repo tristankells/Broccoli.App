@@ -17,7 +17,9 @@ public partial class RecipeSettingsView : UserControl
             vm.PropertyChanged += (_, args) =>
             {
                 if (args.PropertyName == nameof(vm.AvailableTargets))
+                {
                     PopulateTargets(vm);
+                }
             };
             PopulateTargets(vm);
         }
@@ -27,6 +29,8 @@ public partial class RecipeSettingsView : UserControl
     {
         TargetComboBox.Items.Clear();
         foreach (var t in vm.AvailableTargets)
+        {
             TargetComboBox.Items.Add(new ComboBoxItem { Content = t.Name });
+        }
     }
 }

@@ -53,7 +53,10 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             var foods = _foodService.GetAll().OrderBy(f => f.Id).ToList();
             Foods.Clear();
-            foreach (var f in foods) Foods.Add(f);
+            foreach (var f in foods)
+            {
+                Foods.Add(f);
+            }
         }
         catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
     }
@@ -67,7 +70,11 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private void SaveNewFood()
     {
-        if (NewFood is null || string.IsNullOrWhiteSpace(NewFood.Name)) return;
+        if (NewFood is null || string.IsNullOrWhiteSpace(NewFood.Name))
+        {
+            return;
+        }
+
         try
         {
             var added = _foodService.Add(NewFood);
@@ -107,12 +114,20 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private void SaveEdit()
     {
-        if (EditingFood is null || string.IsNullOrWhiteSpace(EditingFood.Name)) return;
+        if (EditingFood is null || string.IsNullOrWhiteSpace(EditingFood.Name))
+        {
+            return;
+        }
+
         try
         {
             _foodService.Update(EditingFood);
             var idx = Foods.IndexOf(Foods.First(f => f.Id == EditingFood.Id));
-            if (idx >= 0) Foods[idx] = EditingFood;
+            if (idx >= 0)
+            {
+                Foods[idx] = EditingFood;
+            }
+
             EditingFood = null;
         }
         catch (Exception ex) { ErrorMessage = $"Failed to save: {ex.Message}"; }

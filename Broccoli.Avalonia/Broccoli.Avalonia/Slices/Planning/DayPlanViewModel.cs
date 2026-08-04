@@ -36,7 +36,10 @@ public partial class DayPlanViewModel : ViewModelBase
         {
             var plans = _planService.GetAll();
             Plans.Clear();
-            foreach (var p in plans) Plans.Add(p);
+            foreach (var p in plans)
+            {
+                Plans.Add(p);
+            }
         }
         catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
     }
@@ -85,7 +88,10 @@ public partial class DayPlanViewModel : ViewModelBase
         {
             _planService.Delete(plan.Id);
             Plans.Remove(plan);
-            if (SelectedPlan?.Id == plan.Id) SelectedPlan = null;
+            if (SelectedPlan?.Id == plan.Id)
+            {
+                SelectedPlan = null;
+            }
         }
         catch (Exception ex) { ErrorMessage = $"Failed to delete: {ex.Message}"; }
     }
@@ -93,7 +99,11 @@ public partial class DayPlanViewModel : ViewModelBase
     [RelayCommand]
     private void SavePlan()
     {
-        if (SelectedPlan is null) return;
+        if (SelectedPlan is null)
+        {
+            return;
+        }
+
         try { _planService.Update(SelectedPlan); }
         catch (Exception ex) { ErrorMessage = $"Failed to save: {ex.Message}"; }
     }
@@ -101,28 +111,44 @@ public partial class DayPlanViewModel : ViewModelBase
     [RelayCommand]
     private void AddTab()
     {
-        if (SelectedPlan is null) return;
+        if (SelectedPlan is null)
+        {
+            return;
+        }
+
         SelectedPlan.Tabs.Add(new DailyFoodPlanTab { Name = $"Day {SelectedPlan.Tabs.Count + 1}" });
     }
 
     [RelayCommand]
     private void DeleteTab(DailyFoodPlanTab tab)
     {
-        if (SelectedPlan is null) return;
+        if (SelectedPlan is null)
+        {
+            return;
+        }
+
         SelectedPlan.Tabs.Remove(tab);
     }
 
     [RelayCommand]
     private void AddFoodRow()
     {
-        if (SelectedPlan is null || SelectedPlan.Tabs.Count == 0) return;
+        if (SelectedPlan is null || SelectedPlan.Tabs.Count == 0)
+        {
+            return;
+        }
+
         SelectedPlan.Tabs[0].Rows.Add(new DailyFoodPlanRow());
     }
 
     [RelayCommand]
     private void AddHeader()
     {
-        if (SelectedPlan is null || SelectedPlan.Tabs.Count == 0) return;
+        if (SelectedPlan is null || SelectedPlan.Tabs.Count == 0)
+        {
+            return;
+        }
+
         SelectedPlan.Tabs[0].Rows.Add(new DailyFoodPlanRow
         {
             RowType = DailyFoodPlanRowType.Header,
@@ -133,15 +159,25 @@ public partial class DayPlanViewModel : ViewModelBase
     [RelayCommand]
     private void DeleteRow(DailyFoodPlanRow row)
     {
-        if (SelectedPlan is null) return;
+        if (SelectedPlan is null)
+        {
+            return;
+        }
+
         foreach (var tab in SelectedPlan.Tabs)
+        {
             tab.Rows.Remove(row);
+        }
     }
 
     [RelayCommand]
     private void MoveRowUp(DailyFoodPlanRow row)
     {
-        if (SelectedPlan is null) return;
+        if (SelectedPlan is null)
+        {
+            return;
+        }
+
         foreach (var tab in SelectedPlan.Tabs)
         {
             int idx = tab.Rows.IndexOf(row);
@@ -152,7 +188,11 @@ public partial class DayPlanViewModel : ViewModelBase
     [RelayCommand]
     private void MoveRowDown(DailyFoodPlanRow row)
     {
-        if (SelectedPlan is null) return;
+        if (SelectedPlan is null)
+        {
+            return;
+        }
+
         foreach (var tab in SelectedPlan.Tabs)
         {
             int idx = tab.Rows.IndexOf(row);

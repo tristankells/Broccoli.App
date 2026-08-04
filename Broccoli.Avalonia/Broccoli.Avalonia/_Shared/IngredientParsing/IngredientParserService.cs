@@ -49,12 +49,17 @@ public class IngredientParserService(IFoodService foodService)
         var results = new List<ParsedIngredientMatch>();
 
         if (string.IsNullOrWhiteSpace(ingredientLines))
+        {
             return results;
+        }
 
         foreach (string rawLine in SplitLines(ingredientLines))
         {
             ParsedIngredient? parsed = ParseIngredient(rawLine);
-            if (parsed == null) continue;
+            if (parsed == null)
+            {
+                continue;
+            }
 
             FoodMatchResult match = foodService.FindBestMatch(parsed.FoodDescription);
 
@@ -95,14 +100,26 @@ public class IngredientParserService(IFoodService foodService)
 
     private static ParsedIngredient? ParseIngredient(string line)
     {
-        if (string.IsNullOrWhiteSpace(line)) return null;
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return null;
+        }
 
-        if (line.TrimStart().StartsWith('#')) return null;
+        if (line.TrimStart().StartsWith('#'))
+        {
+            return null;
+        }
 
-        if (Regex.IsMatch(line.Trim(), @"^[\d\s./]+$")) return null;
+        if (Regex.IsMatch(line.Trim(), @"^[\d\s./]+$"))
+        {
+            return null;
+        }
 
         string cleaned = Regex.Replace(line.Trim(), @",\s*.+$", "").Trim();
-        if (string.IsNullOrWhiteSpace(cleaned)) return null;
+        if (string.IsNullOrWhiteSpace(cleaned))
+        {
+            return null;
+        }
 
         Match m = s_ingredientPattern.Match(cleaned);
 
@@ -117,7 +134,9 @@ public class IngredientParserService(IFoodService foodService)
             foodDescription = m.Groups["food"].Value.Trim();
 
             if (!string.IsNullOrWhiteSpace(qtyGroup))
+            {
                 quantity = ParseQuantity(qtyGroup);
+            }
 
             if (string.IsNullOrWhiteSpace(foodDescription) && !string.IsNullOrWhiteSpace(unitRaw))
             {
@@ -126,14 +145,19 @@ public class IngredientParserService(IFoodService foodService)
             }
 
             if (string.IsNullOrWhiteSpace(foodDescription))
+            {
                 foodDescription = cleaned;
+            }
         }
         else
         {
             foodDescription = cleaned;
         }
 
-        if (string.IsNullOrWhiteSpace(foodDescription)) return null;
+        if (string.IsNullOrWhiteSpace(foodDescription))
+        {
+            return null;
+        }
 
         string canonicalUnit = s_unitNormalizationMap.TryGetValue(unitRaw, out string? mapped)
             ? mapped

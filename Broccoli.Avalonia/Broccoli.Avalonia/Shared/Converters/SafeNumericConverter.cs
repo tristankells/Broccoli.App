@@ -15,7 +15,10 @@ public class SafeDoubleConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is string s && double.TryParse(s, NumberStyles.Any, culture, out var d))
+        {
             return d;
+        }
+
         return 0d;
     }
 }
@@ -32,7 +35,10 @@ public class SafeIntConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is string s && int.TryParse(s, NumberStyles.Any, culture, out var i))
+        {
             return i;
+        }
+
         return 0;
     }
 }

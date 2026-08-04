@@ -34,7 +34,10 @@ public partial class MealPrepViewModel : ViewModelBase
         {
             var plans = _planService.GetAll();
             Plans.Clear();
-            foreach (var p in plans) Plans.Add(p);
+            foreach (var p in plans)
+            {
+                Plans.Add(p);
+            }
         }
         catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
     }
@@ -82,9 +85,13 @@ public partial class MealPrepViewModel : ViewModelBase
     private void ToggleRecipe(PlanRecipeArg arg)
     {
         if (arg.IsSelected)
+        {
             arg.Plan.RecipeIds.Add(arg.Recipe.Id);
+        }
         else
+        {
             arg.Plan.RecipeIds.Remove(arg.Recipe.Id);
+        }
     }
 }
 

@@ -45,7 +45,9 @@ public partial class GroceriesViewModel : ViewModelBase
             var items = _groceryListService.GetAll();
             Items.Clear();
             foreach (var item in items)
+            {
                 Items.Add(item);
+            }
         }
         catch (Exception ex)
         {
@@ -62,7 +64,10 @@ public partial class GroceriesViewModel : ViewModelBase
     private void AddItem()
     {
         var name = NewItemText.Trim();
-        if (string.IsNullOrWhiteSpace(name)) return;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
 
         ErrorMessage = null;
 

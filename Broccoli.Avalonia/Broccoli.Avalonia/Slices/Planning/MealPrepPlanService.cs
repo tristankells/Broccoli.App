@@ -54,7 +54,10 @@ public class MealPrepPlanService : IMealPrepPlanService
         for (int i = 0; i < orderedPlanIds.Count; i++)
         {
             var plan = plans.FirstOrDefault(p => p.Id == orderedPlanIds[i]);
-            if (plan is not null) plan.SortOrder = i;
+            if (plan is not null)
+            {
+                plan.SortOrder = i;
+            }
         }
         context.SaveChanges();
     }

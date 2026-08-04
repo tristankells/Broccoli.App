@@ -15,7 +15,9 @@ public class MarkdownToPlainTextConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not string text || string.IsNullOrWhiteSpace(text))
+        {
             return null;
+        }
 
         try
         {

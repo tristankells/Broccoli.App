@@ -56,16 +56,30 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         var matched = new List<(ProduceItem Produce, double Grams)>();
         foreach (var m in matches)
         {
-            if (!m.IsMatched || m.MatchedFood is null) continue;
+            if (!m.IsMatched || m.MatchedFood is null)
+            {
+                continue;
+            }
+
             double grams = m.GetWeightInGrams();
-            if (grams < MinGrams) continue;
+            if (grams < MinGrams)
+            {
+                continue;
+            }
+
             var produce = LookupProduce(m.MatchedFood.Name);
-            if (produce is null) continue;
+            if (produce is null)
+            {
+                continue;
+            }
+
             matched.Add((produce, grams));
         }
 
         if (matched.Count == 0)
+        {
             return new SeasonalityResult { Score = null, Label = SeasonalityLabel.Unavailable, Breakdown = new List<IngredientSeasonalityDetail>(), BestSeasons = string.Empty };
+        }
 
         var (breakdown, totalWeighted, totalPossible) = ComputeForSeason(matched, season);
 
@@ -99,14 +113,20 @@ public class LocalJsonSeasonalityService : ISeasonalityService
 
     private string ComputeBestSeasons(List<(ProduceItem Produce, double Grams)> matched)
     {
-        if (matched.Count == 0) return string.Empty;
+        if (matched.Count == 0)
+        {
+            return string.Empty;
+        }
 
         var seasonScores = SeasonHelper.AllSeasons
             .Select(s => { var (_, tw, tp) = ComputeForSeason(matched, s); return (Season: s, Score: tp > 0 ? (tw / tp) * 100.0 : 0.0); })
             .OrderByDescending(x => x.Score).ToList();
 
         double topScore = seasonScores[0].Score;
-        if (topScore <= 0) return string.Empty;
+        if (topScore <= 0)
+        {
+            return string.Empty;
+        }
 
         var best = seasonScores.Where(x => x.Score >= topScore - 10.0).Select(x => x.Season).ToList();
         return best.Count == 1 ? $"Best in {best[0]}" : $"Best in {string.Join(", ", best.Take(best.Count - 1))} and {best.Last()}";
@@ -115,7 +135,10 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     private ProduceItem? LookupProduce(string foodName)
     {
         string key = NormaliseName(foodName);
-        if (_produceByNormalisedName.TryGetValue(key, out var exact)) return exact;
+        if (_produceByNormalisedName.TryGetValue(key, out var exact))
+        {
+            return exact;
+        }
 
         ProduceItem? best = null;
         int bestLen = int.MaxValue;
@@ -130,7 +153,11 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     private static Dictionary<string, ProduceItem> BuildLookup(IEnumerable<ProduceItem> items)
     {
         var dict = new Dictionary<string, ProduceItem>(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in items) dict.TryAdd(NormaliseName(item.Name), item);
+        foreach (var item in items)
+        {
+            dict.TryAdd(NormaliseName(item.Name), item);
+        }
+
         return dict;
     }
 
@@ -138,12 +165,22 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     {
         string result = name.ToLowerInvariant();
         int comma = result.IndexOf(',');
-        if (comma >= 0) result = result[..comma];
+        if (comma >= 0)
+        {
+            result = result[..comma];
+        }
+
         var tokens = result.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => !s_stopwords.Contains(t)).ToList();
         for (int i = 0; i < tokens.Count; i++)
         {
-            if (s_pluralFixes.TryGetValue(tokens[i], out var singular)) tokens[i] = singular;
-            else if (tokens[i].EndsWith('s') && tokens[i].Length >= 4) tokens[i] = tokens[i][..^1];
+            if (s_pluralFixes.TryGetValue(tokens[i], out var singular))
+            {
+                tokens[i] = singular;
+            }
+            else if (tokens[i].EndsWith('s') && tokens[i].Length >= 4)
+            {
+                tokens[i] = tokens[i][..^1];
+            }
         }
         return string.Join(" ", tokens).Trim();
     }

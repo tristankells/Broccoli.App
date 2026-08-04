@@ -193,7 +193,10 @@ public partial class MacroTargetsViewModel : ViewModelBase
     [RelayCommand]
     private void SaveSettings()
     {
-        if (!DraftCanSave) return;
+        if (!DraftCanSave)
+        {
+            return;
+        }
 
         ErrorMessage = null;
 

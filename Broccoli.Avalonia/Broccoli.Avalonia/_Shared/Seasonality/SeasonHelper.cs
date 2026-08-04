@@ -17,7 +17,11 @@ public static class SeasonHelper
 
     public static double GetScarcityWeight(ProduceItem item)
     {
-        if (item.YearRound) return 0.25;
+        if (item.YearRound)
+        {
+            return 0.25;
+        }
+
         return item.Seasons.Count switch
         {
             1 => 1.00,

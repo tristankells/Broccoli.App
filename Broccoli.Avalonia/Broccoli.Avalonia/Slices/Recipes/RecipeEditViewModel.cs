@@ -120,16 +120,25 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     private void LoadMacroComparison()
     {
-        if (_macroService is null) return;
+        if (_macroService is null)
+        {
+            return;
+        }
+
         try
         {
             var settings = _macroService.GetSettings();
             if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
+            {
                 return;
+            }
 
             var targets = _macroService.GetAll();
             var chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
-            if (chosen is null) return;
+            if (chosen is null)
+            {
+                return;
+            }
 
             IsComparisonEnabled = true;
             ComparisonPersonName = chosen.Name;
@@ -214,7 +223,9 @@ public partial class RecipeEditViewModel : ViewModelBase
     {
         Images.Clear();
         foreach (var image in recipe.Images)
+        {
             Images.Add(new RecipeImageItem(image, _recipeService.GetImagePath(recipe.Id, image)));
+        }
     }
 
     [RelayCommand] private void Cancel() => Cancelled?.Invoke();
@@ -222,9 +233,17 @@ public partial class RecipeEditViewModel : ViewModelBase
     [RelayCommand]
     private async Task AddImage()
     {
-        if (PickImageFileAsync is null) return;
+        if (PickImageFileAsync is null)
+        {
+            return;
+        }
+
         var path = await PickImageFileAsync();
-        if (string.IsNullOrWhiteSpace(path)) return;
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
         var recipe = SaveCore();
         recipe = _recipeService.AddImage(recipe, path);
         RefreshImages(recipe);
@@ -265,7 +284,10 @@ public partial class RecipeEditViewModel : ViewModelBase
         _recipe.Tags = TagsText.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 
         if (!_persisted) { _recipe = _recipeService.Create(_recipe); _persisted = true; }
-        else _recipe = _recipeService.Update(_recipe);
+        else
+        {
+            _recipe = _recipeService.Update(_recipe);
+        }
 
         return _recipe;
     }

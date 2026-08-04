@@ -12,7 +12,9 @@ public class RecipeImportService
         {
             var recipe = await format.ParseAsync(content);
             if (existingRecipeNames.Contains(recipe.Name, StringComparer.OrdinalIgnoreCase))
+            {
                 result.Status = ImportStatus.Duplicate;
+            }
             else
             {
                 result.Recipe = recipe;
@@ -34,7 +36,10 @@ public class RecipeImportService
     {
         var results = new List<ImportRecipeResult>();
         foreach (var (fileName, content) in files)
+        {
             results.Add(await ParseFileAsync(format, fileName, content, existingRecipeNames));
+        }
+
         return results;
     }
 }

@@ -50,17 +50,47 @@ public class ParsedIngredientMatch
 
     private static string NormalizeFoodMeasure(string? measure)
     {
-        if (string.IsNullOrWhiteSpace(measure)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(measure))
+        {
+            return string.Empty;
+        }
+
         string lower = measure.ToLowerInvariant().Trim();
 
-        if (s_measureNormalizationMap.TryGetValue(lower, out string? exact)) return exact;
+        if (s_measureNormalizationMap.TryGetValue(lower, out string? exact))
+        {
+            return exact;
+        }
 
-        if (lower.StartsWith("tablespoon")) return "tbsp";
-        if (lower.StartsWith("teaspoon"))   return "tsp";
-        if (lower.StartsWith("cup"))        return "cup";
-        if (lower.Contains("medium"))       return "medium";
-        if (lower.Contains("large"))        return "large";
-        if (lower.Contains("small"))        return "small";
+        if (lower.StartsWith("tablespoon"))
+        {
+            return "tbsp";
+        }
+
+        if (lower.StartsWith("teaspoon"))
+        {
+            return "tsp";
+        }
+
+        if (lower.StartsWith("cup"))
+        {
+            return "cup";
+        }
+
+        if (lower.Contains("medium"))
+        {
+            return "medium";
+        }
+
+        if (lower.Contains("large"))
+        {
+            return "large";
+        }
+
+        if (lower.Contains("small"))
+        {
+            return "small";
+        }
 
         return lower;
     }
@@ -68,10 +98,14 @@ public class ParsedIngredientMatch
     private static double? GetUnitConversionRatio(string parsedUnit, string foodMeasureUnit)
     {
         if (string.IsNullOrEmpty(parsedUnit) || string.IsNullOrEmpty(foodMeasureUnit))
+        {
             return null;
+        }
 
         if (string.Equals(parsedUnit, foodMeasureUnit, StringComparison.OrdinalIgnoreCase))
+        {
             return 1.0;
+        }
 
         return (parsedUnit, foodMeasureUnit) switch
         {
@@ -92,30 +126,74 @@ public class ParsedIngredientMatch
     public double GetWeightInGrams()
     {
         if (!IsMatched || MatchedFood == null)
+        {
             return 0;
+        }
 
         string unit = ParsedIngredient.Unit?.ToLowerInvariant() ?? string.Empty;
         double qty  = ParsedIngredient.Quantity;
 
-        if (unit == "g")  return qty;
-        if (unit == "kg") return qty * 1000;
-        if (unit == "oz") return qty * 28.35;
-        if (unit == "lb") return qty * 453.59;
+        if (unit == "g")
+        {
+            return qty;
+        }
+
+        if (unit == "kg")
+        {
+            return qty * 1000;
+        }
+
+        if (unit == "oz")
+        {
+            return qty * 28.35;
+        }
+
+        if (unit == "lb")
+        {
+            return qty * 453.59;
+        }
 
         string foodMeasureUnit = NormalizeFoodMeasure(MatchedFood.Measure);
         double? ratio = GetUnitConversionRatio(unit, foodMeasureUnit);
         if (ratio.HasValue)
+        {
             return qty * ratio.Value * MatchedFood.GramsPerMeasure;
+        }
 
-        if (unit == "ml") return qty;
-        if (unit == "l")  return qty * 1000;
+        if (unit == "ml")
+        {
+            return qty;
+        }
 
-        if (unit == "tsp")  return qty * 5;
-        if (unit == "tbsp") return qty * 15;
-        if (unit == "cup")  return qty * 240;
+        if (unit == "l")
+        {
+            return qty * 1000;
+        }
 
-        if (unit == "drizzle") return MatchedFood.GramsPerMeasure;
-        if (unit == "pinch")   return 1.5;
+        if (unit == "tsp")
+        {
+            return qty * 5;
+        }
+
+        if (unit == "tbsp")
+        {
+            return qty * 15;
+        }
+
+        if (unit == "cup")
+        {
+            return qty * 240;
+        }
+
+        if (unit == "drizzle")
+        {
+            return MatchedFood.GramsPerMeasure;
+        }
+
+        if (unit == "pinch")
+        {
+            return 1.5;
+        }
 
         return qty * MatchedFood.GramsPerMeasure;
     }
@@ -123,21 +201,29 @@ public class ParsedIngredientMatch
     public string GetQuantityDisplay()
     {
         if (!IsMatched || MatchedFood == null)
+        {
             return "-";
+        }
 
         double grams    = GetWeightInGrams();
         string unit     = ParsedIngredient.Unit?.ToLowerInvariant() ?? string.Empty;
         string gramsStr = $"{grams:F1} g";
 
         if (unit == "g" || string.IsNullOrEmpty(unit))
+        {
             return gramsStr;
+        }
 
         return $"{gramsStr} ({ParsedIngredient.Quantity:F1} {ParsedIngredient.Unit})";
     }
 
     public double CalculateNutrient(Func<double, double> nutrientPer100gCalculator)
     {
-        if (!IsMatched || MatchedFood == null) return 0;
+        if (!IsMatched || MatchedFood == null)
+        {
+            return 0;
+        }
+
         double gramsTotal = GetWeightInGrams();
         return (gramsTotal / 100.0) * nutrientPer100gCalculator(gramsTotal);
     }

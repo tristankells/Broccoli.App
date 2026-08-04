@@ -40,7 +40,10 @@ public partial class PantryViewModel : ViewModelBase
         {
             var items = _pantryService.GetAll();
             Items.Clear();
-            foreach (var i in items) Items.Add(i);
+            foreach (var i in items)
+            {
+                Items.Add(i);
+            }
         }
         catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
         RefreshCollections();
@@ -50,7 +53,11 @@ public partial class PantryViewModel : ViewModelBase
     private void AddItem()
     {
         var name = NewItemName.Trim();
-        if (string.IsNullOrWhiteSpace(name)) return;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
         ErrorMessage = null;
         try
         {
@@ -73,7 +80,11 @@ public partial class PantryViewModel : ViewModelBase
     [RelayCommand]
     private void SaveEdit(PantryItem item)
     {
-        if (string.IsNullOrWhiteSpace(EditingName)) return;
+        if (string.IsNullOrWhiteSpace(EditingName))
+        {
+            return;
+        }
+
         item.Name = EditingName.Trim();
         EditingItemId = null;
         try { _pantryService.Update(item); }

@@ -55,7 +55,11 @@ public partial class RecipesListViewModel : ViewModelBase
 
     private void ShowImport()
     {
-        if (_importDialog is null) return;
+        if (_importDialog is null)
+        {
+            return;
+        }
+
         var existingNames = _recipeService.GetAll().Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         _importDialog.Closed = ShowList;
         _importDialog.Open(existingNames);

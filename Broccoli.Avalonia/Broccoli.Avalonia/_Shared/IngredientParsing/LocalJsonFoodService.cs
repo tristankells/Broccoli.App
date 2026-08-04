@@ -38,7 +38,10 @@ public class LocalJsonFoodService : IFoodService
                 PropertyNameCaseInsensitive = true
             });
 
-            if (foods == null) return;
+            if (foods == null)
+            {
+                return;
+            }
 
             foreach (Food food in foods.Where(f => !string.IsNullOrWhiteSpace(f.Name)))
             {
@@ -104,7 +107,10 @@ public class LocalJsonFoodService : IFoodService
     public void Delete(int id)
     {
         var food = _foodByName.Values.FirstOrDefault(f => f.Id == id);
-        if (food != null) _foodByName.Remove(food.Name);
+        if (food != null)
+        {
+            _foodByName.Remove(food.Name);
+        }
     }
 
     public FoodMatchResult FindBestMatch(string foodDescription)
@@ -122,13 +128,22 @@ public class LocalJsonFoodService : IFoodService
         }
 
         FoodMatchResult tokenResult = ScoreByTokens(query);
-        if (tokenResult.Score >= TokenThreshold) return tokenResult;
+        if (tokenResult.Score >= TokenThreshold)
+        {
+            return tokenResult;
+        }
 
         FoodMatchResult fuzzyResult = ScoreByLevenshtein(query);
-        if (fuzzyResult.Score >= FuzzyThreshold) return fuzzyResult;
+        if (fuzzyResult.Score >= FuzzyThreshold)
+        {
+            return fuzzyResult;
+        }
 
         FoodMatchResult fuzzySharpResult = ScoreByFuzzySharp(query);
-        if (fuzzySharpResult.Score * 100 >= FuzzySharpThreshold) return fuzzySharpResult;
+        if (fuzzySharpResult.Score * 100 >= FuzzySharpThreshold)
+        {
+            return fuzzySharpResult;
+        }
 
         FoodMatchResult best = tokenResult.Score >= fuzzyResult.Score ? tokenResult : fuzzyResult;
         best = best.Score >= fuzzySharpResult.Score ? best : fuzzySharpResult;

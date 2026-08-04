@@ -88,23 +88,35 @@ public partial class RecipeDetailViewModel : ViewModelBase
         _macroService = macroService;
         _recipe = recipe;
         foreach (var image in recipe.Images)
+        {
             ImagePaths.Add(recipeService.GetImagePath(recipe.Id, image));
+        }
+
         ParseIngredients();
         LoadMacroComparison();
     }
 
     private void LoadMacroComparison()
     {
-        if (_macroService is null) return;
+        if (_macroService is null)
+        {
+            return;
+        }
+
         try
         {
             var settings = _macroService.GetSettings();
             if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
+            {
                 return;
+            }
 
             var targets = _macroService.GetAll();
             var chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
-            if (chosen is null) return;
+            if (chosen is null)
+            {
+                return;
+            }
 
             IsComparisonEnabled = true;
             ComparisonPersonName = chosen.Name;
@@ -119,7 +131,11 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     private void ParseIngredients()
     {
-        if (_parser is null || string.IsNullOrWhiteSpace(Recipe.Ingredients)) return;
+        if (_parser is null || string.IsNullOrWhiteSpace(Recipe.Ingredients))
+        {
+            return;
+        }
+
         var matches = _parser.ParseAndMatchIngredients(Recipe.Ingredients);
 
         double cal = 0, pro = 0, carb = 0, fat = 0;
@@ -145,7 +161,11 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     private void ScoreSeasonality(List<ParsedIngredientMatch> matches)
     {
-        if (_seasonalityService is null) return;
+        if (_seasonalityService is null)
+        {
+            return;
+        }
+
         Seasonality = _seasonalityService.Score(matches);
         OnPropertyChanged(nameof(Seasonality));
         OnPropertyChanged(nameof(HasSeasonality));

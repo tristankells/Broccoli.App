@@ -27,7 +27,10 @@ public class BargainBoxPasteImportFormat : IImportFormat
         if (servingsIdx >= 0 && servingsIdx + 1 < lines.Count)
         {
             var nextLine = lines[servingsIdx + 1];
-            if (int.TryParse(nextLine, out var s)) servings = s;
+            if (int.TryParse(nextLine, out var s))
+            {
+                servings = s;
+            }
         }
 
         int directionsStart = -1;
@@ -53,24 +56,42 @@ public class BargainBoxPasteImportFormat : IImportFormat
 
             if (line.Contains("Contains ", StringComparison.OrdinalIgnoreCase) ||
                 line.Contains("May contain ", StringComparison.OrdinalIgnoreCase))
+            {
                 continue;
+            }
         }
 
         for (int i = 0; i < lines.Count; i++)
         {
-            if (i == directionsStart) break;
+            if (i == directionsStart)
+            {
+                break;
+            }
+
             var line = lines[i];
-            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+            {
+                continue;
+            }
+
             if (line.StartsWith("Serving size", StringComparison.OrdinalIgnoreCase)) { i++; continue; }
             if (int.TryParse(line, out _) && i + 1 < lines.Count && lines[i + 1].All(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
+            {
                 break;
+            }
 
             line = Regex.Replace(line, @"\s*\(Contains [^)]+\)", "");
             line = line.Replace("Contains ", "").Replace("May contain ", "");
-            if (line.Contains('^')) line = line.Replace("^", "");
+            if (line.Contains('^'))
+            {
+                line = line.Replace("^", "");
+            }
+
             line = line.Replace("\\s+", " ").Trim();
             if (!string.IsNullOrEmpty(line))
+            {
                 ingredients.Add(line);
+            }
         }
 
         if (directionsStart >= 0)
@@ -90,7 +111,9 @@ public class BargainBoxPasteImportFormat : IImportFormat
                     sectionTitle = null;
                 }
                 if (!string.IsNullOrWhiteSpace(line))
+                {
                     directions.Add(line);
+                }
             }
         }
 

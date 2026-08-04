@@ -63,7 +63,11 @@ public partial class ImportDialogViewModel : ViewModelBase
     [RelayCommand]
     private async Task PickFilesAsync()
     {
-        if (SelectedFormat is null) return;
+        if (SelectedFormat is null)
+        {
+            return;
+        }
+
         IsBusy = true;
         ErrorMessage = null;
         try
@@ -93,7 +97,11 @@ public partial class ImportDialogViewModel : ViewModelBase
             {
                 Results.Clear();
                 var results = await _importService.ParseFilesAsync(SelectedFormat, files, _existingNames);
-                foreach (var r in results) Results.Add(r);
+                foreach (var r in results)
+                {
+                    Results.Add(r);
+                }
+
                 ShowPreview = true;
             }
         }

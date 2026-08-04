@@ -32,7 +32,10 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
         response.EnsureSuccessStatusCode();
 
         var raw = await response.Content.ReadFromJsonAsync<FdcSearchResponse>(s_jsonOpts);
-        if (raw == null) return new UsdaSearchResult();
+        if (raw == null)
+        {
+            return new UsdaSearchResult();
+        }
 
         return new UsdaSearchResult
         {

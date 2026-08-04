@@ -30,7 +30,9 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         set
         {
             if (value >= 0 && value < AvailableTargets.Count)
+            {
                 ComparisonPersonId = AvailableTargets[value].Id;
+            }
         }
     }
 

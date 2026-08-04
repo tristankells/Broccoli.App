@@ -38,7 +38,10 @@ public class IngredientCartService(
             .Where(l => !string.IsNullOrWhiteSpace(l))
             .ToList();
 
-        if (lines.Count == 0) return;
+        if (lines.Count == 0)
+        {
+            return;
+        }
 
         var newMatches = parser.ParseAndMatchIngredients(string.Join("\n", lines));
         newMatches = DeduplicateUnmatched(newMatches)
@@ -81,10 +84,14 @@ public class IngredientCartService(
         }
 
         foreach (var item in toUpdate)
+        {
             groceryListService.Update(item);
+        }
 
         if (toAdd.Count > 0)
+        {
             groceryListService.AddMultiple(toAdd);
+        }
     }
 
     private static List<ParsedIngredientMatch> DeduplicateUnmatched(List<ParsedIngredientMatch> matches)
@@ -128,15 +135,27 @@ public class IngredientCartService(
 
         foreach (var item in existingItems)
         {
-            if (item.IsChecked) continue;
-            if (claimedIds.Contains(item.Id)) continue;
+            if (item.IsChecked)
+            {
+                continue;
+            }
+
+            if (claimedIds.Contains(item.Id))
+            {
+                continue;
+            }
 
             if (!item.Name.Contains(newFood, StringComparison.OrdinalIgnoreCase))
+            {
                 continue;
+            }
 
             var parsed = parser.ParseAndMatchIngredients(item.Name);
             var existingMatch = parsed.FirstOrDefault();
-            if (existingMatch is null) continue;
+            if (existingMatch is null)
+            {
+                continue;
+            }
 
             string existingFood = NormalizeFood(existingMatch.IsMatched
                 ? existingMatch.MatchedFood!.Name
@@ -148,15 +167,22 @@ public class IngredientCartService(
                 ? newMatch.MatchedFood!.Id == existingMatch.MatchedFood!.Id
                 : newFood == existingFood;
 
-            if (!sameFood) continue;
+            if (!sameFood)
+            {
+                continue;
+            }
 
             if (newUnit == existingUnit)
+            {
                 return (item, existingMatch.ParsedIngredient.Quantity, newUnit);
+            }
 
             double existingGrams = existingMatch.GetWeightInGrams();
             double newGrams      = newMatch.GetWeightInGrams();
             if (existingGrams > 0 && newGrams > 0)
+            {
                 return (item, existingGrams, "g");
+            }
         }
 
         return (null, 0, newUnit);
@@ -166,7 +192,10 @@ public class IngredientCartService(
     {
         string qtyStr = qty.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
 
-        if (string.IsNullOrEmpty(unit)) return $"{qtyStr} {food}";
+        if (string.IsNullOrEmpty(unit))
+        {
+            return $"{qtyStr} {food}";
+        }
 
         bool attach = unit is "g" or "kg" or "ml" or "l";
         return attach ? $"{qtyStr}{unit} {food}" : $"{qtyStr} {unit} {food}";

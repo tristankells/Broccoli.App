@@ -37,7 +37,9 @@ public class ViewLocator : IDataTemplate
     public Control? Build(object? param)
     {
         if (param is null)
+        {
             return null;
+        }
 
         var viewModelType = param.GetType();
         if (Factories.TryGetValue(viewModelType, out var factory))

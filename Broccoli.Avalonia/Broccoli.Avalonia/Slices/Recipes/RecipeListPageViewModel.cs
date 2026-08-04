@@ -23,7 +23,7 @@ public partial class RecipeListPageViewModel : ViewModelBase
     public Action? ImportRecipeRequested { get; set; }
     public Action<Recipe>? RecipeSelected { get; set; }
 
-    public ObservableCollection<RecipeCardViewModel> FilteredRecipes { get; set; } = new();
+    public ObservableCollection<RecipeCardViewModel> FilteredRecipes { get; set; } = [];
 
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
@@ -48,7 +48,11 @@ public partial class RecipeListPageViewModel : ViewModelBase
 
     private void LoadCardSettings()
     {
-        if (_macroService is null) return;
+        if (_macroService is null)
+        {
+            return;
+        }
+
         var settings = _macroService.GetSettings();
         ShowImages = settings.ShowCardImage;
         ShowTags = settings.ShowCardTags;
@@ -69,24 +73,28 @@ public partial class RecipeListPageViewModel : ViewModelBase
             string? imagePath = null;
 
             if (recipe.Images.Count > 0)
+            {
                 imagePath = _recipeService.GetImagePath(recipe.Id, recipe.Images[0]);
+            }
 
             if (_parser is not null && !string.IsNullOrWhiteSpace(recipe.Ingredients))
             {
-                var matches = _parser.ParseAndMatchIngredients(recipe.Ingredients);
-                foreach (var m in matches)
+                List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(recipe.Ingredients);
+                foreach (ParsedIngredientMatch match in matches)
                 {
-                    if (m.IsMatched)
+                    if (match.IsMatched)
                     {
-                        cal  += m.GetCalories();
-                        pro  += m.GetProtein();
-                        carb += m.GetCarbohydrates();
-                        fat  += m.GetFat();
+                        cal += match.GetCalories();
+                        pro += match.GetProtein();
+                        carb += match.GetCarbohydrates();
+                        fat += match.GetFat();
                     }
                 }
 
                 if (_seasonalityService is not null)
+                {
                     seasonality = _seasonalityService.Score(matches);
+                }
             }
 
             double servings = recipe.Servings > 0 ? recipe.Servings.Value : 1;
@@ -103,11 +111,14 @@ public partial class RecipeListPageViewModel : ViewModelBase
             FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
         else
             FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(
-                _allCards.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
+                _allCards.Where(card => card.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
     }
 
-    [RelayCommand] private void AddRecipe() => AddRecipeRequested?.Invoke();
-    [RelayCommand] private void ImportRecipe() => ImportRecipeRequested?.Invoke();
+    [RelayCommand]
+    private void AddRecipe() => AddRecipeRequested?.Invoke();
+
+    [RelayCommand]
+    private void ImportRecipe() => ImportRecipeRequested?.Invoke();
 
     [RelayCommand]
     private void SelectRecipe(RecipeCardViewModel card) => RecipeSelected?.Invoke(card.Recipe);

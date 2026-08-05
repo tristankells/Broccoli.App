@@ -29,11 +29,11 @@ public class LocalJsonFoodService : IFoodService
         try
         {
             var uri = new Uri("avares://Broccoli.Avalonia/Assets/FoodDatabase.json");
-            using var stream = AssetLoader.Open(uri);
+            using Stream stream = AssetLoader.Open(uri);
             using var reader = new StreamReader(stream);
             string jsonContent = reader.ReadToEnd();
 
-            var foods = JsonSerializer.Deserialize<List<Food>>(jsonContent, new JsonSerializerOptions
+            List<Food>? foods = JsonSerializer.Deserialize<List<Food>>(jsonContent, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
@@ -96,7 +96,7 @@ public class LocalJsonFoodService : IFoodService
 
     public void Update(Food food)
     {
-        var existing = _foodByName.Values.FirstOrDefault(f => f.Id == food.Id);
+        Food? existing = _foodByName.Values.FirstOrDefault(f => f.Id == food.Id);
         if (existing != null && !string.Equals(existing.Name, food.Name, StringComparison.OrdinalIgnoreCase))
         {
             _foodByName.Remove(existing.Name);
@@ -106,7 +106,7 @@ public class LocalJsonFoodService : IFoodService
 
     public void Delete(int id)
     {
-        var food = _foodByName.Values.FirstOrDefault(f => f.Id == id);
+        Food? food = _foodByName.Values.FirstOrDefault(f => f.Id == id);
         if (food != null)
         {
             _foodByName.Remove(food.Name);

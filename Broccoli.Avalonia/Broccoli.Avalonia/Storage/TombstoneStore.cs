@@ -27,7 +27,7 @@ public static class TombstoneStore
 
     public static TombstoneFile Load()
     {
-        var path = AppPaths.TombstonesFilePath;
+        string path = AppPaths.TombstonesFilePath;
         if (!File.Exists(path))
         {
             return new TombstoneFile();
@@ -49,8 +49,8 @@ public static class TombstoneStore
     /// <summary>Records (or refreshes) a deletion for <paramref name="recipeId"/>.</summary>
     public static void RecordDeletion(string recipeId)
     {
-        var file = Load();
-        var existing = file.Recipes.FirstOrDefault(r => r.RecipeId == recipeId);
+        TombstoneFile file = Load();
+        RecipeTombstone? existing = file.Recipes.FirstOrDefault(r => r.RecipeId == recipeId);
         if (existing is not null)
         {
             existing.DeletedAtUtc = DateTime.UtcNow;
@@ -69,12 +69,12 @@ public static class TombstoneStore
     /// </summary>
     public static TombstoneFile MergeWithRemote(TombstoneFile remote)
     {
-        var local = Load();
+        TombstoneFile local = Load();
         var merged = local.Recipes.ToDictionary(r => r.RecipeId);
 
-        foreach (var remoteEntry in remote.Recipes)
+        foreach (RecipeTombstone remoteEntry in remote.Recipes)
         {
-            if (!merged.TryGetValue(remoteEntry.RecipeId, out var localEntry) ||
+            if (!merged.TryGetValue(remoteEntry.RecipeId, out RecipeTombstone? localEntry) ||
                 remoteEntry.DeletedAtUtc > localEntry.DeletedAtUtc)
             {
                 merged[remoteEntry.RecipeId] = remoteEntry;

@@ -87,7 +87,7 @@ public partial class RecipeDetailViewModel : ViewModelBase
         _seasonalityService = seasonalityService;
         _macroService = macroService;
         _recipe = recipe;
-        foreach (var image in recipe.Images)
+        foreach (string image in recipe.Images)
         {
             ImagePaths.Add(recipeService.GetImagePath(recipe.Id, image));
         }
@@ -105,14 +105,14 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
         try
         {
-            var settings = _macroService.GetSettings();
+            MacroTargetSettings settings = _macroService.GetSettings();
             if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
             {
                 return;
             }
 
-            var targets = _macroService.GetAll();
-            var chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
+            List<MacroTarget> targets = _macroService.GetAll();
+            MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
             if (chosen is null)
             {
                 return;
@@ -136,10 +136,10 @@ public partial class RecipeDetailViewModel : ViewModelBase
             return;
         }
 
-        var matches = _parser.ParseAndMatchIngredients(Recipe.Ingredients);
+        List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(Recipe.Ingredients);
 
         double cal = 0, pro = 0, carb = 0, fat = 0;
-        foreach (var m in matches)
+        foreach (ParsedIngredientMatch m in matches)
         {
             if (m.IsMatched)
             {

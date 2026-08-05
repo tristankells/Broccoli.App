@@ -1,4 +1,5 @@
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Broccoli.Avalonia.Models;
 
@@ -21,48 +22,48 @@ public class PaprikaHtmlImportFormat : IImportFormat
     public async Task<Recipe> ParseAsync(string fileContent)
     {
         var parser = new HtmlParser();
-        var document = await parser.ParseDocumentAsync(fileContent);
+        IHtmlDocument document = await parser.ParseDocumentAsync(fileContent);
 
-        var name = document.QuerySelector("[itemprop=\"name\"]")?.TextContent.Trim()
+        string name = document.QuerySelector("[itemprop=\"name\"]")?.TextContent.Trim()
             ?? throw new InvalidOperationException("Could not find recipe name.");
 
-        var ingredients = string.Join("\n",
+        string ingredients = string.Join("\n",
             document.QuerySelectorAll("[itemprop=\"recipeIngredient\"]")
                 .Select(el => el.TextContent.Trim()));
 
-        var instructionNodes = document.QuerySelectorAll("[itemprop=\"recipeInstructions\"] p");
-        var directions = string.Join("\n\n", instructionNodes.Select(p => GetPlainText(p)));
+        IHtmlCollection<IElement> instructionNodes = document.QuerySelectorAll("[itemprop=\"recipeInstructions\"] p");
+        string directions = string.Join("\n\n", instructionNodes.Select(p => GetPlainText(p)));
 
-        var notes = document.QuerySelector("[itemprop=\"comment\"]")?.TextContent.Trim();
+        string? notes = document.QuerySelector("[itemprop=\"comment\"]")?.TextContent.Trim();
 
-        var categoriesEl = document.QuerySelector(".categories");
-        var tags = categoriesEl?.TextContent
+        IElement? categoriesEl = document.QuerySelector(".categories");
+        List<string> tags = categoriesEl?.TextContent
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList() ?? new List<string>();
 
         int? servings = null;
         int? cookTime = null;
 
-        var metadata = document.QuerySelector(".metadata");
+        IElement? metadata = document.QuerySelector(".metadata");
         if (metadata is not null)
         {
-            foreach (var b in metadata.QuerySelectorAll("b"))
+            foreach (IElement b in metadata.QuerySelectorAll("b"))
             {
-                var label = b.TextContent.Trim().ToLowerInvariant();
-                var value = b.NextSibling?.TextContent.Trim();
-                if (label.Contains("serving") && int.TryParse(value, out var s))
+                string label = b.TextContent.Trim().ToLowerInvariant();
+                string? value = b.NextSibling?.TextContent.Trim();
+                if (label.Contains("serving") && int.TryParse(value, out int s))
                 {
                     servings = s;
                 }
 
-                if (label.Contains("cook") && int.TryParse(value, out var ct))
+                if (label.Contains("cook") && int.TryParse(value, out int ct))
                 {
                     cookTime = ct;
                 }
             }
         }
 
-        var source = document.QuerySelector("[itemprop=\"author\"]")?.TextContent.Trim();
+        string? source = document.QuerySelector("[itemprop=\"author\"]")?.TextContent.Trim();
 
         return new Recipe
         {

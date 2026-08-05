@@ -7,13 +7,13 @@ public class FoodFileService : IFoodFileService
 {
     public async Task ExportFoodsAsync(string filename, string jsonContent)
     {
-        var storage = GetStorage();
+        IStorageProvider? storage = GetStorage();
         if (storage is null)
         {
             return;
         }
 
-        var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+        IStorageFile? file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Export Food Database",
             DefaultExtension = "json",
@@ -29,20 +29,20 @@ public class FoodFileService : IFoodFileService
             return;
         }
 
-        await using var stream = await file.OpenWriteAsync();
+        await using Stream stream = await file.OpenWriteAsync();
         await using var writer = new StreamWriter(stream);
         await writer.WriteAsync(jsonContent);
     }
 
     public async Task<string?> ImportFoodsAsync()
     {
-        var storage = GetStorage();
+        IStorageProvider? storage = GetStorage();
         if (storage is null)
         {
             return null;
         }
 
-        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        IReadOnlyList<IStorageFile> files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import Food Database",
             AllowMultiple = false,
@@ -57,7 +57,7 @@ public class FoodFileService : IFoodFileService
             return null;
         }
 
-        await using var stream = await files[0].OpenReadAsync();
+        await using Stream stream = await files[0].OpenReadAsync();
         using var reader = new StreamReader(stream);
         return await reader.ReadToEndAsync();
     }

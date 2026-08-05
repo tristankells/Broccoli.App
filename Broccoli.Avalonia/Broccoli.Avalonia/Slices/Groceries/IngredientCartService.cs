@@ -43,20 +43,20 @@ public class IngredientCartService(
             return;
         }
 
-        var newMatches = parser.ParseAndMatchIngredients(string.Join("\n", lines));
+        List<ParsedIngredientMatch> newMatches = parser.ParseAndMatchIngredients(string.Join("\n", lines));
         newMatches = DeduplicateUnmatched(newMatches)
             .Where(m => !IsIgnoredIngredient(m))
             .ToList();
 
-        var existingItems = groceryListService.GetAll();
+        List<GroceryListItem> existingItems = groceryListService.GetAll();
 
         var toUpdate = new List<GroceryListItem>();
         var toAdd    = new List<GroceryListItem>();
         var claimedIds = new HashSet<string>();
 
-        foreach (var newMatch in newMatches)
+        foreach (ParsedIngredientMatch newMatch in newMatches)
         {
-            var (existingItem, existingQty, effectiveUnit) = FindMatch(newMatch, existingItems, claimedIds);
+            (GroceryListItem? existingItem, double existingQty, string? effectiveUnit) = FindMatch(newMatch, existingItems, claimedIds);
 
             if (existingItem is not null)
             {
@@ -83,7 +83,7 @@ public class IngredientCartService(
             }
         }
 
-        foreach (var item in toUpdate)
+        foreach (GroceryListItem item in toUpdate)
         {
             groceryListService.Update(item);
         }
@@ -99,7 +99,7 @@ public class IngredientCartService(
         var result = new List<ParsedIngredientMatch>(matches.Count);
         var seen = new Dictionary<string, ParsedIngredientMatch>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var match in matches)
+        foreach (ParsedIngredientMatch match in matches)
         {
             if (match.IsMatched)
             {
@@ -108,7 +108,7 @@ public class IngredientCartService(
             }
 
             string key = $"{NormalizeFood(match.ParsedIngredient.FoodDescription)}|{match.ParsedIngredient.CanonicalUnit}";
-            if (seen.TryGetValue(key, out var existing))
+            if (seen.TryGetValue(key, out ParsedIngredientMatch? existing))
             {
                 existing.ParsedIngredient.Quantity += match.ParsedIngredient.Quantity;
             }
@@ -133,7 +133,7 @@ public class IngredientCartService(
 
         string newUnit = (newMatch.ParsedIngredient.CanonicalUnit ?? string.Empty).ToLowerInvariant();
 
-        foreach (var item in existingItems)
+        foreach (GroceryListItem item in existingItems)
         {
             if (item.IsChecked)
             {
@@ -150,8 +150,8 @@ public class IngredientCartService(
                 continue;
             }
 
-            var parsed = parser.ParseAndMatchIngredients(item.Name);
-            var existingMatch = parsed.FirstOrDefault();
+            List<ParsedIngredientMatch> parsed = parser.ParseAndMatchIngredients(item.Name);
+            ParsedIngredientMatch? existingMatch = parsed.FirstOrDefault();
             if (existingMatch is null)
             {
                 continue;

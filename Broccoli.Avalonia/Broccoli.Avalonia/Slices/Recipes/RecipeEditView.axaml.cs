@@ -27,7 +27,7 @@ public partial class RecipeEditView : UserControl
             return null;
         }
 
-        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        IReadOnlyList<IStorageFile> files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Choose a recipe image",
             AllowMultiple = false,

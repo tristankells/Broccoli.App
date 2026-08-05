@@ -76,30 +76,30 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     public async Task<SyncResult> SyncAsync(CancellationToken cancellationToken = default)
     {
-        var drive = await _authService.TryGetDriveServiceAsync(cancellationToken);
+        DriveService? drive = await _authService.TryGetDriveServiceAsync(cancellationToken);
         if (drive is null)
         {
             return SyncResult.NotConnected;
         }
 
         var result = new SyncResult { Success = true };
-        var state = LoadState();
-        var sinceUtc = state.LastSyncedAtUtc ?? DateTime.MinValue;
+        SyncState state = LoadState();
+        DateTime sinceUtc = state.LastSyncedAtUtc ?? DateTime.MinValue;
 
         try
         {
-            var rootFolderId = await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: false, cancellationToken);
-            var recipesFolderId = await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: true, cancellationToken);
+            string rootFolderId = await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: false, cancellationToken);
+            string recipesFolderId = await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: true, cancellationToken);
 
-            var manifest = await ReadJsonFromDriveAsync<SyncManifest>(drive, rootFolderId, ManifestFileName, cancellationToken)
+            SyncManifest manifest = await ReadJsonFromDriveAsync<SyncManifest>(drive, rootFolderId, ManifestFileName, cancellationToken)
                            ?? new SyncManifest { Version = 0 };
 
-            var remoteTombstones = await ReadJsonFromDriveAsync<TombstoneFile>(drive, rootFolderId, TombstonesFileName, cancellationToken)
+            TombstoneFile remoteTombstones = await ReadJsonFromDriveAsync<TombstoneFile>(drive, rootFolderId, TombstonesFileName, cancellationToken)
                                    ?? new TombstoneFile();
-            var mergedTombstones = TombstoneStore.MergeWithRemote(remoteTombstones);
+            TombstoneFile mergedTombstones = TombstoneStore.MergeWithRemote(remoteTombstones);
 
-            var conflicts = LoadConflicts();
-            var didPushAnything = false;
+            List<SyncConflict> conflicts = LoadConflicts();
+            bool didPushAnything = false;
 
             didPushAnything |= await SyncTombstonesAsync(drive, recipesFolderId, mergedTombstones, cancellationToken);
             didPushAnything |= await SyncRecipesAsync(drive, recipesFolderId, mergedTombstones, sinceUtc, conflicts, result, cancellationToken);
@@ -108,7 +108,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             // Push the merged tombstone list back if we picked up anything new from either side.
             await WriteJsonToDriveAsync(drive, rootFolderId, TombstonesFileName, mergedTombstones, cancellationToken);
 
-            var newVersion = manifest.Version;
+            int newVersion = manifest.Version;
             if (didPushAnything)
             {
                 newVersion = manifest.Version + 1;
@@ -140,7 +140,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     public async Task<SyncResult> PushOnlyAsync(CancellationToken cancellationToken = default)
     {
-        var drive = await _authService.TryGetDriveServiceAsync(cancellationToken);
+        DriveService? drive = await _authService.TryGetDriveServiceAsync(cancellationToken);
         if (drive is null)
         {
             return SyncResult.NotConnected;
@@ -150,7 +150,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
         try
         {
-            var state = LoadState();
+            SyncState state = LoadState();
             if (state.DriveRootFolderId is null || state.DriveRecipesFolderId is null)
             {
                 // Never fully synced on this device yet — defer to a full SyncAsync (startup)
@@ -158,7 +158,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
                 return new SyncResult { Success = false, ErrorMessage = "Not yet synced on this device." };
             }
 
-            var manifest = await ReadJsonFromDriveAsync<SyncManifest>(drive, state.DriveRootFolderId, ManifestFileName, cancellationToken)
+            SyncManifest manifest = await ReadJsonFromDriveAsync<SyncManifest>(drive, state.DriveRootFolderId, ManifestFileName, cancellationToken)
                           ?? new SyncManifest { Version = 0 };
 
             if (manifest.Version != state.LastSyncedVersion)
@@ -168,15 +168,15 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
                 return new SyncResult { Success = false, ErrorMessage = "Drive has newer changes; will reconcile on next full sync." };
             }
 
-            var sinceUtc = state.LastSyncedAtUtc ?? DateTime.MinValue;
-            var localTombstones = TombstoneStore.Load();
-            var didPushAnything = false;
+            DateTime sinceUtc = state.LastSyncedAtUtc ?? DateTime.MinValue;
+            TombstoneFile localTombstones = TombstoneStore.Load();
+            bool didPushAnything = false;
 
             didPushAnything |= await PushChangedRecipesOnlyAsync(drive, state.DriveRecipesFolderId, sinceUtc, result, cancellationToken);
             didPushAnything |= await PushDatabaseIfChangedAsync(drive, state.DriveRootFolderId, sinceUtc, result, cancellationToken);
             await WriteJsonToDriveAsync(drive, state.DriveRootFolderId, TombstonesFileName, localTombstones, cancellationToken);
 
-            var newVersion = manifest.Version;
+            int newVersion = manifest.Version;
             if (didPushAnything)
             {
                 newVersion = manifest.Version + 1;
@@ -203,21 +203,21 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     public async Task ResolveConflictKeepLocalAsync(SyncConflict conflict, CancellationToken cancellationToken = default)
     {
-        var drive = await _authService.TryGetDriveServiceAsync(cancellationToken)
+        DriveService drive = await _authService.TryGetDriveServiceAsync(cancellationToken)
                     ?? throw new InvalidOperationException("Google Drive isn't connected.");
-        var state = LoadState();
+        SyncState state = LoadState();
 
         try
         {
             if (conflict.Kind == SyncConflictKind.Recipe && conflict.RecipeId is not null)
             {
-                var recipesFolderId = state.DriveRecipesFolderId
+                string recipesFolderId = state.DriveRecipesFolderId
                     ?? await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: true, cancellationToken);
                 await PushRecipeFolderAsync(drive, recipesFolderId, conflict.RecipeId, cancellationToken);
             }
             else if (conflict.Kind == SyncConflictKind.Database)
             {
-                var rootFolderId = state.DriveRootFolderId
+                string rootFolderId = state.DriveRootFolderId
                     ?? await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: false, cancellationToken);
                 await PushDatabaseAsync(drive, rootFolderId, cancellationToken);
             }
@@ -234,7 +234,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     {
         if (conflict.Kind == SyncConflictKind.Recipe && conflict.RecipeId is not null)
         {
-            var destination = AppPaths.RecipeMarkdownFilePath(conflict.RecipeId);
+            string destination = AppPaths.RecipeMarkdownFilePath(conflict.RecipeId);
             File.Copy(conflict.ConflictCopyPath, destination, overwrite: true);
         }
         else if (conflict.Kind == SyncConflictKind.Database)
@@ -253,34 +253,34 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         DriveService drive, string recipesFolderId, TombstoneFile tombstones, DateTime sinceUtc,
         List<SyncConflict> conflicts, SyncResult result, CancellationToken ct)
     {
-        var didPush = false;
+        bool didPush = false;
         var tombstonedIds = tombstones.Recipes.Select(r => r.RecipeId).ToHashSet();
         var alreadyConflicted = conflicts.Where(c => c.Kind == SyncConflictKind.Recipe).Select(c => c.RecipeId).ToHashSet();
 
-        var localRecipeIds = Directory.Exists(AppPaths.RecipesFolder)
+        List<string> localRecipeIds = Directory.Exists(AppPaths.RecipesFolder)
             ? Directory.EnumerateDirectories(AppPaths.RecipesFolder).Select(Path.GetFileName).Where(n => n is not null).Select(n => n!).ToList()
             : new List<string>();
 
-        var remoteFolders = await DriveFileHelper.ListChildrenAsync(drive, recipesFolderId, ct);
+        List<Google.Apis.Drive.v3.Data.File> remoteFolders = await DriveFileHelper.ListChildrenAsync(drive, recipesFolderId, ct);
         var remoteFoldersByName = remoteFolders.ToDictionary(f => f.Name);
 
-        foreach (var recipeId in localRecipeIds)
+        foreach (string recipeId in localRecipeIds)
         {
             if (tombstonedIds.Contains(recipeId) || alreadyConflicted.Contains(recipeId))
             {
                 continue;
             }
 
-            var localMdPath = AppPaths.RecipeMarkdownFilePath(recipeId);
+            string localMdPath = AppPaths.RecipeMarkdownFilePath(recipeId);
             if (!File.Exists(localMdPath))
             {
                 continue;
             }
 
-            var localUpdatedAt = File.GetLastWriteTimeUtc(localMdPath);
-            var localChanged = localUpdatedAt > sinceUtc;
+            DateTime localUpdatedAt = File.GetLastWriteTimeUtc(localMdPath);
+            bool localChanged = localUpdatedAt > sinceUtc;
 
-            if (!remoteFoldersByName.TryGetValue(recipeId, out var remoteFolder))
+            if (!remoteFoldersByName.TryGetValue(recipeId, out Google.Apis.Drive.v3.Data.File? remoteFolder))
             {
                 // New locally, doesn't exist on Drive yet.
                 await PushRecipeFolderAsync(drive, recipesFolderId, recipeId, ct);
@@ -289,10 +289,10 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
                 continue;
             }
 
-            var remoteChildren = await DriveFileHelper.ListChildrenAsync(drive, remoteFolder.Id, ct);
-            var remoteMd = remoteChildren.FirstOrDefault(f => f.Name == RecipeMarkdownFileName);
-            var remoteUpdatedAt = remoteMd?.ModifiedTimeDateTimeOffset?.UtcDateTime ?? DateTime.MinValue;
-            var remoteChanged = remoteUpdatedAt > sinceUtc;
+            List<Google.Apis.Drive.v3.Data.File> remoteChildren = await DriveFileHelper.ListChildrenAsync(drive, remoteFolder.Id, ct);
+            Google.Apis.Drive.v3.Data.File? remoteMd = remoteChildren.FirstOrDefault(f => f.Name == RecipeMarkdownFileName);
+            DateTime remoteUpdatedAt = remoteMd?.ModifiedTimeDateTimeOffset?.UtcDateTime ?? DateTime.MinValue;
+            bool remoteChanged = remoteUpdatedAt > sinceUtc;
 
             if (!localChanged && !remoteChanged)
             {
@@ -303,8 +303,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             {
                 // Same recipe edited on both sides since the last sync — do not guess; keep local
                 // untouched and save the Drive version alongside for the user to compare/choose.
-                var recipeName = TryReadRecipeName(localMdPath) ?? recipeId;
-                var conflictPath = Path.Combine(AppPaths.ConflictsFolder,
+                string recipeName = TryReadRecipeName(localMdPath) ?? recipeId;
+                string conflictPath = Path.Combine(AppPaths.ConflictsFolder,
                     $"{SanitizeFileName(recipeName)} (Drive conflict copy {DateTime.Now:yyyy-MM-dd HHmm}).md");
 
                 if (remoteMd is not null)
@@ -336,7 +336,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         }
 
         // Remote recipes that don't exist locally yet (new from another device) and aren't tombstoned.
-        foreach (var remoteFolder in remoteFolders)
+        foreach (Google.Apis.Drive.v3.Data.File remoteFolder in remoteFolders)
         {
             if (localRecipeIds.Contains(remoteFolder.Name) || tombstonedIds.Contains(remoteFolder.Name))
             {
@@ -358,18 +358,18 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             return false;
         }
 
-        var didPush = false;
+        bool didPush = false;
         var tombstonedIds = TombstoneStore.Load().Recipes.Select(r => r.RecipeId).ToHashSet();
 
-        foreach (var folder in Directory.EnumerateDirectories(AppPaths.RecipesFolder))
+        foreach (string folder in Directory.EnumerateDirectories(AppPaths.RecipesFolder))
         {
-            var recipeId = Path.GetFileName(folder)!;
+            string recipeId = Path.GetFileName(folder)!;
             if (tombstonedIds.Contains(recipeId))
             {
                 continue;
             }
 
-            var mdPath = AppPaths.RecipeMarkdownFilePath(recipeId);
+            string mdPath = AppPaths.RecipeMarkdownFilePath(recipeId);
             if (File.Exists(mdPath) && File.GetLastWriteTimeUtc(mdPath) > sinceUtc)
             {
                 await PushRecipeFolderAsync(drive, recipesFolderId, recipeId, ct);
@@ -383,25 +383,25 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     private static async Task PushRecipeFolderAsync(DriveService drive, string recipesFolderId, string recipeId, CancellationToken ct)
     {
-        var remoteFolderId = await DriveFileHelper.FindOrCreateFolderAsync(drive, recipeId, recipesFolderId, ct);
-        var localFolder = AppPaths.RecipeFolder(recipeId);
+        string remoteFolderId = await DriveFileHelper.FindOrCreateFolderAsync(drive, recipeId, recipesFolderId, ct);
+        string localFolder = AppPaths.RecipeFolder(recipeId);
 
-        foreach (var filePath in Directory.EnumerateFiles(localFolder))
+        foreach (string filePath in Directory.EnumerateFiles(localFolder))
         {
-            await using var stream = File.OpenRead(filePath);
-            var fileName = Path.GetFileName(filePath);
+            await using FileStream stream = File.OpenRead(filePath);
+            string fileName = Path.GetFileName(filePath);
             await DriveFileHelper.UploadOrUpdateFileAsync(drive, fileName, remoteFolderId, stream, GetMimeType(fileName), ct);
         }
     }
 
     private static async Task PullRecipeFolderAsync(DriveService drive, string remoteFolderId, string recipeId, CancellationToken ct)
     {
-        var localFolder = AppPaths.RecipeFolder(recipeId);
-        var remoteChildren = await DriveFileHelper.ListChildrenAsync(drive, remoteFolderId, ct);
+        string localFolder = AppPaths.RecipeFolder(recipeId);
+        List<Google.Apis.Drive.v3.Data.File> remoteChildren = await DriveFileHelper.ListChildrenAsync(drive, remoteFolderId, ct);
 
-        foreach (var remoteFile in remoteChildren)
+        foreach (Google.Apis.Drive.v3.Data.File remoteFile in remoteChildren)
         {
-            var destination = Path.Combine(localFolder, remoteFile.Name);
+            string destination = Path.Combine(localFolder, remoteFile.Name);
             await DownloadFileToPathAsync(drive, remoteFile.Id, destination, ct);
         }
     }
@@ -410,8 +410,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     {
         try
         {
-            var content = File.ReadAllText(mdPath);
-            var nameLine = content.Split('\n').FirstOrDefault(l => l.TrimStart().StartsWith("name:"));
+            string content = File.ReadAllText(mdPath);
+            string? nameLine = content.Split('\n').FirstOrDefault(l => l.TrimStart().StartsWith("name:"));
             return nameLine?.Split(':', 2).ElementAtOrDefault(1)?.Trim();
         }
         catch (IOException)
@@ -436,10 +436,10 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             return false;
         }
 
-        var localUpdatedAt = File.GetLastWriteTimeUtc(AppPaths.DatabaseFilePath);
-        var localChanged = localUpdatedAt > sinceUtc;
+        DateTime localUpdatedAt = File.GetLastWriteTimeUtc(AppPaths.DatabaseFilePath);
+        bool localChanged = localUpdatedAt > sinceUtc;
 
-        var remoteDb = await DriveFileHelper.FindChildAsync(drive, DatabaseFileName, rootFolderId, ct);
+        Google.Apis.Drive.v3.Data.File? remoteDb = await DriveFileHelper.FindChildAsync(drive, DatabaseFileName, rootFolderId, ct);
         if (remoteDb is null)
         {
             if (!localChanged)
@@ -452,8 +452,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             return true;
         }
 
-        var remoteUpdatedAt = remoteDb.ModifiedTimeDateTimeOffset?.UtcDateTime ?? DateTime.MinValue;
-        var remoteChanged = remoteUpdatedAt > sinceUtc;
+        DateTime remoteUpdatedAt = remoteDb.ModifiedTimeDateTimeOffset?.UtcDateTime ?? DateTime.MinValue;
+        bool remoteChanged = remoteUpdatedAt > sinceUtc;
 
         if (!localChanged && !remoteChanged)
         {
@@ -462,7 +462,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
         if (localChanged && remoteChanged)
         {
-            var conflictPath = Path.Combine(AppPaths.ConflictsFolder, $"broccoli (Drive conflict copy {DateTime.Now:yyyy-MM-dd HHmm}).db");
+            string conflictPath = Path.Combine(AppPaths.ConflictsFolder, $"broccoli (Drive conflict copy {DateTime.Now:yyyy-MM-dd HHmm}).db");
             await DownloadFileToPathAsync(drive, remoteDb.Id, conflictPath, ct);
             conflicts.Add(new SyncConflict
             {
@@ -503,19 +503,19 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     {
         // Take a clean, consistent snapshot regardless of journal mode (WAL, etc.) rather than
         // uploading the live file, which could be mid-write.
-        var snapshotPath = Path.Combine(Path.GetTempPath(), $"broccoli-snapshot-{Guid.NewGuid():N}.db");
+        string snapshotPath = Path.Combine(Path.GetTempPath(), $"broccoli-snapshot-{Guid.NewGuid():N}.db");
         try
         {
             await using (var connection = new SqliteConnection($"Data Source={AppPaths.DatabaseFilePath}"))
             {
                 await connection.OpenAsync(ct);
-                await using var command = connection.CreateCommand();
+                await using SqliteCommand command = connection.CreateCommand();
                 command.CommandText = "VACUUM INTO $path";
                 command.Parameters.AddWithValue("$path", snapshotPath);
                 await command.ExecuteNonQueryAsync(ct);
             }
 
-            await using var stream = File.OpenRead(snapshotPath);
+            await using FileStream stream = File.OpenRead(snapshotPath);
             await DriveFileHelper.UploadOrUpdateFileAsync(drive, DatabaseFileName, rootFolderId, stream, "application/octet-stream", ct);
         }
         finally
@@ -532,19 +532,19 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     private static async Task<bool> SyncTombstonesAsync(
         DriveService drive, string recipesFolderId, TombstoneFile mergedTombstones, CancellationToken ct)
     {
-        var remoteFolders = await DriveFileHelper.ListChildrenAsync(drive, recipesFolderId, ct);
+        List<Google.Apis.Drive.v3.Data.File> remoteFolders = await DriveFileHelper.ListChildrenAsync(drive, recipesFolderId, ct);
         var remoteFoldersByName = remoteFolders.ToDictionary(f => f.Name);
-        var anyRemoteDeleted = false;
+        bool anyRemoteDeleted = false;
 
-        foreach (var tombstone in mergedTombstones.Recipes)
+        foreach (RecipeTombstone tombstone in mergedTombstones.Recipes)
         {
-            var localFolder = Path.Combine(AppPaths.RecipesFolder, tombstone.RecipeId);
+            string localFolder = Path.Combine(AppPaths.RecipesFolder, tombstone.RecipeId);
             if (Directory.Exists(localFolder))
             {
                 Directory.Delete(localFolder, recursive: true);
             }
 
-            if (remoteFoldersByName.TryGetValue(tombstone.RecipeId, out var remoteFolder))
+            if (remoteFoldersByName.TryGetValue(tombstone.RecipeId, out Google.Apis.Drive.v3.Data.File? remoteFolder))
             {
                 await DriveFileHelper.TrashFileAsync(drive, remoteFolder.Id, ct);
                 anyRemoteDeleted = true;
@@ -568,7 +568,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             return state.DriveRecipesFolderId;
         }
 
-        var rootId = state.DriveRootFolderId ?? await DriveFileHelper.FindOrCreateFolderAsync(drive, "Broccoli", null, ct);
+        string rootId = state.DriveRootFolderId ?? await DriveFileHelper.FindOrCreateFolderAsync(drive, "Broccoli", null, ct);
         if (!isRecipesFolder)
         {
             return rootId;
@@ -581,7 +581,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     private static void RemoveConflictAndCleanup(SyncConflict conflict)
     {
-        var conflicts = LoadConflicts();
+        List<SyncConflict> conflicts = LoadConflicts();
         conflicts.RemoveAll(c => c.ConflictCopyPath == conflict.ConflictCopyPath && c.Kind == conflict.Kind);
         SaveConflicts(conflicts);
 
@@ -637,21 +637,21 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     private static async Task<T?> ReadJsonFromDriveAsync<T>(DriveService drive, string parentId, string fileName, CancellationToken ct)
     {
-        var file = await DriveFileHelper.FindChildAsync(drive, fileName, parentId, ct);
+        Google.Apis.Drive.v3.Data.File? file = await DriveFileHelper.FindChildAsync(drive, fileName, parentId, ct);
         if (file is null)
         {
             return default;
         }
 
-        await using var stream = await DriveFileHelper.DownloadFileAsync(drive, file.Id, ct);
+        await using Stream stream = await DriveFileHelper.DownloadFileAsync(drive, file.Id, ct);
         using var reader = new StreamReader(stream, Encoding.UTF8);
-        var json = await reader.ReadToEndAsync(ct);
+        string json = await reader.ReadToEndAsync(ct);
         return JsonSerializer.Deserialize<T>(json);
     }
 
     private static async Task WriteJsonToDriveAsync<T>(DriveService drive, string parentId, string fileName, T value, CancellationToken ct)
     {
-        var json = JsonSerializer.Serialize(value, JsonOptions);
+        string json = JsonSerializer.Serialize(value, JsonOptions);
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
         await DriveFileHelper.UploadOrUpdateFileAsync(drive, fileName, parentId, stream, "application/json", ct);
     }
@@ -659,8 +659,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     private static async Task DownloadFileToPathAsync(DriveService drive, string fileId, string destinationPath, CancellationToken ct)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-        await using var remoteStream = await DriveFileHelper.DownloadFileAsync(drive, fileId, ct);
-        await using var fileStream = File.Create(destinationPath);
+        await using Stream remoteStream = await DriveFileHelper.DownloadFileAsync(drive, fileId, ct);
+        await using FileStream fileStream = File.Create(destinationPath);
         await remoteStream.CopyToAsync(fileStream, ct);
     }
 
@@ -676,7 +676,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     private static string SanitizeFileName(string name)
     {
-        foreach (var invalidChar in Path.GetInvalidFileNameChars())
+        foreach (char invalidChar in Path.GetInvalidFileNameChars())
         {
             name = name.Replace(invalidChar, '_');
         }

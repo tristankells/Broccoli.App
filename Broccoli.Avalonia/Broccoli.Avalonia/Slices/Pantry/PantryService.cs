@@ -35,7 +35,7 @@ public class PantryService : IPantryService
     public void Delete(string id)
     {
         using var context = BroccoliDbContext.CreateForApp();
-        var item = context.PantryItems.Find(id);
+        PantryItem? item = context.PantryItems.Find(id);
         if (item is not null)
         {
             context.PantryItems.Remove(item);

@@ -86,10 +86,10 @@ public partial class MacroTargetsViewModel : ViewModelBase
         try
         {
             Settings = _macroTargetService.GetSettings();
-            var targets = _macroTargetService.GetAll();
+            List<MacroTarget> targets = _macroTargetService.GetAll();
 
             Targets.Clear();
-            foreach (var t in targets)
+            foreach (MacroTarget t in targets)
             {
                 _calculator.Calculate(t, Settings);
                 var row = MacroTargetRowViewModel.Create(t, Settings, OnRowChanged);
@@ -220,7 +220,7 @@ public partial class MacroTargetsViewModel : ViewModelBase
             IsSettingsOpen = false;
             RefreshLabels();
 
-            foreach (var row in Targets)
+            foreach (MacroTargetRowViewModel row in Targets)
             {
                 row.LoadFromModel(Settings);
                 row.SyncFromModel(Settings);

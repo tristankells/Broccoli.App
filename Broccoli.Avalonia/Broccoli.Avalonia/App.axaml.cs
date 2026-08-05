@@ -23,7 +23,7 @@ public partial class App : Application
         // constructor injection instead of `new`-ing services/other view models directly.
         var services = new ServiceCollection();
         services.AddAppServices();
-        var provider = services.BuildServiceProvider();
+        ServiceProvider provider = services.BuildServiceProvider();
         Ioc.Default.ConfigureServices(provider);
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -35,7 +35,7 @@ public partial class App : Application
                 db.Database.Migrate();
             }
 
-            var mainViewModel = provider.GetRequiredService<MainViewModel>();
+            MainViewModel mainViewModel = provider.GetRequiredService<MainViewModel>();
             desktop.MainWindow = new MainWindow
             {
                 DataContext = mainViewModel
@@ -44,7 +44,7 @@ public partial class App : Application
             // Resolved directly (not via MainViewModel.SettingsViewModel) so background sync
             // works at startup/shutdown regardless of whether the user ever opens the settings
             // flyout - that lazily-constructed view model is purely a presentation concern.
-            var syncService = provider.GetRequiredService<IGoogleDriveSyncService>();
+            IGoogleDriveSyncService syncService = provider.GetRequiredService<IGoogleDriveSyncService>();
 
             // Best-effort: check Drive for changes made on other devices and auto-pull if safe,
             // without blocking startup. No-ops silently if Drive backup isn't connected.

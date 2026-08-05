@@ -68,7 +68,7 @@ public partial class SettingsViewModel : ViewModelBase
 
     private void RefreshStatus()
     {
-        var account = _googleDriveAuthService.GetStoredAccount();
+        GoogleDriveAccountInfo? account = _googleDriveAuthService.GetStoredAccount();
         IsConnected = account is not null;
         ConnectedEmail = account?.Email;
         ConnectedAtUtc = account?.ConnectedAtUtc;
@@ -80,7 +80,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void RefreshConflicts()
     {
         Conflicts.Clear();
-        foreach (var conflict in _googleDriveSyncService.GetPendingConflicts())
+        foreach (SyncConflict conflict in _googleDriveSyncService.GetPendingConflicts())
         {
             Conflicts.Add(conflict);
         }
@@ -94,7 +94,7 @@ public partial class SettingsViewModel : ViewModelBase
         IsConnecting = true;
         try
         {
-            var account = await _googleDriveAuthService.ConnectAsync();
+            GoogleDriveAccountInfo account = await _googleDriveAuthService.ConnectAsync();
             IsConnected = true;
             ConnectedEmail = account.Email;
             ConnectedAtUtc = account.ConnectedAtUtc;
@@ -136,7 +136,7 @@ public partial class SettingsViewModel : ViewModelBase
         IsSyncing = true;
         try
         {
-            var result = await _googleDriveSyncService.SyncAsync();
+            SyncResult result = await _googleDriveSyncService.SyncAsync();
             if (!result.Success)
             {
                 ErrorMessage = result.ErrorMessage;

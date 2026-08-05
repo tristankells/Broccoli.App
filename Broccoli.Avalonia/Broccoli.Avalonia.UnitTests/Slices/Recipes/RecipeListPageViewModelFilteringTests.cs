@@ -24,7 +24,7 @@ public class RecipeListPageViewModelFilteringTests
     [TestMethod]
     public void SearchText_EmptyByDefault_ShowsAllRecipes()
     {
-        var viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
 
         Assert.AreEqual(2, viewModel.FilteredRecipes.Count);
     }
@@ -32,7 +32,7 @@ public class RecipeListPageViewModelFilteringTests
     [TestMethod]
     public void SearchText_MatchingSubstring_ShowsOnlyMatchingRecipes()
     {
-        var viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
 
         viewModel.SearchText = "chicken";
 
@@ -43,7 +43,7 @@ public class RecipeListPageViewModelFilteringTests
     [TestMethod]
     public void SearchText_IsCaseInsensitive()
     {
-        var viewModel = CreateViewModel(MakeRecipe("Banana Bread"));
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"));
 
         viewModel.SearchText = "BANANA";
 
@@ -53,7 +53,7 @@ public class RecipeListPageViewModelFilteringTests
     [TestMethod]
     public void SearchText_NoMatches_ResultsInEmptyList()
     {
-        var viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
 
         viewModel.SearchText = "pizza";
 
@@ -63,7 +63,7 @@ public class RecipeListPageViewModelFilteringTests
     [TestMethod]
     public void SearchText_ClearedAfterFiltering_RestoresFullList()
     {
-        var viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
 
         viewModel.SearchText = "chicken";
         viewModel.SearchText = string.Empty;

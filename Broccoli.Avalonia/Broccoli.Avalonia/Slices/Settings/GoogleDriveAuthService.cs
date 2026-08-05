@@ -45,7 +45,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
 
     public GoogleDriveAccountInfo? GetStoredAccount()
     {
-        var path = AppPaths.GoogleDriveAccountFilePath;
+        string path = AppPaths.GoogleDriveAccountFilePath;
         if (!File.Exists(path))
         {
             return null;
@@ -64,7 +64,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
 
     public async Task<GoogleDriveAccountInfo> ConnectAsync(CancellationToken cancellationToken = default)
     {
-        var oauthOptions = LoadOAuthOptions();
+        GoogleDriveOAuthOptions oauthOptions = LoadOAuthOptions();
         if (!oauthOptions.IsConfigured)
         {
             throw new InvalidOperationException(
@@ -73,7 +73,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
                 "\"Desktop app\" in Google Cloud Console), then try again.");
         }
 
-        var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+        UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
             new ClientSecrets { ClientId = oauthOptions.ClientId, ClientSecret = oauthOptions.ClientSecret },
             Scopes,
             "user",
@@ -86,9 +86,9 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
             ApplicationName = "Broccoli"
         });
 
-        var aboutRequest = driveService.About.Get();
+        AboutResource.GetRequest aboutRequest = driveService.About.Get();
         aboutRequest.Fields = "user";
-        var about = await aboutRequest.ExecuteAsync(cancellationToken);
+        Google.Apis.Drive.v3.Data.About about = await aboutRequest.ExecuteAsync(cancellationToken);
 
         var account = new GoogleDriveAccountInfo
         {
@@ -124,7 +124,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
             return null;
         }
 
-        var oauthOptions = LoadOAuthOptions();
+        GoogleDriveOAuthOptions oauthOptions = LoadOAuthOptions();
         if (!oauthOptions.IsConfigured)
         {
             return null;
@@ -132,7 +132,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
 
         try
         {
-            var credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+            UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 new ClientSecrets { ClientId = oauthOptions.ClientId, ClientSecret = oauthOptions.ClientSecret },
                 Scopes,
                 "user",
@@ -155,7 +155,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
 
     private static GoogleDriveOAuthOptions LoadOAuthOptions()
     {
-        var path = AppPaths.GoogleDriveOAuthConfigFilePath;
+        string path = AppPaths.GoogleDriveOAuthConfigFilePath;
         if (!File.Exists(path))
         {
             // Seed an empty template so the user knows exactly where to add their credentials.

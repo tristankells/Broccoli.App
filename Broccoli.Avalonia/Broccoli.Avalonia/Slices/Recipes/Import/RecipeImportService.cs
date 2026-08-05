@@ -10,7 +10,7 @@ public class RecipeImportService
         var result = new ImportRecipeResult { FileName = fileName, IsSelected = true };
         try
         {
-            var recipe = await format.ParseAsync(content);
+            Recipe recipe = await format.ParseAsync(content);
             if (existingRecipeNames.Contains(recipe.Name, StringComparer.OrdinalIgnoreCase))
             {
                 result.Status = ImportStatus.Duplicate;
@@ -35,7 +35,7 @@ public class RecipeImportService
         IReadOnlySet<string> existingRecipeNames)
     {
         var results = new List<ImportRecipeResult>();
-        foreach (var (fileName, content) in files)
+        foreach ((string? fileName, string? content) in files)
         {
             results.Add(await ParseFileAsync(format, fileName, content, existingRecipeNames));
         }

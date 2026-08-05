@@ -15,11 +15,11 @@ public class MacroCalculatorService
 
     public void Calculate(MacroTarget target, MacroTargetSettings settings)
     {
-        var weightKg = settings.UnitSystem == UnitSystem.Imperial
+        double weightKg = settings.UnitSystem == UnitSystem.Imperial
             ? target.WeightKg / 2.20462
             : target.WeightKg;
 
-        var heightCm = settings.UnitSystem == UnitSystem.Imperial
+        double heightCm = settings.UnitSystem == UnitSystem.Imperial
             ? target.HeightCm * 2.54
             : target.HeightCm;
 
@@ -53,8 +53,8 @@ public class MacroCalculatorService
     private static double CalculateMifflinStJeor(
         GenderType gender, double weightKg, double heightCm, int age)
     {
-        var male   = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
-        var female = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
+        double male   = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
+        double female = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
 
         return gender switch
         {
@@ -67,8 +67,8 @@ public class MacroCalculatorService
     private static double CalculateHarrisBenedict(
         GenderType gender, double weightKg, double heightCm, int age)
     {
-        var male   = 88.362  + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * age);
-        var female = 447.593 + (9.247  * weightKg) + (3.098 * heightCm) - (4.330 * age);
+        double male   = 88.362  + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * age);
+        double female = 447.593 + (9.247  * weightKg) + (3.098 * heightCm) - (4.330 * age);
 
         return gender switch
         {
@@ -80,17 +80,17 @@ public class MacroCalculatorService
 
     private static void CalculateMacros(MacroTarget target, double weightKg, MacroTargetSettings settings)
     {
-        var calories = target.RecommendedCalories;
+        double calories = target.RecommendedCalories;
 
         if (settings.ProteinMethod == ProteinMethod.GramsPerKg && weightKg > 0)
         {
-            var proteinG   = Math.Ceiling(weightKg * settings.ProteinGramsPerKg);
-            var proteinCal = proteinG * 4;
-            var remaining  = Math.Max(calories - proteinCal, 0);
+            double proteinG   = Math.Ceiling(weightKg * settings.ProteinGramsPerKg);
+            double proteinCal = proteinG * 4;
+            double remaining  = Math.Max(calories - proteinCal, 0);
 
-            var carbRatioDivisor = settings.CarbPercent + settings.FatPercent;
-            var carbRatio = carbRatioDivisor > 0 ? settings.CarbPercent / carbRatioDivisor : 0.5;
-            var fatRatio  = carbRatioDivisor > 0 ? settings.FatPercent  / carbRatioDivisor : 0.5;
+            double carbRatioDivisor = settings.CarbPercent + settings.FatPercent;
+            double carbRatio = carbRatioDivisor > 0 ? settings.CarbPercent / carbRatioDivisor : 0.5;
+            double fatRatio  = carbRatioDivisor > 0 ? settings.FatPercent  / carbRatioDivisor : 0.5;
 
             target.RecommendedProteinG = proteinG;
             target.RecommendedCarbsG   = Math.Ceiling((remaining * carbRatio) / 4);

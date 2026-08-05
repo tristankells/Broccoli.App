@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Broccoli.Avalonia.Models;
 
 namespace Broccoli.Avalonia.Slices.Settings;
 
@@ -28,7 +29,7 @@ public partial class RecipeSettingsView : UserControl
     private void PopulateTargets(RecipeSettingsViewModel vm)
     {
         TargetComboBox.Items.Clear();
-        foreach (var t in vm.AvailableTargets)
+        foreach (MacroTarget t in vm.AvailableTargets)
         {
             TargetComboBox.Items.Add(new ComboBoxItem { Content = t.Name });
         }

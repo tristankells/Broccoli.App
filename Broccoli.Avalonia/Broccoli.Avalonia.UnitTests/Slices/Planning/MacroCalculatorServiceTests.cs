@@ -53,7 +53,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void Calculate_HarrisBenedict_Male()
     {
-        var settings = MetricSettings();
+        MacroTargetSettings settings = MetricSettings();
         settings.BmrFormula = BmrFormula.HarrisBenedict;
         var target = new MacroTarget { Gender = GenderType.Male, WeightKg = 80, HeightCm = 180, Age = 30 };
 
@@ -65,7 +65,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void Calculate_HarrisBenedict_Female()
     {
-        var settings = MetricSettings();
+        MacroTargetSettings settings = MetricSettings();
         settings.BmrFormula = BmrFormula.HarrisBenedict;
         var target = new MacroTarget { Gender = GenderType.Female, WeightKg = 65, HeightCm = 165, Age = 25 };
 
@@ -87,7 +87,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void Calculate_ActivityLevel_ScalesTdee()
     {
-        var settings = MetricSettings();
+        MacroTargetSettings settings = MetricSettings();
         var sed = new MacroTarget { ActivityLevel = ActivityLevel.Sedentary, WeightKg = 80, HeightCm = 180, Age = 30 };
         var vAct = new MacroTarget { ActivityLevel = ActivityLevel.VeryActive, WeightKg = 80, HeightCm = 180, Age = 30 };
 
@@ -101,7 +101,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void Calculate_ExtraActive_HasHighestTdee()
     {
-        var settings = MetricSettings();
+        MacroTargetSettings settings = MetricSettings();
         var extra = new MacroTarget { ActivityLevel = ActivityLevel.ExtraActive, WeightKg = 80, HeightCm = 180, Age = 30 };
         _calculator.Calculate(extra, settings);
 
@@ -111,7 +111,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void Calculate_GoalCalorieDelta_AdjustsRecommendedCalories()
     {
-        var settings = MetricSettings();
+        MacroTargetSettings settings = MetricSettings();
         var target = new MacroTarget { WeightKg = 80, HeightCm = 180, Age = 30, GoalCalorieDelta = -500 };
         _calculator.Calculate(target, settings);
 
@@ -126,7 +126,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void Calculate_RecommendedCalories_FloorAtZero()
     {
-        var settings = MetricSettings();
+        MacroTargetSettings settings = MetricSettings();
         var target = new MacroTarget { WeightKg = 40, HeightCm = 100, Age = 100, ActivityLevel = ActivityLevel.Sedentary, GoalCalorieDelta = -10000 };
         _calculator.Calculate(target, settings);
 
@@ -163,7 +163,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void Calculate_ProteinMethod_RatioPercent_AllocatesByPercentage()
     {
-        var settings = MetricSettings();
+        MacroTargetSettings settings = MetricSettings();
         var target = new MacroTarget { WeightKg = 80, HeightCm = 180, Age = 30 };
         _calculator.Calculate(target, settings);
 
@@ -213,7 +213,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void WeightChangeKgPerWeek_NegativeDelta_ReturnsNegativeLoss()
     {
-        var result = MacroCalculatorService.WeightChangeKgPerWeek(-500);
+        double result = MacroCalculatorService.WeightChangeKgPerWeek(-500);
         Assert.IsTrue(result < 0);
         Assert.AreEqual(-0.45, result, 0.01);
     }
@@ -221,7 +221,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void WeightChangeKgPerWeek_PositiveDelta_ReturnsPositiveGain()
     {
-        var result = MacroCalculatorService.WeightChangeKgPerWeek(500);
+        double result = MacroCalculatorService.WeightChangeKgPerWeek(500);
         Assert.IsTrue(result > 0);
         Assert.AreEqual(0.45, result, 0.01);
     }
@@ -229,7 +229,7 @@ public class MacroCalculatorServiceTests
     [TestMethod]
     public void WeightChangeKgPerWeek_ZeroDelta_ReturnsZero()
     {
-        var result = MacroCalculatorService.WeightChangeKgPerWeek(0);
+        double result = MacroCalculatorService.WeightChangeKgPerWeek(0);
         Assert.AreEqual(0, result);
     }
 }

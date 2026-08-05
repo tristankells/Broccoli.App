@@ -44,7 +44,7 @@ public class DailyFoodPlanService : IDailyFoodPlanService
     public void Delete(string id)
     {
         using var context = BroccoliDbContext.CreateForApp();
-        var plan = context.DailyFoodPlans.Find(id);
+        DailyFoodPlan? plan = context.DailyFoodPlans.Find(id);
         if (plan is not null)
         {
             context.DailyFoodPlans.Remove(plan);

@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
 
-public partial class RecipeListPageViewModel : ViewModelBase
+internal partial class RecipeListPageViewModel : ViewModelBase
 {
     private readonly IRecipeService _recipeService;
     private readonly IngredientParserService? _parser;
@@ -53,7 +53,7 @@ public partial class RecipeListPageViewModel : ViewModelBase
             return;
         }
 
-        var settings = _macroService.GetSettings();
+        MacroTargetSettings settings = _macroService.GetSettings();
         ShowImages = settings.ShowCardImage;
         ShowTags = settings.ShowCardTags;
         ShowSeasonality = settings.ShowCardSeasonality;
@@ -66,7 +66,7 @@ public partial class RecipeListPageViewModel : ViewModelBase
         _allRecipes = [.. _recipeService.GetAll()];
         _allCards.Clear();
 
-        foreach (var recipe in _allRecipes)
+        foreach (Recipe recipe in _allRecipes)
         {
             double cal = 0, pro = 0, carb = 0, fat = 0;
             SeasonalityResult? seasonality = null;

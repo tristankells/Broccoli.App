@@ -41,7 +41,7 @@ public class RecipeService : IRecipeService
 
     public Recipe AddImage(Recipe recipe, string sourceFilePath)
     {
-        var fileName = _store.AddImage(recipe.Id, sourceFilePath);
+        string fileName = _store.AddImage(recipe.Id, sourceFilePath);
         if (!recipe.Images.Contains(fileName))
         {
             recipe.Images.Add(fileName);

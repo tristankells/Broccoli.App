@@ -14,7 +14,7 @@ public class IngredientParserServiceTests
             .Returns(new FoodMatchResult { Score = 0, Method = "None" });
         if (foods is not null)
         {
-            foreach (var kvp in foods)
+            foreach (KeyValuePair<string, Food> kvp in foods)
             {
                 foodService.Setup(s => s.FindBestMatch(kvp.Key))
                     .Returns(new FoodMatchResult { Food = kvp.Value, Score = 1.0, Method = "Exact" });
@@ -33,8 +33,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_MetricWeight_ExtractsQuantityAndUnit()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("250g chicken breast");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("250g chicken breast");
 
         Assert.AreEqual(1, results.Count);
         Assert.AreEqual(250, results[0].ParsedIngredient.Quantity);
@@ -45,8 +45,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_VolumeUnit_ExtractsCorrectly()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("2 cups flour");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("2 cups flour");
 
         Assert.AreEqual(1, results.Count);
         Assert.AreEqual(2, results[0].ParsedIngredient.Quantity);
@@ -56,8 +56,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_NoUnit_DefaultsToQuantityOne()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("carrots");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("carrots");
 
         Assert.AreEqual(1, results.Count);
         Assert.AreEqual(1, results[0].ParsedIngredient.Quantity);
@@ -67,8 +67,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_Fraction_CalculatesCorrectly()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("1 1/2 cups sugar");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("1 1/2 cups sugar");
 
         Assert.AreEqual(1.5, results[0].ParsedIngredient.Quantity);
     }
@@ -76,8 +76,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_MultipleLines_ReturnsMultipleResults()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("250g chicken\n2 cups flour");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("250g chicken\n2 cups flour");
 
         Assert.AreEqual(2, results.Count);
     }
@@ -85,8 +85,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_EmptyString_ReturnsEmpty()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("");
 
         Assert.AreEqual(0, results.Count);
     }
@@ -94,9 +94,9 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_MatchesAgainstFoodDatabase()
     {
-        var food = MakeFood(1, "chicken breast");
-        var service = CreateService(new Dictionary<string, Food> { { "chicken breast", food } });
-        var results = service.ParseAndMatchIngredients("250g chicken breast");
+        Food food = MakeFood(1, "chicken breast");
+        IngredientParserService service = CreateService(new Dictionary<string, Food> { { "chicken breast", food } });
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("250g chicken breast");
 
         Assert.IsTrue(results[0].IsMatched);
         Assert.AreEqual("chicken breast", results[0].MatchedFood!.Name);
@@ -105,8 +105,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_UnmatchedFood_HasNoMatch()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("250g zargblax");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("250g zargblax");
 
         Assert.IsFalse(results[0].IsMatched);
     }
@@ -114,9 +114,9 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_Duplicates_AreMerged()
     {
-        var food = MakeFood(1, "chicken breast");
-        var service = CreateService(new Dictionary<string, Food> { { "chicken breast", food } });
-        var results = service.ParseAndMatchIngredients("250g chicken breast\n250g chicken breast");
+        Food food = MakeFood(1, "chicken breast");
+        IngredientParserService service = CreateService(new Dictionary<string, Food> { { "chicken breast", food } });
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("250g chicken breast\n250g chicken breast");
 
         Assert.AreEqual(1, results.Count);
         Assert.AreEqual(500, results[0].ParsedIngredient.Quantity);
@@ -125,8 +125,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_UnitNormalization_LiterToL()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("1 liter milk");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("1 liter milk");
 
         Assert.AreEqual("l", results[0].ParsedIngredient.Unit);
     }
@@ -134,8 +134,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_SkipsCommentLines()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("# My header\n250g chicken");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("# My header\n250g chicken");
 
         Assert.AreEqual(1, results.Count);
         Assert.AreEqual("chicken", results[0].ParsedIngredient.FoodDescription);
@@ -144,8 +144,8 @@ public class IngredientParserServiceTests
     [TestMethod]
     public void Parse_StripNotesAfterComma()
     {
-        var service = CreateService();
-        var results = service.ParseAndMatchIngredients("Carrots, Raw");
+        IngredientParserService service = CreateService();
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("Carrots, Raw");
 
         Assert.AreEqual("Carrots", results[0].ParsedIngredient.FoodDescription);
     }

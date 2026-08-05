@@ -28,7 +28,7 @@ public static class AppPaths
     {
         get
         {
-            var root = Path.Combine(
+            string root = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 AppFolderName);
             Directory.CreateDirectory(root);
@@ -47,7 +47,7 @@ public static class AppPaths
     {
         get
         {
-            var folder = Path.Combine(RootFolder, RecipesFolderName);
+            string folder = Path.Combine(RootFolder, RecipesFolderName);
             Directory.CreateDirectory(folder);
             return folder;
         }
@@ -56,7 +56,7 @@ public static class AppPaths
     /// <summary>Folder for a specific recipe's markdown file and images.</summary>
     public static string RecipeFolder(string recipeId)
     {
-        var folder = Path.Combine(RecipesFolder, recipeId);
+        string folder = Path.Combine(RecipesFolder, recipeId);
         Directory.CreateDirectory(folder);
         return folder;
     }
@@ -73,7 +73,7 @@ public static class AppPaths
     {
         get
         {
-            var folder = Path.Combine(RootFolder, "GoogleDriveTokens");
+            string folder = Path.Combine(RootFolder, "GoogleDriveTokens");
             Directory.CreateDirectory(folder);
             return folder;
         }
@@ -106,7 +106,7 @@ public static class AppPaths
     {
         get
         {
-            var folder = Path.Combine(RootFolder, "Conflicts");
+            string folder = Path.Combine(RootFolder, "Conflicts");
             Directory.CreateDirectory(folder);
             return folder;
         }

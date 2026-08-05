@@ -13,7 +13,7 @@ public class BroccoliDbContextFactory : IDesignTimeDbContextFactory<BroccoliDbCo
 {
     public BroccoliDbContext CreateDbContext(string[] args)
     {
-        var options = new DbContextOptionsBuilder<BroccoliDbContext>()
+        DbContextOptions<BroccoliDbContext> options = new DbContextOptionsBuilder<BroccoliDbContext>()
             .UseSqlite($"Data Source={AppPaths.DatabaseFilePath}")
             .Options;
 

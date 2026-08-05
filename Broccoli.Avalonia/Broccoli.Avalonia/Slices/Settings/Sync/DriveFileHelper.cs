@@ -1,4 +1,5 @@
 using Google.Apis.Drive.v3;
+using Google.Apis.Drive.v3.Data;
 using Google.Apis.Upload;
 using DriveFile = Google.Apis.Drive.v3.Data.File;
 
@@ -17,7 +18,7 @@ internal static class DriveFileHelper
     public static async Task<string> FindOrCreateFolderAsync(
         DriveService drive, string name, string? parentId, CancellationToken ct)
     {
-        var existing = await FindChildAsync(drive, name, parentId, FolderMimeType, ct);
+        DriveFile? existing = await FindChildAsync(drive, name, parentId, FolderMimeType, ct);
         if (existing is not null)
         {
             return existing.Id;
@@ -30,9 +31,9 @@ internal static class DriveFileHelper
             Parents = parentId is null ? null : [parentId]
         };
 
-        var request = drive.Files.Create(folder);
+        FilesResource.CreateRequest request = drive.Files.Create(folder);
         request.Fields = "id";
-        var created = await request.ExecuteAsync(ct);
+        DriveFile created = await request.ExecuteAsync(ct);
         return created.Id;
     }
 
@@ -44,8 +45,8 @@ internal static class DriveFileHelper
     private static async Task<DriveFile?> FindChildAsync(
         DriveService drive, string name, string? parentId, string? mimeType, CancellationToken ct)
     {
-        var escapedName = name.Replace("'", "\\'");
-        var q = $"name = '{escapedName}' and trashed = false";
+        string escapedName = name.Replace("'", "\\'");
+        string q = $"name = '{escapedName}' and trashed = false";
         if (parentId is not null)
         {
             q += $" and '{parentId}' in parents";
@@ -55,23 +56,23 @@ internal static class DriveFileHelper
             q += $" and mimeType = '{mimeType}'";
         }
 
-        var request = drive.Files.List();
+        FilesResource.ListRequest request = drive.Files.List();
         request.Q = q;
         request.Fields = "files(id, name, modifiedTime)";
         request.Spaces = "drive";
-        var result = await request.ExecuteAsync(ct);
+        FileList result = await request.ExecuteAsync(ct);
         return result.Files.FirstOrDefault();
     }
 
     public static async Task<List<DriveFile>> ListChildrenAsync(
         DriveService drive, string parentId, CancellationToken ct)
     {
-        var request = drive.Files.List();
+        FilesResource.ListRequest request = drive.Files.List();
         request.Q = $"'{parentId}' in parents and trashed = false";
         request.Fields = "files(id, name, mimeType, modifiedTime)";
         request.Spaces = "drive";
         request.PageSize = 1000;
-        var result = await request.ExecuteAsync(ct);
+        FileList result = await request.ExecuteAsync(ct);
         return result.Files.ToList();
     }
 
@@ -79,21 +80,21 @@ internal static class DriveFileHelper
     public static async Task<string> UploadOrUpdateFileAsync(
         DriveService drive, string name, string parentId, Stream content, string mimeType, CancellationToken ct)
     {
-        var existing = await FindChildAsync(drive, name, parentId, mimeType: null, ct);
+        DriveFile? existing = await FindChildAsync(drive, name, parentId, mimeType: null, ct);
 
         if (existing is null)
         {
             var file = new DriveFile { Name = name, Parents = [parentId] };
-            var createRequest = drive.Files.Create(file, content, mimeType);
+            FilesResource.CreateMediaUpload createRequest = drive.Files.Create(file, content, mimeType);
             createRequest.Fields = "id";
-            var progress = await createRequest.UploadAsync(ct);
+            IUploadProgress progress = await createRequest.UploadAsync(ct);
             ThrowIfFailed(progress);
             return createRequest.ResponseBody.Id;
         }
         else
         {
-            var updateRequest = drive.Files.Update(new DriveFile(), existing.Id, content, mimeType);
-            var progress = await updateRequest.UploadAsync(ct);
+            FilesResource.UpdateMediaUpload updateRequest = drive.Files.Update(new DriveFile(), existing.Id, content, mimeType);
+            IUploadProgress progress = await updateRequest.UploadAsync(ct);
             ThrowIfFailed(progress);
             return existing.Id;
         }

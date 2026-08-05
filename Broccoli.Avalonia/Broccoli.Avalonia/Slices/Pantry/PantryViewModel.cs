@@ -38,9 +38,9 @@ public partial class PantryViewModel : ViewModelBase
         ErrorMessage = null;
         try
         {
-            var items = _pantryService.GetAll();
+            List<PantryItem> items = _pantryService.GetAll();
             Items.Clear();
-            foreach (var i in items)
+            foreach (PantryItem i in items)
             {
                 Items.Add(i);
             }
@@ -52,7 +52,7 @@ public partial class PantryViewModel : ViewModelBase
     [RelayCommand]
     private void AddItem()
     {
-        var name = NewItemName.Trim();
+        string name = NewItemName.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
             return;
@@ -62,7 +62,7 @@ public partial class PantryViewModel : ViewModelBase
         try
         {
             var item = new PantryItem { Name = name, Category = NewItemCategory };
-            var created = _pantryService.Add(item);
+            PantryItem created = _pantryService.Add(item);
             Items.Add(created);
             NewItemName = string.Empty;
             RefreshCollections();

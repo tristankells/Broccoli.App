@@ -40,7 +40,7 @@ public class MacroTargetService : IMacroTargetService
     public void Delete(string id)
     {
         using var context = BroccoliDbContext.CreateForApp();
-        var target = context.MacroTargets.Find(id);
+        MacroTarget? target = context.MacroTargets.Find(id);
         if (target is not null)
         {
             context.MacroTargets.Remove(target);
@@ -51,7 +51,7 @@ public class MacroTargetService : IMacroTargetService
     public MacroTargetSettings GetSettings()
     {
         using var context = BroccoliDbContext.CreateForApp();
-        var settings = context.MacroTargetSettings.Find(SettingsRowId);
+        MacroTargetSettings? settings = context.MacroTargetSettings.Find(SettingsRowId);
         if (settings is not null)
         {
             return settings;
@@ -66,7 +66,7 @@ public class MacroTargetService : IMacroTargetService
         settings.UpdatedAt = DateTime.UtcNow;
 
         using var context = BroccoliDbContext.CreateForApp();
-        var existing = context.MacroTargetSettings.Find(SettingsRowId);
+        MacroTargetSettings? existing = context.MacroTargetSettings.Find(SettingsRowId);
         if (existing is not null)
         {
             context.Entry(existing).CurrentValues.SetValues(settings);

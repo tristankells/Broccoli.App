@@ -1,3 +1,4 @@
+using Avalonia.Platform.Storage;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -73,10 +74,10 @@ public partial class ImportDialogViewModel : ViewModelBase
         try
         {
             var files = new List<(string, string)>();
-            var storage = GetStorage();
+            IStorageProvider? storage = GetStorage();
             if (storage is not null)
             {
-                var picked = await storage.OpenFilePickerAsync(new global::Avalonia.Platform.Storage.FilePickerOpenOptions
+                IReadOnlyList<IStorageFile> picked = await storage.OpenFilePickerAsync(new global::Avalonia.Platform.Storage.FilePickerOpenOptions
                 {
                     Title = $"Select {SelectedFormat.DisplayName} files",
                     AllowMultiple = true,
@@ -86,9 +87,9 @@ public partial class ImportDialogViewModel : ViewModelBase
                         { Patterns = new[] { $"*{SelectedFormat.FileExtension}" } }
                     }
                 });
-                foreach (var f in picked)
+                foreach (IStorageFile f in picked)
                 {
-                    await using var stream = await f.OpenReadAsync();
+                    await using Stream stream = await f.OpenReadAsync();
                     using var reader = new StreamReader(stream);
                     files.Add((f.Name, await reader.ReadToEndAsync()));
                 }
@@ -96,8 +97,8 @@ public partial class ImportDialogViewModel : ViewModelBase
             if (files.Count > 0)
             {
                 Results.Clear();
-                var results = await _importService.ParseFilesAsync(SelectedFormat, files, _existingNames);
-                foreach (var r in results)
+                List<ImportRecipeResult> results = await _importService.ParseFilesAsync(SelectedFormat, files, _existingNames);
+                foreach (ImportRecipeResult r in results)
                 {
                     Results.Add(r);
                 }
@@ -121,7 +122,7 @@ public partial class ImportDialogViewModel : ViewModelBase
         try
         {
             Results.Clear();
-            var result = await _importService.ParseFileAsync(SelectedFormat, "pasted.txt", PasteContent, _existingNames);
+            ImportRecipeResult result = await _importService.ParseFileAsync(SelectedFormat, "pasted.txt", PasteContent, _existingNames);
             Results.Add(result);
             ShowPreview = true;
         }
@@ -136,7 +137,7 @@ public partial class ImportDialogViewModel : ViewModelBase
         ErrorMessage = null;
         try
         {
-            foreach (var r in Results.Where(r => r.IsSelected && r.Status == ImportStatus.ReadyToImport && r.Recipe is not null))
+            foreach (ImportRecipeResult? r in Results.Where(r => r.IsSelected && r.Status == ImportStatus.ReadyToImport && r.Recipe is not null))
             {
                 try { _recipeService.Create(r.Recipe!); r.SaveSuccess = true; }
                 catch (Exception ex) { r.SaveSuccess = false; r.SaveError = ex.Message; }

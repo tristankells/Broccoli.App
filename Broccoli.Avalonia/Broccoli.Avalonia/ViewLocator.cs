@@ -41,8 +41,8 @@ public class ViewLocator : IDataTemplate
             return null;
         }
 
-        var viewModelType = param.GetType();
-        if (Factories.TryGetValue(viewModelType, out var factory))
+        Type viewModelType = param.GetType();
+        if (Factories.TryGetValue(viewModelType, out Func<Control>? factory))
         {
             return factory();
         }

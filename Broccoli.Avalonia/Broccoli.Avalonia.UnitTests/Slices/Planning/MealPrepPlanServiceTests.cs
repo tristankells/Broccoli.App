@@ -19,7 +19,7 @@ public class MealPrepPlanServiceTests
         };
         _mock.Setup(s => s.GetAll()).Returns(plans);
 
-        var result = _mock.Object.GetAll();
+        List<MealPrepPlan> result = _mock.Object.GetAll();
 
         Assert.AreEqual(2, result.Count);
         Assert.AreEqual("Week 1", result[0].Name);
@@ -31,7 +31,7 @@ public class MealPrepPlanServiceTests
         var plan = new MealPrepPlan { Name = "New", RecipeIds = new List<string> { "r1" } };
         _mock.Setup(s => s.Add(It.IsAny<MealPrepPlan>())).Returns(plan);
 
-        var result = _mock.Object.Add(plan);
+        MealPrepPlan result = _mock.Object.Add(plan);
 
         Assert.AreEqual("New", result.Name);
         Assert.AreEqual(1, result.RecipeIds.Count);

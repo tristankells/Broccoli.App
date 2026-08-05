@@ -26,8 +26,8 @@ public class BargainBoxPasteImportFormat : IImportFormat
         int servingsIdx = lines.FindIndex(l => l.StartsWith("Serving size", StringComparison.OrdinalIgnoreCase));
         if (servingsIdx >= 0 && servingsIdx + 1 < lines.Count)
         {
-            var nextLine = lines[servingsIdx + 1];
-            if (int.TryParse(nextLine, out var s))
+            string nextLine = lines[servingsIdx + 1];
+            if (int.TryParse(nextLine, out int s))
             {
                 servings = s;
             }
@@ -46,7 +46,7 @@ public class BargainBoxPasteImportFormat : IImportFormat
         var ingredients = new List<string>();
         var directions = new List<string>();
 
-        foreach (var line in lines)
+        foreach (string? line in lines)
         {
             if (line.StartsWith("# "))
             {
@@ -68,7 +68,7 @@ public class BargainBoxPasteImportFormat : IImportFormat
                 break;
             }
 
-            var line = lines[i];
+            string line = lines[i];
             if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
             {
                 continue;
@@ -99,7 +99,7 @@ public class BargainBoxPasteImportFormat : IImportFormat
             string? sectionTitle = null;
             for (int i = directionsStart; i < lines.Count; i++)
             {
-                var line = lines[i];
+                string line = lines[i];
                 if (int.TryParse(line, out _) && i + 1 < lines.Count && lines[i + 1].Length > 0)
                 {
                     sectionTitle = lines[++i];

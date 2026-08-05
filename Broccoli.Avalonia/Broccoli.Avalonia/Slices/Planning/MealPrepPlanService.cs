@@ -39,7 +39,7 @@ public class MealPrepPlanService : IMealPrepPlanService
     public void Delete(string id)
     {
         using var context = BroccoliDbContext.CreateForApp();
-        var plan = context.MealPrepPlans.Find(id);
+        MealPrepPlan? plan = context.MealPrepPlans.Find(id);
         if (plan is not null)
         {
             context.MealPrepPlans.Remove(plan);
@@ -53,7 +53,7 @@ public class MealPrepPlanService : IMealPrepPlanService
         var plans = context.MealPrepPlans.ToList();
         for (int i = 0; i < orderedPlanIds.Count; i++)
         {
-            var plan = plans.FirstOrDefault(p => p.Id == orderedPlanIds[i]);
+            MealPrepPlan? plan = plans.FirstOrDefault(p => p.Id == orderedPlanIds[i]);
             if (plan is not null)
             {
                 plan.SortOrder = i;

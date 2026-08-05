@@ -20,7 +20,7 @@ public partial class GroceriesViewModel : ViewModelBase
     {
         get
         {
-            var checkedCount = Items.Count(i => i.IsChecked);
+            int checkedCount = Items.Count(i => i.IsChecked);
             return $"{checkedCount} of {Items.Count} checked";
         }
     }
@@ -42,9 +42,9 @@ public partial class GroceriesViewModel : ViewModelBase
 
         try
         {
-            var items = _groceryListService.GetAll();
+            List<GroceryListItem> items = _groceryListService.GetAll();
             Items.Clear();
-            foreach (var item in items)
+            foreach (GroceryListItem item in items)
             {
                 Items.Add(item);
             }
@@ -63,7 +63,7 @@ public partial class GroceriesViewModel : ViewModelBase
     [RelayCommand]
     private void AddItem()
     {
-        var name = NewItemText.Trim();
+        string name = NewItemText.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
             return;
@@ -79,7 +79,7 @@ public partial class GroceriesViewModel : ViewModelBase
                 IsChecked = false
             };
 
-            var created = _groceryListService.Add(item);
+            GroceryListItem created = _groceryListService.Add(item);
             Items.Insert(0, created);
             NewItemText = string.Empty;
             OnPropertyChanged(nameof(StatusText));

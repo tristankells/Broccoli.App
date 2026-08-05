@@ -127,14 +127,14 @@ public partial class RecipeEditViewModel : ViewModelBase
 
         try
         {
-            var settings = _macroService.GetSettings();
+            MacroTargetSettings settings = _macroService.GetSettings();
             if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
             {
                 return;
             }
 
-            var targets = _macroService.GetAll();
-            var chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
+            List<MacroTarget> targets = _macroService.GetAll();
+            MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
             if (chosen is null)
             {
                 return;
@@ -162,10 +162,10 @@ public partial class RecipeEditViewModel : ViewModelBase
             return;
         }
 
-        var matches = _parser.ParseAndMatchIngredients(Ingredients);
+        List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(Ingredients);
         ParsedMatches.Clear();
         double cal = 0, pro = 0, carb = 0, fat = 0;
-        foreach (var m in matches)
+        foreach (ParsedIngredientMatch m in matches)
         {
             ParsedMatches.Add(ParsedIngredientRow.FromMatch(m));
             if (m.IsMatched)
@@ -222,7 +222,7 @@ public partial class RecipeEditViewModel : ViewModelBase
     private void RefreshImages(Recipe recipe)
     {
         Images.Clear();
-        foreach (var image in recipe.Images)
+        foreach (string image in recipe.Images)
         {
             Images.Add(new RecipeImageItem(image, _recipeService.GetImagePath(recipe.Id, image)));
         }
@@ -238,13 +238,13 @@ public partial class RecipeEditViewModel : ViewModelBase
             return;
         }
 
-        var path = await PickImageFileAsync();
+        string? path = await PickImageFileAsync();
         if (string.IsNullOrWhiteSpace(path))
         {
             return;
         }
 
-        var recipe = SaveCore();
+        Recipe recipe = SaveCore();
         recipe = _recipeService.AddImage(recipe, path);
         RefreshImages(recipe);
     }
@@ -252,7 +252,7 @@ public partial class RecipeEditViewModel : ViewModelBase
     [RelayCommand]
     private void RemoveImage(RecipeImageItem image)
     {
-        var recipe = SaveCore();
+        Recipe recipe = SaveCore();
         recipe = _recipeService.RemoveImage(recipe, image.FileName);
         RefreshImages(recipe);
     }

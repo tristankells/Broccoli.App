@@ -29,7 +29,7 @@ public class BroccoliDbContext : DbContext
     /// </summary>
     public static BroccoliDbContext CreateForApp()
     {
-        var options = new DbContextOptionsBuilder<BroccoliDbContext>()
+        DbContextOptions<BroccoliDbContext> options = new DbContextOptionsBuilder<BroccoliDbContext>()
             .UseSqlite($"Data Source={AppPaths.DatabaseFilePath}")
             .Options;
 

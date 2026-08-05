@@ -24,7 +24,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     {
         get
         {
-            var idx = AvailableTargets.FindIndex(t => t.Id == ComparisonPersonId);
+            int idx = AvailableTargets.FindIndex(t => t.Id == ComparisonPersonId);
             return idx >= 0 ? idx : 0;
         }
         set
@@ -50,7 +50,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     {
         try
         {
-            var settings = _macroService.GetSettings();
+            MacroTargetSettings settings = _macroService.GetSettings();
             ComparisonEnabled = settings.RecipeMealComparisonEnabled;
             ComparisonPersonId = settings.RecipeMealComparisonPersonId;
             ShowCardImage = settings.ShowCardImage;
@@ -58,7 +58,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
             ShowCardSeasonality = settings.ShowCardSeasonality;
             ShowCardNutrition = settings.ShowCardNutrition;
 
-            var targets = _macroService.GetAll();
+            List<MacroTarget> targets = _macroService.GetAll();
             AvailableTargets.Clear();
             AvailableTargets.AddRange(targets);
             OnPropertyChanged(nameof(SelectedTargetIndex));
@@ -72,7 +72,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         StatusMessage = null;
         try
         {
-            var settings = _macroService.GetSettings();
+            MacroTargetSettings settings = _macroService.GetSettings();
             settings.RecipeMealComparisonEnabled = ComparisonEnabled;
             settings.RecipeMealComparisonPersonId = ComparisonPersonId;
             settings.ShowCardImage = ShowCardImage;

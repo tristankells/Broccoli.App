@@ -27,7 +27,7 @@ public class GroceryListService : IGroceryListService
     public void AddMultiple(IEnumerable<GroceryListItem> items)
     {
         using var context = BroccoliDbContext.CreateForApp();
-        foreach (var item in items)
+        foreach (GroceryListItem item in items)
         {
             item.Id = Guid.NewGuid().ToString();
             item.CreatedAt = DateTime.UtcNow;
@@ -47,7 +47,7 @@ public class GroceryListService : IGroceryListService
     public void Delete(string id)
     {
         using var context = BroccoliDbContext.CreateForApp();
-        var item = context.GroceryListItems.Find(id);
+        GroceryListItem? item = context.GroceryListItems.Find(id);
         if (item is not null)
         {
             context.GroceryListItems.Remove(item);

@@ -34,9 +34,9 @@ public partial class DayPlanViewModel : ViewModelBase
         ErrorMessage = null;
         try
         {
-            var plans = _planService.GetAll();
+            List<DailyFoodPlan> plans = _planService.GetAll();
             Plans.Clear();
-            foreach (var p in plans)
+            foreach (DailyFoodPlan p in plans)
             {
                 Plans.Add(p);
             }
@@ -164,7 +164,7 @@ public partial class DayPlanViewModel : ViewModelBase
             return;
         }
 
-        foreach (var tab in SelectedPlan.Tabs)
+        foreach (DailyFoodPlanTab tab in SelectedPlan.Tabs)
         {
             tab.Rows.Remove(row);
         }
@@ -178,7 +178,7 @@ public partial class DayPlanViewModel : ViewModelBase
             return;
         }
 
-        foreach (var tab in SelectedPlan.Tabs)
+        foreach (DailyFoodPlanTab tab in SelectedPlan.Tabs)
         {
             int idx = tab.Rows.IndexOf(row);
             if (idx > 0) { tab.Rows.RemoveAt(idx); tab.Rows.Insert(idx - 1, row); }
@@ -193,7 +193,7 @@ public partial class DayPlanViewModel : ViewModelBase
             return;
         }
 
-        foreach (var tab in SelectedPlan.Tabs)
+        foreach (DailyFoodPlanTab tab in SelectedPlan.Tabs)
         {
             int idx = tab.Rows.IndexOf(row);
             if (idx >= 0 && idx < tab.Rows.Count - 1)

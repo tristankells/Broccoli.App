@@ -38,8 +38,8 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         try
         {
             var uri = new Uri("avares://Broccoli.Avalonia/Assets/nz-produce.json");
-            using var stream = AssetLoader.Open(uri);
-            var dataset = JsonSerializer.Deserialize<ProduceDataset>(stream, s_jsonOpts);
+            using Stream stream = AssetLoader.Open(uri);
+            ProduceDataset? dataset = JsonSerializer.Deserialize<ProduceDataset>(stream, s_jsonOpts);
             _allProduce = dataset?.Produce ?? new List<ProduceItem>();
         }
         catch
@@ -54,7 +54,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         string season = SeasonHelper.GetCurrentSeason(asOf ?? DateTime.Now);
 
         var matched = new List<(ProduceItem Produce, double Grams)>();
-        foreach (var m in matches)
+        foreach (ParsedIngredientMatch m in matches)
         {
             if (!m.IsMatched || m.MatchedFood is null)
             {
@@ -67,7 +67,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
                 continue;
             }
 
-            var produce = LookupProduce(m.MatchedFood.Name);
+            ProduceItem? produce = LookupProduce(m.MatchedFood.Name);
             if (produce is null)
             {
                 continue;
@@ -81,7 +81,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
             return new SeasonalityResult { Score = null, Label = SeasonalityLabel.Unavailable, Breakdown = new List<IngredientSeasonalityDetail>(), BestSeasons = string.Empty };
         }
 
-        var (breakdown, totalWeighted, totalPossible) = ComputeForSeason(matched, season);
+        (List<IngredientSeasonalityDetail>? breakdown, double totalWeighted, double totalPossible) = ComputeForSeason(matched, season);
 
         double score = totalPossible > 0 ? (totalWeighted / totalPossible) * 100.0 : 0;
         SeasonalityLabel label = score >= 75 ? SeasonalityLabel.PeakSeason
@@ -98,7 +98,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     {
         var breakdown = new List<IngredientSeasonalityDetail>();
         double totalWeighted = 0, totalPossible = 0;
-        foreach (var (produce, grams) in matched)
+        foreach ((ProduceItem? produce, double grams) in matched)
         {
             bool inSeason = produce.YearRound || produce.Seasons.Contains(season, StringComparer.OrdinalIgnoreCase);
             double scarcity = SeasonHelper.GetScarcityWeight(produce);
@@ -119,7 +119,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         }
 
         var seasonScores = SeasonHelper.AllSeasons
-            .Select(s => { var (_, tw, tp) = ComputeForSeason(matched, s); return (Season: s, Score: tp > 0 ? (tw / tp) * 100.0 : 0.0); })
+            .Select(s => { (List<IngredientSeasonalityDetail> _, double tw, double tp) = ComputeForSeason(matched, s); return (Season: s, Score: tp > 0 ? (tw / tp) * 100.0 : 0.0); })
             .OrderByDescending(x => x.Score).ToList();
 
         double topScore = seasonScores[0].Score;
@@ -135,14 +135,14 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     private ProduceItem? LookupProduce(string foodName)
     {
         string key = NormaliseName(foodName);
-        if (_produceByNormalisedName.TryGetValue(key, out var exact))
+        if (_produceByNormalisedName.TryGetValue(key, out ProduceItem? exact))
         {
             return exact;
         }
 
         ProduceItem? best = null;
         int bestLen = int.MaxValue;
-        foreach (var (produceKey, item) in _produceByNormalisedName)
+        foreach ((string? produceKey, ProduceItem? item) in _produceByNormalisedName)
         {
             bool match = key.Contains(produceKey, StringComparison.OrdinalIgnoreCase) || produceKey.Contains(key, StringComparison.OrdinalIgnoreCase);
             if (match && produceKey.Length < bestLen) { best = item; bestLen = produceKey.Length; }
@@ -153,7 +153,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
     private static Dictionary<string, ProduceItem> BuildLookup(IEnumerable<ProduceItem> items)
     {
         var dict = new Dictionary<string, ProduceItem>(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in items)
+        foreach (ProduceItem item in items)
         {
             dict.TryAdd(NormaliseName(item.Name), item);
         }
@@ -173,7 +173,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         var tokens = result.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => !s_stopwords.Contains(t)).ToList();
         for (int i = 0; i < tokens.Count; i++)
         {
-            if (s_pluralFixes.TryGetValue(tokens[i], out var singular))
+            if (s_pluralFixes.TryGetValue(tokens[i], out string? singular))
             {
                 tokens[i] = singular;
             }

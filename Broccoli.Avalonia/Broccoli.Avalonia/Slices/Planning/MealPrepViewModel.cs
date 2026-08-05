@@ -32,9 +32,9 @@ public partial class MealPrepViewModel : ViewModelBase
         ErrorMessage = null;
         try
         {
-            var plans = _planService.GetAll();
+            List<MealPrepPlan> plans = _planService.GetAll();
             Plans.Clear();
-            foreach (var p in plans)
+            foreach (MealPrepPlan p in plans)
             {
                 Plans.Add(p);
             }

@@ -51,10 +51,10 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
     {
         var recipes = new List<Recipe>();
 
-        foreach (var folder in Directory.EnumerateDirectories(AppPaths.RecipesFolder))
+        foreach (string folder in Directory.EnumerateDirectories(AppPaths.RecipesFolder))
         {
-            var recipeId = Path.GetFileName(folder);
-            var recipe = Load(recipeId);
+            string recipeId = Path.GetFileName(folder);
+            Recipe? recipe = Load(recipeId);
             if (recipe is not null)
             {
                 recipes.Add(recipe);
@@ -66,17 +66,17 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
 
     public Recipe? Load(string recipeId)
     {
-        var path = AppPaths.RecipeMarkdownFilePath(recipeId);
+        string path = AppPaths.RecipeMarkdownFilePath(recipeId);
         if (!File.Exists(path))
         {
             return null;
         }
 
-        var content = File.ReadAllText(path);
-        var (frontmatter, body) = SplitFrontmatter(content);
+        string content = File.ReadAllText(path);
+        (string? frontmatter, string? body) = SplitFrontmatter(content);
 
-        var meta = YamlDeserializer.Deserialize<RecipeFrontmatter>(frontmatter) ?? new RecipeFrontmatter();
-        var (ingredients, directions, notes) = ParseSections(body);
+        RecipeFrontmatter meta = YamlDeserializer.Deserialize<RecipeFrontmatter>(frontmatter) ?? new RecipeFrontmatter();
+        (string? ingredients, string? directions, string? notes) = ParseSections(body);
 
         return new Recipe
         {
@@ -116,9 +116,9 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
             IsFavorite = recipe.IsFavorite
         };
 
-        var yaml = YamlSerializer.Serialize(meta);
+        string yaml = YamlSerializer.Serialize(meta);
 
-        var body = $"""
+        string body = $"""
 ## Ingredients
 
 {recipe.Ingredients.Trim()}
@@ -132,14 +132,14 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
 {(recipe.Notes ?? string.Empty).Trim()}
 """;
 
-        var content = $"{FrontmatterDelimiter}\n{yaml}{FrontmatterDelimiter}\n\n{body}\n";
+        string content = $"{FrontmatterDelimiter}\n{yaml}{FrontmatterDelimiter}\n\n{body}\n";
 
         File.WriteAllText(AppPaths.RecipeMarkdownFilePath(recipe.Id), content);
     }
 
     public void Delete(string recipeId)
     {
-        var folder = AppPaths.RecipeFolder(recipeId);
+        string folder = AppPaths.RecipeFolder(recipeId);
         if (Directory.Exists(folder))
         {
             Directory.Delete(folder, recursive: true);
@@ -152,15 +152,15 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
 
     public string AddImage(string recipeId, string sourceFilePath)
     {
-        var fileName = Path.GetFileName(sourceFilePath);
-        var destination = Path.Combine(AppPaths.RecipeFolder(recipeId), fileName);
+        string fileName = Path.GetFileName(sourceFilePath);
+        string destination = Path.Combine(AppPaths.RecipeFolder(recipeId), fileName);
         File.Copy(sourceFilePath, destination, overwrite: true);
         return fileName;
     }
 
     public void RemoveImage(string recipeId, string fileName)
     {
-        var path = Path.Combine(AppPaths.RecipeFolder(recipeId), fileName);
+        string path = Path.Combine(AppPaths.RecipeFolder(recipeId), fileName);
         if (File.Exists(path))
         {
             File.Delete(path);
@@ -169,20 +169,20 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
 
     private static (string Frontmatter, string Body) SplitFrontmatter(string content)
     {
-        var lines = content.Replace("\r\n", "\n").Split('\n');
+        string[] lines = content.Replace("\r\n", "\n").Split('\n');
         if (lines.Length == 0 || lines[0].Trim() != FrontmatterDelimiter)
         {
             return (string.Empty, content);
         }
 
-        var endIndex = Array.FindIndex(lines, 1, l => l.Trim() == FrontmatterDelimiter);
+        int endIndex = Array.FindIndex(lines, 1, l => l.Trim() == FrontmatterDelimiter);
         if (endIndex < 0)
         {
             return (string.Empty, content);
         }
 
-        var frontmatter = string.Join('\n', lines[1..endIndex]);
-        var body = string.Join('\n', lines[(endIndex + 1)..]);
+        string frontmatter = string.Join('\n', lines[1..endIndex]);
+        string body = string.Join('\n', lines[(endIndex + 1)..]);
         return (frontmatter, body);
     }
 
@@ -194,7 +194,7 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
 
         void Flush()
         {
-            var text = buffer.ToString().Trim();
+            string text = buffer.ToString().Trim();
             switch (current)
             {
                 case "ingredients": ingredients = text; break;
@@ -204,9 +204,9 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
             buffer.Clear();
         }
 
-        foreach (var line in body.Replace("\r\n", "\n").Split('\n'))
+        foreach (string line in body.Replace("\r\n", "\n").Split('\n'))
         {
-            var trimmed = line.Trim();
+            string trimmed = line.Trim();
             if (trimmed.Equals("## Ingredients", StringComparison.OrdinalIgnoreCase))
             {
                 Flush();

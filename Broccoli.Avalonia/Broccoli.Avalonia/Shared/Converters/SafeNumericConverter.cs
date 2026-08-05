@@ -14,7 +14,7 @@ public class SafeDoubleConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string s && double.TryParse(s, NumberStyles.Any, culture, out var d))
+        if (value is string s && double.TryParse(s, NumberStyles.Any, culture, out double d))
         {
             return d;
         }
@@ -34,7 +34,7 @@ public class SafeIntConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is string s && int.TryParse(s, NumberStyles.Any, culture, out var i))
+        if (value is string s && int.TryParse(s, NumberStyles.Any, culture, out int i))
         {
             return i;
         }

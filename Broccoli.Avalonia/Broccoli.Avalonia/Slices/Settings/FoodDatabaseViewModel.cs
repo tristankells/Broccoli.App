@@ -53,7 +53,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             var foods = _foodService.GetAll().OrderBy(f => f.Id).ToList();
             Foods.Clear();
-            foreach (var f in foods)
+            foreach (Food? f in foods)
             {
                 Foods.Add(f);
             }
@@ -77,7 +77,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
 
         try
         {
-            var added = _foodService.Add(NewFood);
+            Food added = _foodService.Add(NewFood);
             Foods.Add(added);
             NewFood = null;
         }
@@ -122,7 +122,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         try
         {
             _foodService.Update(EditingFood);
-            var idx = Foods.IndexOf(Foods.First(f => f.Id == EditingFood.Id));
+            int idx = Foods.IndexOf(Foods.First(f => f.Id == EditingFood.Id));
             if (idx >= 0)
             {
                 Foods[idx] = EditingFood;
@@ -181,7 +181,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
                 return;
             }
 
-            var incoming = JsonSerializer.Deserialize<List<Food>>(json,
+            List<Food>? incoming = JsonSerializer.Deserialize<List<Food>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             if (incoming == null || incoming.Count == 0)
             {
@@ -189,9 +189,9 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             }
 
             int added = 0, updated = 0;
-            foreach (var food in incoming.Where(f => !string.IsNullOrWhiteSpace(f.Name)))
+            foreach (Food? food in incoming.Where(f => !string.IsNullOrWhiteSpace(f.Name)))
             {
-                var match = _foodService.FindBestMatch(food.Name);
+                FoodMatchResult match = _foodService.FindBestMatch(food.Name);
                 if (match.IsMatch && match.Score >= 0.7)
                 {
                     food.Id = match.Food!.Id;
@@ -308,7 +308,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
 
         try
         {
-            var added = _foodService.Add(food);
+            Food added = _foodService.Add(food);
             Foods.Add(added);
         }
         catch (Exception ex) { ErrorMessage = $"Failed to import: {ex.Message}"; }

@@ -24,8 +24,8 @@ public class MacroTargetsViewModelTests
     private MacroTargetsViewModel CreateViewModel(
         List<MacroTarget>? existingTargets = null)
     {
-        var settings = DefaultSettings();
-        var targets = existingTargets ?? new List<MacroTarget>();
+        MacroTargetSettings settings = DefaultSettings();
+        List<MacroTarget> targets = existingTargets ?? new List<MacroTarget>();
 
         _serviceMock.Setup(s => s.GetSettings()).Returns(settings);
         _serviceMock.Setup(s => s.GetAll()).Returns(targets);
@@ -41,7 +41,7 @@ public class MacroTargetsViewModelTests
             new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 },
             new() { Id = "2", Name = "Bob", WeightKg = 80, HeightCm = 180, Age = 30 }
         };
-        var vm = CreateViewModel(targets);
+        MacroTargetsViewModel vm = CreateViewModel(targets);
 
         Assert.AreEqual(2, vm.Targets.Count);
         Assert.AreEqual("Alice", vm.Targets[0].Name);
@@ -55,7 +55,7 @@ public class MacroTargetsViewModelTests
         {
             new() { Id = "1", WeightKg = 80, HeightCm = 180, Age = 30 }
         };
-        var vm = CreateViewModel(targets);
+        MacroTargetsViewModel vm = CreateViewModel(targets);
 
         Assert.IsTrue(vm.Targets[0].BmrText != "—");
         Assert.IsTrue(vm.Targets[0].CaloriesText != "—");
@@ -68,7 +68,7 @@ public class MacroTargetsViewModelTests
         _serviceMock.Setup(s => s.Add(It.IsAny<MacroTarget>())).Callback<MacroTarget>(t => saved = t)
             .Returns((MacroTarget t) => { t.Id = "new"; return t; });
 
-        var vm = CreateViewModel();
+        MacroTargetsViewModel vm = CreateViewModel();
         vm.AddPersonCommand.Execute(null);
 
         Assert.AreEqual(1, vm.Targets.Count);
@@ -79,7 +79,7 @@ public class MacroTargetsViewModelTests
     public void AddPerson_Error_SetsErrorMessage()
     {
         _serviceMock.Setup(s => s.Add(It.IsAny<MacroTarget>())).Throws(new Exception("DB error"));
-        var vm = CreateViewModel();
+        MacroTargetsViewModel vm = CreateViewModel();
 
         vm.AddPersonCommand.Execute(null);
 
@@ -94,9 +94,9 @@ public class MacroTargetsViewModelTests
             new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 }
         };
         _serviceMock.Setup(s => s.Delete(It.IsAny<string>()));
-        var vm = CreateViewModel(targets);
+        MacroTargetsViewModel vm = CreateViewModel(targets);
 
-        var row = vm.Targets[0];
+        MacroTargetRowViewModel row = vm.Targets[0];
         vm.DeletePersonCommand.Execute(row);
 
         Assert.AreEqual(0, vm.Targets.Count);
@@ -111,9 +111,9 @@ public class MacroTargetsViewModelTests
             new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 }
         };
         _serviceMock.Setup(s => s.Delete(It.IsAny<string>())).Throws(new Exception("DB error"));
-        var vm = CreateViewModel(targets);
+        MacroTargetsViewModel vm = CreateViewModel(targets);
 
-        var row = vm.Targets[0];
+        MacroTargetRowViewModel row = vm.Targets[0];
         vm.DeletePersonCommand.Execute(row);
 
         Assert.AreEqual(1, vm.Targets.Count);
@@ -123,7 +123,7 @@ public class MacroTargetsViewModelTests
     [TestMethod]
     public void OpenSettings_CopiesCurrentSettingsToDraft()
     {
-        var vm = CreateViewModel();
+        MacroTargetsViewModel vm = CreateViewModel();
         vm.OpenSettingsCommand.Execute(null);
 
         Assert.IsTrue(vm.IsSettingsOpen);
@@ -135,7 +135,7 @@ public class MacroTargetsViewModelTests
     [TestMethod]
     public void CancelSettings_ClosesDialog()
     {
-        var vm = CreateViewModel();
+        MacroTargetsViewModel vm = CreateViewModel();
         vm.OpenSettingsCommand.Execute(null);
         Assert.IsTrue(vm.IsSettingsOpen);
 
@@ -153,7 +153,7 @@ public class MacroTargetsViewModelTests
         _serviceMock.Setup(s => s.SaveSettings(It.IsAny<MacroTargetSettings>()))
             .Returns((MacroTargetSettings s) => s);
         _serviceMock.Setup(s => s.Update(It.IsAny<MacroTarget>())).Returns((MacroTarget t) => t);
-        var vm = CreateViewModel(targets);
+        MacroTargetsViewModel vm = CreateViewModel(targets);
 
         vm.OpenSettingsCommand.Execute(null);
         vm.DraftProteinPercent = 35;
@@ -169,7 +169,7 @@ public class MacroTargetsViewModelTests
     [TestMethod]
     public void SaveSettings_InvalidPercents_DoesNotSave()
     {
-        var vm = CreateViewModel();
+        MacroTargetsViewModel vm = CreateViewModel();
         vm.OpenSettingsCommand.Execute(null);
         vm.DraftProteinPercent = 50;
         vm.DraftCarbPercent = 50;
@@ -183,7 +183,7 @@ public class MacroTargetsViewModelTests
     [TestMethod]
     public void DraftMacroSum_CalculatesCorrectly()
     {
-        var vm = CreateViewModel();
+        MacroTargetsViewModel vm = CreateViewModel();
         vm.OpenSettingsCommand.Execute(null);
         vm.DraftProteinPercent = 25;
         vm.DraftCarbPercent = 45;
@@ -195,7 +195,7 @@ public class MacroTargetsViewModelTests
     [TestMethod]
     public void ChangeProteinMethod_UpdatesDraftValidation()
     {
-        var vm = CreateViewModel();
+        MacroTargetsViewModel vm = CreateViewModel();
         vm.OpenSettingsCommand.Execute(null);
         Assert.IsTrue(vm.DraftIsRatioPercent);
         Assert.IsFalse(vm.DraftIsGramsPerKg);

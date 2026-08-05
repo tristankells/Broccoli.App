@@ -27,11 +27,11 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
 
     public async Task<UsdaSearchResult> SearchAsync(string query, int page = 1, int pageSize = 10)
     {
-        var url = BuildUrl(query, page, pageSize);
-        using var response = await _http.GetAsync(url);
+        string url = BuildUrl(query, page, pageSize);
+        using HttpResponseMessage response = await _http.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
-        var raw = await response.Content.ReadFromJsonAsync<FdcSearchResponse>(s_jsonOpts);
+        FdcSearchResponse? raw = await response.Content.ReadFromJsonAsync<FdcSearchResponse>(s_jsonOpts);
         if (raw == null)
         {
             return new UsdaSearchResult();

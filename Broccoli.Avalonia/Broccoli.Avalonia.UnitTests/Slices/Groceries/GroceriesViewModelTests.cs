@@ -11,7 +11,7 @@ public class GroceriesViewModelTests
 
     private GroceriesViewModel CreateViewModel(List<GroceryListItem>? existingItems = null)
     {
-        var items = existingItems ?? new List<GroceryListItem>();
+        List<GroceryListItem> items = existingItems ?? new List<GroceryListItem>();
         _serviceMock.Setup(s => s.GetAll()).Returns(items);
         return new GroceriesViewModel(_serviceMock.Object);
     }
@@ -27,7 +27,7 @@ public class GroceriesViewModelTests
     public void LoadItems_PopulatesFromService()
     {
         var existing = new List<GroceryListItem> { MakeItem("Milk"), MakeItem("Eggs") };
-        var vm = CreateViewModel(existing);
+        GroceriesViewModel vm = CreateViewModel(existing);
 
         Assert.AreEqual(2, vm.Items.Count);
         Assert.AreEqual("Milk", vm.Items[0].Name);
@@ -41,7 +41,7 @@ public class GroceriesViewModelTests
             .Callback<GroceryListItem>(item => saved = item)
             .Returns((GroceryListItem item) => { item.Id = "new"; return item; });
 
-        var vm = CreateViewModel();
+        GroceriesViewModel vm = CreateViewModel();
         vm.NewItemText = "Bread";
         vm.AddItemCommand.Execute(null);
 
@@ -53,7 +53,7 @@ public class GroceriesViewModelTests
     [TestMethod]
     public void AddItem_EmptyText_DoesNotAdd()
     {
-        var vm = CreateViewModel();
+        GroceriesViewModel vm = CreateViewModel();
         vm.NewItemText = "   ";
         vm.AddItemCommand.Execute(null);
 
@@ -63,8 +63,8 @@ public class GroceriesViewModelTests
     [TestMethod]
     public void ToggleItem_FlipsIsChecked()
     {
-        var item = MakeItem("Milk", false);
-        var vm = CreateViewModel(new List<GroceryListItem> { item });
+        GroceryListItem item = MakeItem("Milk", false);
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
 
         vm.ToggleItemCommand.Execute(vm.Items[0]);
 
@@ -75,10 +75,10 @@ public class GroceriesViewModelTests
     [TestMethod]
     public void ToggleItem_ServiceError_RollsBack()
     {
-        var item = MakeItem("Milk", false);
+        GroceryListItem item = MakeItem("Milk", false);
         _serviceMock.Setup(s => s.Update(It.IsAny<GroceryListItem>()))
             .Throws(new Exception("DB error"));
-        var vm = CreateViewModel(new List<GroceryListItem> { item });
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
 
         vm.ToggleItemCommand.Execute(vm.Items[0]);
 
@@ -89,8 +89,8 @@ public class GroceriesViewModelTests
     [TestMethod]
     public void DeleteItem_RemovesAndCallsDelete()
     {
-        var item = MakeItem("Milk");
-        var vm = CreateViewModel(new List<GroceryListItem> { item });
+        GroceryListItem item = MakeItem("Milk");
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
 
         vm.DeleteItemCommand.Execute(vm.Items[0]);
 
@@ -101,10 +101,10 @@ public class GroceriesViewModelTests
     [TestMethod]
     public void DeleteItem_Error_RestoresItem()
     {
-        var item = MakeItem("Milk");
+        GroceryListItem item = MakeItem("Milk");
         _serviceMock.Setup(s => s.Delete(It.IsAny<string>()))
             .Throws(new Exception("DB error"));
-        var vm = CreateViewModel(new List<GroceryListItem> { item });
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
 
         vm.DeleteItemCommand.Execute(vm.Items[0]);
 
@@ -115,7 +115,7 @@ public class GroceriesViewModelTests
     [TestMethod]
     public void ResetList_ClearsAllItems()
     {
-        var vm = CreateViewModel(new List<GroceryListItem> { MakeItem("Milk"), MakeItem("Eggs") });
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { MakeItem("Milk"), MakeItem("Eggs") });
 
         vm.ResetListCommand.Execute(null);
 
@@ -126,7 +126,7 @@ public class GroceriesViewModelTests
     [TestMethod]
     public void StatusText_CalculatesCheckedCount()
     {
-        var vm = CreateViewModel(new List<GroceryListItem>
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem>
         {
             MakeItem("Milk", true),
             MakeItem("Eggs", false),

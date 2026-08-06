@@ -86,7 +86,7 @@ internal partial class RecipeCardViewModel : ViewModelBase
             CarbsText = $"C:{carbPerServing:0.0}g",
             FatText = $"F:{fatPerServing:0.0}g",
             HasNutrition = hasNutrition,
-            SeasonScore = seasonality?.Score is double s ? $"{s:0}" : string.Empty,
+            SeasonScore = seasonality?.Score is double score ? $"{score:0}" : string.Empty,
             SeasonLabel = seasonality?.Label.ToString() ?? string.Empty,
             SeasonColor = seasonality?.Label switch
             {
@@ -111,7 +111,8 @@ internal partial class RecipeCardViewModel : ViewModelBase
             .Select(tagWord => tagWord.ToLower(CultureInfo.CurrentCulture))
             .Select(tagWord => new SearchWord(tagWord, SearchWordSource.Tags));
 
-        foreach (SearchWord tagWord in searchWords){
+        foreach (SearchWord tagWord in tagWords)
+        {
             searchWords.Add(tagWord);
         }
 
@@ -122,7 +123,7 @@ internal partial class RecipeCardViewModel : ViewModelBase
             .Select(tagWord => tagWord.ToLower(CultureInfo.CurrentCulture))
             .Select(tagWord => new SearchWord(tagWord, SearchWordSource.Ingredients));
 
-        foreach (SearchWord tagWord in searchWords)
+        foreach (SearchWord tagWord in ingredientWords)
         {
             searchWords.Add(tagWord);
         }
@@ -134,20 +135,11 @@ internal partial class RecipeCardViewModel : ViewModelBase
             .Select(tagWord => tagWord.ToLower(CultureInfo.CurrentCulture))
             .Select(tagWord => new SearchWord(tagWord, SearchWordSource.Title));
 
-        foreach (SearchWord tagWord in searchWords)
+        foreach (SearchWord tagWord in titleWords)
         {
             searchWords.Add(tagWord);
         }
 
         return searchWords;
-    }
-
-    internal sealed record SearchWord(string Word, SearchWordSource Source);
-
-    internal enum SearchWordSource
-    {
-        Title,
-        Tags,
-        Ingredients
     }
 }

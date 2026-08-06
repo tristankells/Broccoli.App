@@ -15,6 +15,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     private readonly IngredientParserService? _parser;
     private readonly ISeasonalityService? _seasonalityService;
     private readonly IMacroTargetService? _macroService;
+    private readonly SearchWordSource _searchWordSource = SearchWordSource.Tags | SearchWordSource.Title | SearchWordSource.Ingredients;
 
     private List<Recipe> _allRecipes = [];
     private readonly List<RecipeCardViewModel> _allCards = [];
@@ -36,8 +37,10 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     public RecipeListPageViewModel(IRecipeService recipeService)
         : this(recipeService, null, null, null) { }
 
-    public RecipeListPageViewModel(IRecipeService recipeService,
-        IngredientParserService? parser, ISeasonalityService? seasonalityService,
+    public RecipeListPageViewModel(
+        IRecipeService recipeService,
+        IngredientParserService? parser,
+        ISeasonalityService? seasonalityService,
         IMacroTargetService? macroService = null)
     {
         _recipeService = recipeService;
@@ -105,13 +108,24 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
     }
 
+    // TODO: Us DynamicData if use case arises: https://docs.avaloniaui.net/docs/data-binding/collection-views#using-dynamicdata-recommended-for-complex-scenarios
     partial void OnSearchTextChanged(string value)
     {
-        if (string.IsNullOrWhiteSpace(value))
-            FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
-        else
-            FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(
-                _allCards.Where(card => card.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
+        // TODO: Tokenize the search word, if it contains any spaces, then match recipes that... therefore can match multipe ingredients Chicken + Flour.
+
+        FilteredRecipes.Clear();
+
+        foreach (RecipeCardViewModel card in _allCards)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                FilteredRecipes.Add(card);
+            }
+            else if (card.SearchWords.Any(searchWord => searchWord.Word.Contains(value, StringComparison.OrdinalIgnoreCase) && _searchWordSource.HasFlag(searchWord.Source)))
+            {
+                FilteredRecipes.Add(card);
+            }
+        }
     }
 
     [RelayCommand]

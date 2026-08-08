@@ -38,7 +38,7 @@ public partial class App : Application
             MainViewModel mainViewModel = provider.GetRequiredService<MainViewModel>();
             desktop.MainWindow = new MainWindow
             {
-                DataContext = mainViewModel
+                DataContext = mainViewModel,
             };
 
             // Resolved directly (not via MainViewModel.SettingsViewModel) so background sync
@@ -66,7 +66,7 @@ public partial class App : Application
         {
             singleViewPlatform.MainView = new MainView
             {
-                DataContext = provider.GetRequiredService<MainViewModel>()
+                DataContext = provider.GetRequiredService<MainViewModel>(),
             };
         }
 

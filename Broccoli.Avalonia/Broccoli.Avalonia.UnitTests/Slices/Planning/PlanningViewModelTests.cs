@@ -18,7 +18,7 @@ public class MacroTargetsViewModelTests
         ProteinMethod = ProteinMethod.RatioPercent,
         ProteinPercent = 30,
         CarbPercent = 40,
-        FatPercent = 30
+        FatPercent = 30,
     };
 
     private MacroTargetsViewModel CreateViewModel(
@@ -39,7 +39,7 @@ public class MacroTargetsViewModelTests
         var targets = new List<MacroTarget>
         {
             new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 },
-            new() { Id = "2", Name = "Bob", WeightKg = 80, HeightCm = 180, Age = 30 }
+            new() { Id = "2", Name = "Bob", WeightKg = 80, HeightCm = 180, Age = 30 },
         };
         MacroTargetsViewModel vm = CreateViewModel(targets);
 
@@ -53,7 +53,7 @@ public class MacroTargetsViewModelTests
     {
         var targets = new List<MacroTarget>
         {
-            new() { Id = "1", WeightKg = 80, HeightCm = 180, Age = 30 }
+            new() { Id = "1", WeightKg = 80, HeightCm = 180, Age = 30 },
         };
         MacroTargetsViewModel vm = CreateViewModel(targets);
 
@@ -91,7 +91,7 @@ public class MacroTargetsViewModelTests
     {
         var targets = new List<MacroTarget>
         {
-            new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 }
+            new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 },
         };
         _serviceMock.Setup(s => s.Delete(It.IsAny<string>()));
         MacroTargetsViewModel vm = CreateViewModel(targets);
@@ -108,7 +108,7 @@ public class MacroTargetsViewModelTests
     {
         var targets = new List<MacroTarget>
         {
-            new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 }
+            new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 },
         };
         _serviceMock.Setup(s => s.Delete(It.IsAny<string>())).Throws(new Exception("DB error"));
         MacroTargetsViewModel vm = CreateViewModel(targets);
@@ -148,7 +148,7 @@ public class MacroTargetsViewModelTests
     {
         var targets = new List<MacroTarget>
         {
-            new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 }
+            new() { Id = "1", Name = "Alice", WeightKg = 65, HeightCm = 165, Age = 25 },
         };
         _serviceMock.Setup(s => s.SaveSettings(It.IsAny<MacroTargetSettings>()))
             .Returns((MacroTargetSettings s) => s);

@@ -18,7 +18,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         "raw", "fresh", "free", "range", "diced", "sliced", "grated", "skinless",
         "lite", "baby", "chopped", "minced", "peeled", "deseeded", "rinsed",
         "drained", "cooked", "uncooked", "dried", "frozen", "canned", "tin", "tinned",
-        "large", "small", "medium", "whole", "halved", "roughly", "finely", "thinly"
+        "large", "small", "medium", "whole", "halved", "roughly", "finely", "thinly",
     };
 
     private static readonly Dictionary<string, string> s_pluralFixes = new(StringComparer.OrdinalIgnoreCase)

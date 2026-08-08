@@ -6,5 +6,5 @@ internal enum SearchWordSource
     None,
     Title,
     Tags,
-    Ingredients
+    Ingredients,
 }

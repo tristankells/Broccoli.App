@@ -12,7 +12,7 @@ public enum SeasonalityLabel
     /// <summary>Score 0–39: most produce is out of season.</summary>
     OffSeason,
     /// <summary>No produce ingredients were matched — score is null.</summary>
-    Unavailable
+    Unavailable,
 }
 
 /// <summary>

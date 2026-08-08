@@ -317,7 +317,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
                     Kind = SyncConflictKind.Recipe,
                     RecipeId = recipeId,
                     DisplayName = recipeName,
-                    ConflictCopyPath = conflictPath
+                    ConflictCopyPath = conflictPath,
                 });
                 continue;
             }
@@ -468,7 +468,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             {
                 Kind = SyncConflictKind.Database,
                 DisplayName = "App data (grocery list, pantry, meal plans, macros)",
-                ConflictCopyPath = conflictPath
+                ConflictCopyPath = conflictPath,
             });
             return false;
         }
@@ -671,7 +671,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         ".png" => "image/png",
         ".gif" => "image/gif",
         ".webp" => "image/webp",
-        _ => "application/octet-stream"
+        _ => "application/octet-stream",
     };
 
     private static string SanitizeFileName(string name)

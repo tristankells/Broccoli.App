@@ -19,7 +19,7 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     UserId = table.Column<string>(type: "TEXT", nullable: false),
                     Tabs = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -35,7 +35,7 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     IsChecked = table.Column<bool>(type: "INTEGER", nullable: false),
                     UserId = table.Column<string>(type: "TEXT", nullable: false),
                     PartitionKey = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -64,7 +64,7 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     RecommendedCarbsG = table.Column<double>(type: "REAL", nullable: false),
                     RecommendedFatG = table.Column<double>(type: "REAL", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -87,7 +87,7 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     UnitSystem = table.Column<int>(type: "INTEGER", nullable: false),
                     RecipeMealComparisonEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     RecipeMealComparisonPersonId = table.Column<string>(type: "TEXT", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -104,7 +104,7 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     UserId = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    SortOrder = table.Column<int>(type: "INTEGER", nullable: false)
+                    SortOrder = table.Column<int>(type: "INTEGER", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -120,7 +120,7 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     Category = table.Column<int>(type: "INTEGER", nullable: false),
                     UserId = table.Column<string>(type: "TEXT", nullable: false),
                     PartitionKey = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                 },
                 constraints: table =>
                 {

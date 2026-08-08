@@ -12,7 +12,7 @@ public static class SeasonHelper
         12 or 1 or 2  => "summer",
         3 or 4 or 5   => "autumn",
         6 or 7 or 8   => "winter",
-        _             => "summer"
+        _             => "summer",
     };
 
     public static double GetScarcityWeight(ProduceItem item)
@@ -27,7 +27,7 @@ public static class SeasonHelper
             1 => 1.00,
             2 => 0.75,
             3 => 0.50,
-            _ => 0.25
+            _ => 0.25,
         };
     }
 }

@@ -5,9 +5,8 @@ using Moq;
 namespace Broccoli.Avalonia.Tests.Slices.Recipes;
 
 /// <summary>
-/// Specifies the expected behavior of the Recipes search box (<see cref="RecipeListPageViewModel.SearchText"/>)
-/// wired up in the "Add a search bar" feature. The underlying filtering logic is currently an
-/// empty stub, so all of these are expected to fail until that filtering is implemented.
+/// Specifies the expected behavior of the Recipes search box (<see cref="RecipeListPageViewModel.SearchText"/>) wired       
+/// up in the "Add a search bar" feature.
 /// </summary>
 [TestClass]
 public class RecipeListPageViewModelFilteringTests
@@ -26,7 +25,7 @@ public class RecipeListPageViewModelFilteringTests
     {
         RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"), MakeRecipe("Chicken Curry"));
 
-        Assert.AreEqual(2, viewModel.FilteredRecipes.Count);
+        Assert.HasCount(2, viewModel.FilteredRecipes);
     }
 
     [TestMethod]
@@ -36,7 +35,7 @@ public class RecipeListPageViewModelFilteringTests
 
         viewModel.SearchText = "chicken";
 
-        Assert.AreEqual(1, viewModel.FilteredRecipes.Count);
+        Assert.HasCount(1, viewModel.FilteredRecipes);
         Assert.AreEqual("Chicken Curry", viewModel.FilteredRecipes[0].Name);
     }
 
@@ -47,7 +46,7 @@ public class RecipeListPageViewModelFilteringTests
 
         viewModel.SearchText = "BANANA";
 
-        Assert.AreEqual(1, viewModel.FilteredRecipes.Count);
+        Assert.HasCount(1, viewModel.FilteredRecipes);
     }
 
     [TestMethod]
@@ -57,7 +56,7 @@ public class RecipeListPageViewModelFilteringTests
 
         viewModel.SearchText = "pizza";
 
-        Assert.AreEqual(0, viewModel.FilteredRecipes.Count);
+        Assert.IsEmpty(viewModel.FilteredRecipes);
     }
 
     [TestMethod]
@@ -68,6 +67,6 @@ public class RecipeListPageViewModelFilteringTests
         viewModel.SearchText = "chicken";
         viewModel.SearchText = string.Empty;
 
-        Assert.AreEqual(2, viewModel.FilteredRecipes.Count);
+        Assert.HasCount(2, viewModel.FilteredRecipes);
     }
 }

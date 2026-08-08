@@ -11,7 +11,7 @@ public enum DailyFoodPlanRowType
     /// <summary>A full-width styled label row (e.g. "Breakfast", "Lunch").</summary>
     Header,
     /// <summary>A food or recipe entry row with macro values.</summary>
-    FoodEntry
+    FoodEntry,
 }
 
 /// <summary>

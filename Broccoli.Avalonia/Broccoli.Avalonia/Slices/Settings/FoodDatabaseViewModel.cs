@@ -107,7 +107,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             DietaryFiberPer100g = food.DietaryFiberPer100g,
             SugarsPer100g = food.SugarsPer100g,
             SodiumMgPer100g = food.SodiumMgPer100g,
-            Notes = food.Notes
+            Notes = food.Notes,
         };
     }
 
@@ -303,7 +303,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             DietaryFiberPer100g = item.DietaryFiber,
             SugarsPer100g = item.Sugars,
             ProteinPer100g = item.Protein,
-            SodiumMgPer100g = item.SodiumMg
+            SodiumMgPer100g = item.SodiumMg,
         };
 
         try

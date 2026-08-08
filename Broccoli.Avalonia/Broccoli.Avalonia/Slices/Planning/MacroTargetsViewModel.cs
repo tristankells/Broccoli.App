@@ -118,7 +118,7 @@ public partial class MacroTargetsViewModel : ViewModelBase
                 Gender = GenderType.Male,
                 WeightKg = 80,
                 HeightCm = 175,
-                Age = 30
+                Age = 30,
             };
             _calculator.Calculate(target, Settings);
             target = _macroTargetService.Add(target);
@@ -213,7 +213,7 @@ public partial class MacroTargetsViewModel : ViewModelBase
                 FatPercent = DraftFatPercent,
                 ProteinGramsPerKg = DraftProteinGramsPerKg,
                 RecipeMealComparisonEnabled = Settings.RecipeMealComparisonEnabled,
-                RecipeMealComparisonPersonId = Settings.RecipeMealComparisonPersonId
+                RecipeMealComparisonPersonId = Settings.RecipeMealComparisonPersonId,
             };
 
             Settings = _macroTargetService.SaveSettings(updated);

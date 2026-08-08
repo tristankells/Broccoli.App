@@ -100,6 +100,16 @@ dotnet_diagnostic.CA1857.severity = warning
 dotnet_diagnostic.CA1858.severity = warning
 dotnet_diagnostic.CA2007.severity = warning
 
+# StyleCop
+dotnet_diagnostic.SA1202.severity = warning
+
+# StyleCop - Review these in the future...
+dotnet_diagnostic.SA1200.severity = none # Using directives should be placed after the namespace declaration
+dotnet_diagnostic.SA1633.severity = none # Files should have file header.
+dotnet_diagnostic.SA1101.severity = none # Prefix local calls with this
+dotnet_diagnostic.SA1309.severity = none # Field names should not begin with an underscore
+
+
 # MVVM Toolkit diagnostics
 dotnet_diagnostic.MVVMTK0042.severity = none
 dotnet_diagnostic.CA2008.severity = warning

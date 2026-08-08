@@ -66,7 +66,7 @@ public partial class RecipeDetailViewModel : ViewModelBase
         SeasonalityLabel.PeakSeason => "#2ECC71",
         SeasonalityLabel.PartiallyInSeason => "#F39C12",
         SeasonalityLabel.OffSeason => "#E74C3C",
-        _ => "Gray"
+        _ => "Gray",
     };
 
     public RecipeDetailViewModel(IRecipeService recipeService, Recipe recipe)

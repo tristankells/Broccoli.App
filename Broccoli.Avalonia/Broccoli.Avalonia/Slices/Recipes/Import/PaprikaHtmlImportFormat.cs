@@ -16,7 +16,7 @@ public class PaprikaHtmlImportFormat : IImportFormat
         "File → Export → HTML.",
         "Select the recipes you want to export.",
         "Save the HTML file.",
-        "Drag the file here, or click to browse."
+        "Drag the file here, or click to browse.",
     };
 
     public async Task<Recipe> ParseAsync(string fileContent)
@@ -74,7 +74,7 @@ public class PaprikaHtmlImportFormat : IImportFormat
             Tags = tags,
             Servings = servings,
             CookTimeMinutes = cookTime,
-            Source = source
+            Source = source,
         };
     }
 

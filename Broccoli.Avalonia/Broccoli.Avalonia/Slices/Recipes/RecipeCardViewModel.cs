@@ -93,10 +93,10 @@ internal partial class RecipeCardViewModel : ViewModelBase
                 SeasonalityLabel.PeakSeason => "#2ECC71",
                 SeasonalityLabel.PartiallyInSeason => "#F39C12",
                 SeasonalityLabel.OffSeason => "#E74C3C",
-                _ => "Gray"
+                _ => "Gray",
             },
             HasSeasonality = hasSeason,
-            SearchWords = RetrieveSearchWords(recipe)
+            SearchWords = RetrieveSearchWords(recipe),
         };
     }
 

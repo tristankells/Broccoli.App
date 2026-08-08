@@ -31,7 +31,7 @@ public partial class RecipeEditView : UserControl
         {
             Title = "Choose a recipe image",
             AllowMultiple = false,
-            FileTypeFilter = new[] { FilePickerFileTypes.ImageAll }
+            FileTypeFilter = new[] { FilePickerFileTypes.ImageAll },
         });
 
         return files.Count > 0 ? files[0].TryGetLocalPath() : null;

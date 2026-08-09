@@ -15,7 +15,7 @@ public class MealPrepPlanServiceTests
         var plans = new List<MealPrepPlan>
         {
             new() { Id = "1", Name = "Week 1" },
-            new() { Id = "2", Name = "Week 2" }
+            new() { Id = "2", Name = "Week 2" },
         };
         _mock.Setup(s => s.GetAll()).Returns(plans);
 

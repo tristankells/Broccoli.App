@@ -94,7 +94,7 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
             Images = meta.Images ?? new List<string>(),
             CreatedAt = meta.CreatedAt,
             UpdatedAt = meta.UpdatedAt,
-            IsFavorite = meta.IsFavorite
+            IsFavorite = meta.IsFavorite,
         };
     }
 
@@ -113,7 +113,7 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
             Images = recipe.Images,
             CreatedAt = recipe.CreatedAt,
             UpdatedAt = recipe.UpdatedAt,
-            IsFavorite = recipe.IsFavorite
+            IsFavorite = recipe.IsFavorite,
         };
 
         string yaml = YamlSerializer.Serialize(meta);

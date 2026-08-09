@@ -26,7 +26,7 @@ public partial class ParsedIngredientRow : ViewModelBase
             CaloriesText = match.IsMatched ? $"{match.GetCalories():0} kcal" : "—",
             ProteinText = match.IsMatched ? $"P:{match.GetProtein():0.0}g" : "—",
             CarbsText = match.IsMatched ? $"C:{match.GetCarbohydrates():0.0}g" : "—",
-            FatText = match.IsMatched ? $"F:{match.GetFat():0.0}g" : "—"
+            FatText = match.IsMatched ? $"F:{match.GetFat():0.0}g" : "—",
         };
     }
 }

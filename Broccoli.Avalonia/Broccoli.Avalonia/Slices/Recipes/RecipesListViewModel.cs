@@ -39,7 +39,7 @@ public partial class RecipesListViewModel : ViewModelBase
         {
             AddRecipeRequested = ShowAdd,
             ImportRecipeRequested = ShowImport,
-            RecipeSelected = ShowDetail
+            RecipeSelected = ShowDetail,
         };
         _listPage.Reload();
         _currentPage = _listPage;
@@ -73,7 +73,7 @@ public partial class RecipesListViewModel : ViewModelBase
         {
             BackRequested = ShowList,
             EditRequested = ShowEdit,
-            RecipeDeleted = ShowList
+            RecipeDeleted = ShowList,
         };
         CurrentPage = detail;
     }
@@ -83,7 +83,7 @@ public partial class RecipesListViewModel : ViewModelBase
         var edit = new RecipeEditViewModel(_recipeService, existingRecipe, _parser, _foodService, _macroService)
         {
             Saved = ShowList,
-            Cancelled = ShowList
+            Cancelled = ShowList,
         };
         CurrentPage = edit;
     }

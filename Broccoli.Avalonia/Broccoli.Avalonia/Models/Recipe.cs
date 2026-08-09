@@ -105,7 +105,7 @@ public class Recipe
     {
         Title,
         Tag,
-        Ingredient
+        Ingredient,
     }
 
     internal sealed record SearchWord(string Word, SearchWordType Type);

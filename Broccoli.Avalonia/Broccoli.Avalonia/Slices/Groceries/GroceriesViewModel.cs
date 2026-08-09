@@ -76,7 +76,7 @@ public partial class GroceriesViewModel : ViewModelBase
             var item = new GroceryListItem
             {
                 Name = name,
-                IsChecked = false
+                IsChecked = false,
             };
 
             GroceryListItem created = _groceryListService.Add(item);

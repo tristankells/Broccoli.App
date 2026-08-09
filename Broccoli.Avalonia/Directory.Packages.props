@@ -1,8 +1,9 @@
 <Project>
-  <!-- https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management -->
+  
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
+  
   <ItemGroup>
     <!-- Avalonia packages -->
     <!-- Important: keep version in sync! -->
@@ -32,4 +33,9 @@
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
+
+  <!--<ItemGroup>
+    <GlobalPackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+  </ItemGroup >-->
+  
 </Project>

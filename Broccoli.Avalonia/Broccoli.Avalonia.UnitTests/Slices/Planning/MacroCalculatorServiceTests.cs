@@ -15,7 +15,7 @@ public class MacroCalculatorServiceTests
         ProteinMethod = ProteinMethod.RatioPercent,
         ProteinPercent = 30,
         CarbPercent = 40,
-        FatPercent = 30
+        FatPercent = 30,
     };
 
     [TestMethod]
@@ -143,7 +143,7 @@ public class MacroCalculatorServiceTests
             ProteinMethod = ProteinMethod.RatioPercent,
             ProteinPercent = 30,
             CarbPercent = 40,
-            FatPercent = 30
+            FatPercent = 30,
         };
         var metricTarget = new MacroTarget { Gender = GenderType.Male, WeightKg = 80, HeightCm = 180, Age = 30 };
         var imperialTarget = new MacroTarget
@@ -151,7 +151,7 @@ public class MacroCalculatorServiceTests
             Gender = GenderType.Male,
             WeightKg = 80 * 2.20462,   // 80 kg in lbs
             HeightCm = 180 / 2.54,      // 180 cm in inches
-            Age = 30
+            Age = 30,
         };
 
         _calculator.Calculate(metricTarget, MetricSettings());

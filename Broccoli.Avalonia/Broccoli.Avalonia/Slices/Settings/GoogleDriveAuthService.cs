@@ -83,7 +83,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
         using var driveService = new DriveService(new BaseClientService.Initializer
         {
             HttpClientInitializer = credential,
-            ApplicationName = "Broccoli"
+            ApplicationName = "Broccoli",
         });
 
         AboutResource.GetRequest aboutRequest = driveService.About.Get();
@@ -93,7 +93,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
         var account = new GoogleDriveAccountInfo
         {
             Email = about.User.EmailAddress,
-            ConnectedAtUtc = DateTime.UtcNow
+            ConnectedAtUtc = DateTime.UtcNow,
         };
 
         File.WriteAllText(AppPaths.GoogleDriveAccountFilePath, JsonSerializer.Serialize(account, JsonOptions));
@@ -142,7 +142,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
             return new DriveService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
-                ApplicationName = "Broccoli"
+                ApplicationName = "Broccoli",
             });
         }
         catch (Exception)

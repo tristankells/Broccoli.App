@@ -14,7 +14,7 @@ public class BargainBoxPasteImportFormat : IImportFormat
         "Open the Bargain Box cookbook page for the recipe.",
         "Select all text (Ctrl+A) and copy (Ctrl+C).",
         "Paste into the text area below.",
-        "Click Parse."
+        "Click Parse.",
     };
 
     public Task<Recipe> ParseAsync(string fileContent)
@@ -124,7 +124,7 @@ public class BargainBoxPasteImportFormat : IImportFormat
             Directions = string.Join("\n", directions),
             Servings = servings,
             Source = "Bargain Box",
-            Tags = new List<string> { "bargain box" }
+            Tags = new List<string> { "bargain box" },
         });
     }
 }

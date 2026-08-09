@@ -9,7 +9,7 @@ public class IngredientCartService(
 {
     private static readonly HashSet<string> s_ignoredFoods = new(StringComparer.OrdinalIgnoreCase)
     {
-        "water"
+        "water",
     };
 
     public static bool IsIgnoredIngredient(ParsedIngredientMatch match)
@@ -78,7 +78,7 @@ public class IngredientCartService(
                 toAdd.Add(new GroceryListItem
                 {
                     Name      = Format(newMatch),
-                    IsChecked = false
+                    IsChecked = false,
                 });
             }
         }

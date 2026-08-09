@@ -7,7 +7,7 @@ public enum MatchConfidence
     High,
     Medium,
     Low,
-    None
+    None,
 }
 
 public class ParsedIngredientMatch
@@ -24,7 +24,7 @@ public class ParsedIngredientMatch
         false => MatchConfidence.None,
         true when MatchScore > 0.85 => MatchConfidence.High,
         true when MatchScore >= 0.60 => MatchConfidence.Medium,
-        _ => MatchConfidence.Low
+        _ => MatchConfidence.Low,
     };
 
     private static readonly Dictionary<string, string> s_measureNormalizationMap = new(StringComparer.OrdinalIgnoreCase)
@@ -119,7 +119,7 @@ public class ParsedIngredientMatch
             ("g",    "kg")   => 0.001,
             ("l",    "ml")   => 1000.0,
             ("ml",   "l")    => 0.001,
-            _                => null
+            _                => null,
         };
     }
 

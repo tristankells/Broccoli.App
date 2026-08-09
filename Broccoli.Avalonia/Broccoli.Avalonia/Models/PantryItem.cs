@@ -53,6 +53,6 @@ public enum PantryCategory
     /// Items the user may or may not have (ketchup, mustard, specific fruits, etc.)
     /// These are checked by default when adding recipe ingredients to the grocery list.
     /// </summary>
-    CheckIfHave = 1
+    CheckIfHave = 1,
 }
 

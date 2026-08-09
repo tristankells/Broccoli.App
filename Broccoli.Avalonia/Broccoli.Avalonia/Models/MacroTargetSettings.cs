@@ -66,33 +66,33 @@ public class MacroTargetSettings
 public enum BmrFormula
 {
     MifflinStJeor = 0,
-    HarrisBenedict = 1
+    HarrisBenedict = 1,
 }
 
 public enum ProteinMethod
 {
     RatioPercent = 0,
-    GramsPerKg = 1
+    GramsPerKg = 1,
 }
 
 public enum MacroGoal
 {
     Maintain = 0,
     Lose = 1,
-    Gain = 2
+    Gain = 2,
 }
 
 public enum UnitSystem
 {
     Metric = 0,
-    Imperial = 1
+    Imperial = 1,
 }
 
 public enum GenderType
 {
     Male = 0,
     Female = 1,
-    Other = 2
+    Other = 2,
 }
 
 public enum ActivityLevel
@@ -101,6 +101,6 @@ public enum ActivityLevel
     LightlyActive = 1,
     ModeratelyActive = 2,
     VeryActive = 3,
-    ExtraActive = 4
+    ExtraActive = 4,
 }
 

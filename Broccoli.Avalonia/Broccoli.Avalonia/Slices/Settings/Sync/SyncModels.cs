@@ -39,7 +39,7 @@ public class SyncState
 public enum SyncConflictKind
 {
     Recipe,
-    Database
+    Database,
 }
 
 /// <summary>

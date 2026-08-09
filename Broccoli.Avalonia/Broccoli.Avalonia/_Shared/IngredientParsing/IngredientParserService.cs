@@ -91,7 +91,7 @@ public class IngredientParserService(IFoodService foodService)
                 MatchScore       = match.IsMatch ? match.Score : 0,
                 MatchDistance    = matchDistance,
                 MatchMethod      = match.Method,
-                IsMatched        = match.Score >= MinimumMatchThreshold
+                IsMatched        = match.Score >= MinimumMatchThreshold,
             });
         }
 
@@ -169,7 +169,7 @@ public class IngredientParserService(IFoodService foodService)
             Quantity        = quantity,
             Unit            = canonicalUnit,
             CanonicalUnit   = canonicalUnit,
-            FoodDescription = foodDescription
+            FoodDescription = foodDescription,
         };
     }
 

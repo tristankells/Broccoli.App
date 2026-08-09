@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Seasonality;
@@ -5,7 +6,6 @@ using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
 
@@ -28,6 +28,15 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
 
+    [ObservableProperty]
+    public partial bool IsTitleSearchEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsTagSearchEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsIngredientSearchEnabled { get; set; } = true;
+
     public bool ShowImages { get; set; } = true;
     public bool ShowTags { get; set; } = true;
     public bool ShowSeasonality { get; set; } = true;
@@ -36,8 +45,10 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     public RecipeListPageViewModel(IRecipeService recipeService)
         : this(recipeService, null, null, null) { }
 
-    public RecipeListPageViewModel(IRecipeService recipeService,
-        IngredientParserService? parser, ISeasonalityService? seasonalityService,
+    public RecipeListPageViewModel(
+        IRecipeService recipeService,
+        IngredientParserService? parser,
+        ISeasonalityService? seasonalityService,
         IMacroTargetService? macroService = null)
     {
         _recipeService = recipeService;
@@ -105,13 +116,62 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
     }
 
-    partial void OnSearchTextChanged(string value)
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
+
+    partial void OnIsTitleSearchEnabledChanged(bool value) => ApplyFilter();
+
+    partial void OnIsTagSearchEnabledChanged(bool value) => ApplyFilter();
+
+    partial void OnIsIngredientSearchEnabledChanged(bool value) => ApplyFilter();
+
+    private void ApplyFilter()
     {
-        if (string.IsNullOrWhiteSpace(value))
-            FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
-        else
-            FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(
-                _allCards.Where(card => card.Name.Contains(value, StringComparison.OrdinalIgnoreCase)));
+        SearchWordSource enabledSources = DetermineEnabledSearchSource();
+
+        FilteredRecipes.Clear();
+
+        string[] tokens = string.IsNullOrEmpty(SearchText) ?
+            [] :
+            SearchText.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (RecipeCardViewModel card in _allCards)
+        {
+            if (tokens.Length <= 0 || IsMatch(tokens, card.SearchWords))
+            {
+                FilteredRecipes.Add(card);
+            }
+        }
+
+        SearchWordSource DetermineEnabledSearchSource()
+        {
+
+            SearchWordSource enabledSources = SearchWordSource.None;
+            if (IsTitleSearchEnabled)
+            {
+                enabledSources |= SearchWordSource.Title;
+            }
+
+            if (IsTagSearchEnabled)
+            {
+                enabledSources |= SearchWordSource.Tags;
+            }
+
+            if (IsIngredientSearchEnabled)
+            {
+                enabledSources |= SearchWordSource.Ingredients;
+            }
+            return enabledSources;
+        }
+
+        bool IsMatch(string[] searchTokens, HashSet<SearchWord> searchWords)
+        {
+
+            return searchTokens.All(
+                    token => searchWords.Any(
+                        searchWord =>
+                            searchWord.Word.Contains(token, StringComparison.OrdinalIgnoreCase)
+                            && enabledSources.HasFlag(searchWord.Source)));
+        }
     }
 
     [RelayCommand]

@@ -85,7 +85,7 @@ public partial class ImportDialogViewModel : ViewModelBase
                     {
                         new global::Avalonia.Platform.Storage.FilePickerFileType(SelectedFormat.DisplayName)
                         { Patterns = new[] { $"*{SelectedFormat.FileExtension}" } }
-                    }
+                    },
                 });
                 foreach (IStorageFile f in picked)
                 {

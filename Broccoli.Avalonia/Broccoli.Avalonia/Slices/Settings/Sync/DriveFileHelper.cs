@@ -28,7 +28,7 @@ internal static class DriveFileHelper
         {
             Name = name,
             MimeType = FolderMimeType,
-            Parents = parentId is null ? null : [parentId]
+            Parents = parentId is null ? null : [parentId],
         };
 
         FilesResource.CreateRequest request = drive.Files.Create(folder);

@@ -4,7 +4,7 @@ public enum ImportStatus
 {
     ReadyToImport,
     Duplicate,
-    ParseError
+    ParseError,
 }
 
 public class ImportRecipeResult

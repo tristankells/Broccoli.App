@@ -20,7 +20,7 @@ public class GroceriesViewModelTests
     {
         Id = Guid.NewGuid().ToString(),
         Name = name,
-        IsChecked = isChecked
+        IsChecked = isChecked,
     };
 
     [TestMethod]
@@ -130,7 +130,7 @@ public class GroceriesViewModelTests
         {
             MakeItem("Milk", true),
             MakeItem("Eggs", false),
-            MakeItem("Bread", true)
+            MakeItem("Bread", true),
         });
 
         Assert.AreEqual("2 of 3 checked", vm.StatusText);

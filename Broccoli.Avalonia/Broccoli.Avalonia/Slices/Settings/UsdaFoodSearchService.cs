@@ -12,7 +12,7 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
 
     private static readonly JsonSerializerOptions s_jsonOpts = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
     };
 
     private const string NutrientParams =
@@ -42,7 +42,7 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
             TotalHits   = raw.TotalHits,
             TotalPages  = raw.TotalPages,
             CurrentPage = raw.CurrentPage,
-            Foods       = raw.Foods.Select(MapFood).ToList()
+            Foods       = raw.Foods.Select(MapFood).ToList(),
         };
     }
 
@@ -71,7 +71,7 @@ public class UsdaFoodSearchService : IUsdaFoodSearchService
             SaturatedFat  = Get(1258),
             DietaryFiber  = Get(1079),
             Sugars        = Get(1063),
-            SodiumMg      = Get(1093)
+            SodiumMg      = Get(1093),
         };
     }
 

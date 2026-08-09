@@ -10,7 +10,7 @@ public class MacroCalculatorService
         { ActivityLevel.LightlyActive,    1.375 },
         { ActivityLevel.ModeratelyActive, 1.550 },
         { ActivityLevel.VeryActive,       1.725 },
-        { ActivityLevel.ExtraActive,      1.900 }
+        { ActivityLevel.ExtraActive,      1.900 },
     };
 
     public void Calculate(MacroTarget target, MacroTargetSettings settings)
@@ -46,7 +46,7 @@ public class MacroCalculatorService
         return formula switch
         {
             BmrFormula.HarrisBenedict => CalculateHarrisBenedict(gender, weightKg, heightCm, age),
-            _                          => CalculateMifflinStJeor(gender, weightKg, heightCm, age)
+            _                          => CalculateMifflinStJeor(gender, weightKg, heightCm, age),
         };
     }
 
@@ -60,7 +60,7 @@ public class MacroCalculatorService
         {
             GenderType.Male   => male,
             GenderType.Female => female,
-            _                  => (male + female) / 2
+            _                  => (male + female) / 2,
         };
     }
 
@@ -74,7 +74,7 @@ public class MacroCalculatorService
         {
             GenderType.Male   => male,
             GenderType.Female => female,
-            _                  => (male + female) / 2
+            _                  => (male + female) / 2,
         };
     }
 

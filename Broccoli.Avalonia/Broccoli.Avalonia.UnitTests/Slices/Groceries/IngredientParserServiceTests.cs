@@ -27,7 +27,7 @@ public class IngredientParserServiceTests
     {
         Id = id, Name = name,
         Measure = "cup", GramsPerMeasure = 100,
-        CaloriesPer100g = 50
+        CaloriesPer100g = 50,
     };
 
     [TestMethod]

@@ -21,7 +21,7 @@ public class FoodFileService : IFoodFileService
             FileTypeChoices = new[]
             {
                 new FilePickerFileType("JSON files") { Patterns = new[] { "*.json" } }
-            }
+            },
         });
 
         if (file is null)
@@ -49,7 +49,7 @@ public class FoodFileService : IFoodFileService
             FileTypeFilter = new[]
             {
                 new FilePickerFileType("JSON files") { Patterns = new[] { "*.json" } }
-            }
+            },
         });
 
         if (files.Count == 0)

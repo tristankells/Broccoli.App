@@ -152,7 +152,7 @@ public partial class DayPlanViewModel : ViewModelBase
         SelectedPlan.Tabs[0].Rows.Add(new DailyFoodPlanRow
         {
             RowType = DailyFoodPlanRowType.Header,
-            HeaderName = "New Section"
+            HeaderName = "New Section",
         });
     }
 

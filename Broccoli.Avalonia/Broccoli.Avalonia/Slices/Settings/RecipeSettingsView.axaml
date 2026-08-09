@@ -31,6 +31,16 @@
                     <CheckBox IsChecked="{Binding ShowCardNutrition}">
                         <TextBlock Text="Show nutrition (per serving)" />
                     </CheckBox>
+                    <CheckBox IsChecked="{Binding ShowCardCalorieMatch}">
+                        <TextBlock Text="Show calorie target match badge" />
+                    </CheckBox>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="22,0,0,0"
+                                IsVisible="{Binding ShowCardCalorieMatch}">
+                        <TextBlock Text="Tolerance %" FontSize="12" VerticalAlignment="Center" />
+                        <NumericUpDown Value="{Binding CalorieMatchTolerancePercent}"
+                                       Minimum="0" Maximum="100" FormatString="0"
+                                       Increment="5" Width="80" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

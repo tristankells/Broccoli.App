@@ -214,6 +214,12 @@ public partial class MacroTargetsViewModel : ViewModelBase
                 ProteinGramsPerKg = DraftProteinGramsPerKg,
                 RecipeMealComparisonEnabled = Settings.RecipeMealComparisonEnabled,
                 RecipeMealComparisonPersonId = Settings.RecipeMealComparisonPersonId,
+                ShowCardImage = Settings.ShowCardImage,
+                ShowCardTags = Settings.ShowCardTags,
+                ShowCardSeasonality = Settings.ShowCardSeasonality,
+                ShowCardNutrition = Settings.ShowCardNutrition,
+                ShowCardCalorieMatch = Settings.ShowCardCalorieMatch,
+                CalorieMatchTolerancePercent = Settings.CalorieMatchTolerancePercent,
             };
 
             Settings = _macroTargetService.SaveSettings(updated);

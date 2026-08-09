@@ -46,36 +46,54 @@
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="vm:RecipeCardViewModel">
-                        <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                CornerRadius="6" Padding="0" ClipToBounds="True">
-                            <StackPanel Height="180">
-                                <!-- Image with overlays -->
-                                <Panel IsVisible="{Binding HasImage}" Height="120">
-                                    <Image Source="{Binding ImagePath, Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"
-                                           Stretch="UniformToFill" />
+                        <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
+                                CommandParameter="{Binding}">
+                            <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
+                                    CornerRadius="6" Padding="0" ClipToBounds="True">
+                                <StackPanel Height="180">
+                                    <!-- Image with overlays -->
+                                    <Panel IsVisible="{Binding HasImage}" Height="120">
+                                        <Image Source="{Binding ImagePath, Converter={x:Static conv:FilePathToBitmapConverter.Instance}}"
+                                               Stretch="UniformToFill" />
 
-                                    <!-- Seasonality badge -->
-                                    <Border CornerRadius="0,6,0,6" Padding="6,2"
-                                            Background="{Binding SeasonColor}" Opacity="0.85"
-                                            HorizontalAlignment="Right" VerticalAlignment="Top"
-                                            IsVisible="{Binding HasSeasonality}">
-                                        <TextBlock Text="{Binding SeasonScore}" FontSize="10" Foreground="White"
-                                                   FontWeight="Bold" />
-                                    </Border>
+                                        <!-- Seasonality badge -->
+                                        <Border CornerRadius="0,6,0,6" Padding="6,2"
+                                                Background="{Binding SeasonColor}" Opacity="0.85"
+                                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                IsVisible="{Binding HasSeasonality}">
+                                            <TextBlock Text="{Binding SeasonScore}" FontSize="10" Foreground="White"
+                                                       FontWeight="Bold" />
+                                        </Border>
 
-                                    <!-- Favorite star -->
-                                    <PathIcon IsVisible="{Binding IsFavorite}"
-                                              Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-                                              Width="14" Height="14" Foreground="Goldenrod"
-                                              HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6" />
-                                </Panel>
+                                        <!-- Calorie target match badge -->
+                                        <Border CornerRadius="0,6,0,6" Padding="6,2"
+                                                Background="#2ECC71"
+                                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                Margin="0,24,0,0"
+                                                IsVisible="{Binding HasCalorieMatch}">
+                                            <PathIcon IsVisible="{Binding CalorieMatchInRange}"
+                                                      Data="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"
+                                                      Width="10" Height="10" Foreground="White" />
+                                        </Border>
+                                        <Border CornerRadius="0,6,0,6" Padding="6,2"
+                                                Background="#F39C12"
+                                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                Margin="0,24,0,0"
+                                                IsVisible="{Binding HasCalorieMatch}">
+                                            <TextBlock IsVisible="{Binding !CalorieMatchInRange}"
+                                                       Text="!" FontSize="10" Foreground="White" FontWeight="Bold" />
+                                        </Border>
 
-                                <!-- Content area -->
-                                <Button Background="Transparent" BorderThickness="0" Padding="10,8"
-                                        HorizontalContentAlignment="Stretch"
-                                        Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
-                                        CommandParameter="{Binding}">
-                                    <StackPanel Spacing="4">
+                                        <!-- Favorite star -->
+                                        <PathIcon IsVisible="{Binding IsFavorite}"
+                                                  Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                                                  Width="14" Height="14" Foreground="Goldenrod"
+                                                  HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6" />
+                                    </Panel>
+
+                                    <!-- Content area -->
+                                    <StackPanel Spacing="4" Margin="10,8">
                                         <!-- Name + favorite (when no image) -->
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
@@ -105,9 +123,9 @@
                                                        Foreground="#F39C12" TextWrapping="NoWrap" />
                                         </StackPanel>
                                     </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Border>
+                                </StackPanel>
+                            </Border>
+                        </Button>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>

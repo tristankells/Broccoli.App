@@ -125,30 +125,26 @@ public partial class RecipeEditViewModel : ViewModelBase
             return;
         }
 
-        try
+        MacroTargetSettings settings = _macroService.GetSettings();
+        if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
         {
-            MacroTargetSettings settings = _macroService.GetSettings();
-            if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
-            {
-                return;
-            }
-
-            List<MacroTarget> targets = _macroService.GetAll();
-            MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
-            if (chosen is null)
-            {
-                return;
-            }
-
-            IsComparisonEnabled = true;
-            ComparisonPersonName = chosen.Name;
-            MealTargetCalories = chosen.RecommendedCalories / 3.0;
-            MealTargetProteinG = chosen.RecommendedProteinG / 3.0;
-            MealTargetCarbsG = chosen.RecommendedCarbsG / 3.0;
-            MealTargetFatG = chosen.RecommendedFatG / 3.0;
-            RefreshComparison();
+            return;
         }
-        catch { }
+
+        List<MacroTarget> targets = _macroService.GetAll();
+        MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
+        if (chosen is null)
+        {
+            return;
+        }
+
+        IsComparisonEnabled = true;
+        ComparisonPersonName = chosen.Name;
+        MealTargetCalories = chosen.RecommendedCalories / 3.0;
+        MealTargetProteinG = chosen.RecommendedProteinG / 3.0;
+        MealTargetCarbsG = chosen.RecommendedCarbsG / 3.0;
+        MealTargetFatG = chosen.RecommendedFatG / 3.0;
+        RefreshComparison();
     }
 
     partial void OnIngredientsChanged(string value) => ParseIngredients();
@@ -180,6 +176,33 @@ public partial class RecipeEditViewModel : ViewModelBase
         TotalProteinG = pro;
         TotalCarbsG = carb;
         TotalFatG = fat;
+
+        int topCalIdx = -1, topProIdx = -1, topCarbIdx = -1, topFatIdx = -1;
+        double topCal = 0, topPro = 0, topCarb = 0, topFat = 0;
+        for (int i = 0; i < matches.Count; i++)
+        {
+            ParsedIngredientMatch m = matches[i];
+            if (!m.IsMatched)
+            {
+                continue;
+            }
+
+            double matchCal = m.GetCalories();
+            double matchPro = m.GetProtein();
+            double matchCarb = m.GetCarbohydrates();
+            double matchFat = m.GetFat();
+
+            if (matchCal > topCal) { topCal = matchCal; topCalIdx = i; }
+            if (matchPro > topPro) { topPro = matchPro; topProIdx = i; }
+            if (matchCarb > topCarb) { topCarb = matchCarb; topCarbIdx = i; }
+            if (matchFat > topFat) { topFat = matchFat; topFatIdx = i; }
+        }
+
+        if (topCalIdx  >= 0) ParsedMatches[topCalIdx].IsTopCalories  = true;
+        if (topProIdx  >= 0) ParsedMatches[topProIdx].IsTopProtein   = true;
+        if (topCarbIdx >= 0) ParsedMatches[topCarbIdx].IsTopCarbs    = true;
+        if (topFatIdx  >= 0) ParsedMatches[topFatIdx].IsTopFat       = true;
+
         RefreshNutrition();
     }
 

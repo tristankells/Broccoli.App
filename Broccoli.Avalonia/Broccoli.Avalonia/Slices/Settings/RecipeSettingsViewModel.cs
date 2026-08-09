@@ -3,6 +3,7 @@ using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Settings;
 
@@ -88,6 +89,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         settings.CalorieMatchTolerancePercent = CalorieMatchTolerancePercent;
         _macroService.SaveSettings(settings);
         StatusMessage = "Saved.";
+        WeakReferenceMessenger.Default.Send(new CardSettingsChangedMessage());
     }
 
     [RelayCommand]

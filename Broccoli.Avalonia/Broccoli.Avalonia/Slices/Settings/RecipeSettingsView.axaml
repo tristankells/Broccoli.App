@@ -39,7 +39,7 @@
                         <TextBlock Text="Tolerance %" FontSize="12" VerticalAlignment="Center" />
                         <NumericUpDown Value="{Binding CalorieMatchTolerancePercent}"
                                        Minimum="0" Maximum="100" FormatString="0"
-                                       Increment="5" Width="80" />
+                                       Increment="5" Width="120" />
                     </StackPanel>
                 </StackPanel>
             </Border>

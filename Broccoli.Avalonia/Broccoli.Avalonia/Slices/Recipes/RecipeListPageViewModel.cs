@@ -6,6 +6,7 @@ using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
 
@@ -58,6 +59,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _parser = parser;
         _seasonalityService = seasonalityService;
         _macroService = macroService;
+
+        WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => Reload());
     }
 
     private void LoadCardSettings()

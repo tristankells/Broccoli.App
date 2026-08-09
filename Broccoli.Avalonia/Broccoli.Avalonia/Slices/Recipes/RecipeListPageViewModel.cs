@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Seasonality;
@@ -5,7 +6,6 @@ using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
 
@@ -15,7 +15,6 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     private readonly IngredientParserService? _parser;
     private readonly ISeasonalityService? _seasonalityService;
     private readonly IMacroTargetService? _macroService;
-    private readonly SearchWordSource _searchWordSource = SearchWordSource.Tags | SearchWordSource.Title | SearchWordSource.Ingredients;
 
     private List<Recipe> _allRecipes = [];
     private readonly List<RecipeCardViewModel> _allCards = [];
@@ -28,6 +27,15 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsTitleSearchEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsTagSearchEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsIngredientSearchEnabled { get; set; } = true;
 
     public bool ShowImages { get; set; } = true;
     public bool ShowTags { get; set; } = true;
@@ -108,23 +116,61 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
     }
 
-    // TODO: Us DynamicData if use case arises: https://docs.avaloniaui.net/docs/data-binding/collection-views#using-dynamicdata-recommended-for-complex-scenarios
-    partial void OnSearchTextChanged(string value)
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
+
+    partial void OnIsTitleSearchEnabledChanged(bool value) => ApplyFilter();
+
+    partial void OnIsTagSearchEnabledChanged(bool value) => ApplyFilter();
+
+    partial void OnIsIngredientSearchEnabledChanged(bool value) => ApplyFilter();
+
+    private void ApplyFilter()
     {
-        // TODO: Tokenize the search word, if it contains any spaces, then match recipes that... therefore can match multipe ingredients Chicken + Flour.
+        SearchWordSource enabledSources = DetermineEnabledSearchSource();
 
         FilteredRecipes.Clear();
 
+        string[] tokens = string.IsNullOrEmpty(SearchText) ?
+            [] :
+            SearchText.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         foreach (RecipeCardViewModel card in _allCards)
         {
-            if (string.IsNullOrEmpty(value))
+            if (tokens.Length <= 0 || IsMatch(tokens, card.SearchWords))
             {
                 FilteredRecipes.Add(card);
             }
-            else if (card.SearchWords.Any(searchWord => searchWord.Word.Contains(value, StringComparison.OrdinalIgnoreCase) && _searchWordSource.HasFlag(searchWord.Source)))
+        }
+
+        SearchWordSource DetermineEnabledSearchSource()
+        {
+
+            SearchWordSource enabledSources = SearchWordSource.None;
+            if (IsTitleSearchEnabled)
             {
-                FilteredRecipes.Add(card);
+                enabledSources |= SearchWordSource.Title;
             }
+
+            if (IsTagSearchEnabled)
+            {
+                enabledSources |= SearchWordSource.Tags;
+            }
+
+            if (IsIngredientSearchEnabled)
+            {
+                enabledSources |= SearchWordSource.Ingredients;
+            }
+            return enabledSources;
+        }
+
+        bool IsMatch(string[] searchTokens, HashSet<SearchWord> searchWords)
+        {
+
+            return searchTokens.All(
+                    token => searchWords.Any(
+                        searchWord =>
+                            searchWord.Word.Contains(token, StringComparison.OrdinalIgnoreCase)
+                            && enabledSources.HasFlag(searchWord.Source)));
         }
     }
 

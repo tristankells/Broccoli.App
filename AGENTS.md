@@ -95,6 +95,20 @@ Default `appsettings.json` points to the CosmosDB **local emulator** with its we
 
 Pages use a three-file code-behind pattern: `Foo.razor` + `Foo.razor.cs` (partial class) + `Foo.razor.css`. Inject services via `[Inject]` attributes in the `.cs` file, not `@inject` in markup. The `.razor.cs` namespace must match the slice folder (e.g. `Broccoli.App.Shared.Slices.Recipes`).
 
+## Naming Convention
+
+Use **full, unabbreviated words** in all variable declarations, lambda parameters, and method parameters. Do not use abbreviations, acronyms, or single-letter names (except for trivial loop counters like `i`, `j`).
+
+```csharp
+// Good
+foreach (RecipeCardViewModel card in _allCards)
+card.SearchWords.Any(searchWord => searchWord.Word.Contains(token, ...))
+
+// Bad
+foreach (RecipeCardViewModel c in _allCards)
+card.SearchWords.Any(sw => sw.Word.Contains(tok, ...))
+```
+
 ## Adding a New Slice
 
 1. Create `Slices/MyFeature/` directory

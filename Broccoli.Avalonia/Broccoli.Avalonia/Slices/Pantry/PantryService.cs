@@ -46,8 +46,9 @@ public class PantryService : IPantryService
     public bool Exists(string itemName)
     {
         using var context = BroccoliDbContext.CreateForApp();
+        string lowerName = itemName.ToLowerInvariant();
         return context.PantryItems.Any(i =>
-            i.Name.Contains(itemName, StringComparison.OrdinalIgnoreCase) ||
-            itemName.Contains(i.Name, StringComparison.OrdinalIgnoreCase));
+            i.Name.ToLower().Contains(lowerName) ||
+            lowerName.Contains(i.Name.ToLower()));
     }
 }

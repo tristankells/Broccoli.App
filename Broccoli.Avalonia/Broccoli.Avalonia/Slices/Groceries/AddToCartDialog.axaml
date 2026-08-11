@@ -7,8 +7,13 @@
         Icon="/Assets/avalonia-logo.ico"
         WindowStartupLocation="CenterOwner">
 
-    <DockPanel Margin="16">
-        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+    <Grid ShowGridLines="True" Margin="16">
+           <Grid.RowDefinitions>
+       <RowDefinition Height="Auto"></RowDefinition>
+       <RowDefinition Height="*"></RowDefinition>
+       <RowDefinition Height="Auto"></RowDefinition>
+   </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Grid.RowSpan="" Spacing="8" Margin="0,0,0,12">
             <TextBlock Text="Add to Shopping Cart" FontSize="18" FontWeight="Bold" />
             <TextBlock IsVisible="{Binding HasItems}">
                 <Run Text="Recipe: " />
@@ -19,7 +24,7 @@
                        IsVisible="{Binding !HasItems}" />
         </StackPanel>
 
-        <ScrollViewer IsVisible="{Binding HasItems}">
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding HasItems}">
             <ItemsControl ItemsSource="{Binding PreviewItems}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:CartPreviewItem">
@@ -42,11 +47,11 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="8"
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8"
                     HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Content="Cancel" Command="{Binding CancelCommand}" />
             <Button Content="Add to Cart" Command="{Binding ConfirmCommand}" Classes="accent"
                     IsVisible="{Binding HasItems}" />
         </StackPanel>
-    </DockPanel>
+    </Grid>
 </Window>

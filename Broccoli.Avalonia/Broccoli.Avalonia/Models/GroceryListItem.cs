@@ -39,5 +39,12 @@ public class GroceryListItem
     /// </summary>
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Approximate weight/item conversion hint based on the food database.
+    /// e.g. "(~305g)" for item-based inputs or "(~5 medium carrots)" for gram-based inputs.
+    /// Null when the food cannot be matched or has no meaningful unit conversion.
+    /// </summary>
+    public string? QuantityHint { get; set; }
 }
 

@@ -198,6 +198,48 @@ public class ParsedIngredientMatch
         return qty * MatchedFood.GramsPerMeasure;
     }
 
+    public string? GetQuantityHint()
+    {
+        if (!IsMatched || MatchedFood == null)
+        {
+            return null;
+        }
+
+        if (MatchedFood.GramsPerMeasure <= 1)
+        {
+            return null;
+        }
+
+        string normalizedMeasure = NormalizeFoodMeasure(MatchedFood.Measure);
+        if (normalizedMeasure == "g" || normalizedMeasure == "kg" || normalizedMeasure == "ml" || normalizedMeasure == "l")
+        {
+            return null;
+        }
+
+        string canonicalUnit = (ParsedIngredient.CanonicalUnit ?? string.Empty).ToLowerInvariant();
+
+        if (canonicalUnit == "g" || canonicalUnit == "kg")
+        {
+            double totalGrams = GetWeightInGrams();
+            double count = totalGrams / MatchedFood.GramsPerMeasure;
+            if (count < 0.5)
+            {
+                return null;
+            }
+
+            string measureLower = MatchedFood.Measure.ToLowerInvariant();
+            return $"(~{count:0.#} {measureLower})";
+        }
+
+        double grams = GetWeightInGrams();
+        if (grams <= 0)
+        {
+            return null;
+        }
+
+        return $"(~{grams:0.#}g)";
+    }
+
     public string GetQuantityDisplay()
     {
         if (!IsMatched || MatchedFood == null)

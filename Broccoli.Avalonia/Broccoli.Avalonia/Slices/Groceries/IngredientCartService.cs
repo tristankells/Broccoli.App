@@ -124,6 +124,7 @@ public class IngredientCartService(
                     : newMatch.ParsedIngredient.FoodDescription;
 
                 existingItem.Name = BuildLine(merged, unit, food);
+                existingItem.QuantityHint = ComputeHint(existingItem.Name, parser);
                 claimedIds.Add(existingItem.Id);
                 toUpdate.Add(existingItem);
             }
@@ -133,6 +134,7 @@ public class IngredientCartService(
                 {
                     Name      = Format(newMatch),
                     IsChecked = false,
+                    QuantityHint = newMatch.GetQuantityHint(),
                 });
             }
         }
@@ -245,6 +247,12 @@ public class IngredientCartService(
 
         bool attach = unit is "g" or "kg" or "ml" or "l";
         return attach ? $"{qtyStr}{unit} {food}" : $"{qtyStr} {unit} {food}";
+    }
+
+    private static string? ComputeHint(string formattedLine, IngredientParserService parser)
+    {
+        List<ParsedIngredientMatch> matches = parser.ParseAndMatchIngredients(formattedLine);
+        return matches.FirstOrDefault()?.GetQuantityHint();
     }
 
     private static string NormalizeFood(string name)

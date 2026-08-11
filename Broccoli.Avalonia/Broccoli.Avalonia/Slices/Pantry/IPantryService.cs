@@ -9,4 +9,5 @@ public interface IPantryService
     PantryItem Update(PantryItem item);
     void Delete(string id);
     bool Exists(string itemName);
+    PantryItem? FindByName(string itemName);
 }

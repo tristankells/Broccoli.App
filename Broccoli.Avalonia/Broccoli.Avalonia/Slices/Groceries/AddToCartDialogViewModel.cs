@@ -20,13 +20,38 @@ public partial class CartPreviewItem : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowAddToPantry))]
+    [NotifyPropertyChangedFor(nameof(ShowRemoveFromPantry))]
+    [NotifyPropertyChangedFor(nameof(ShowPantryLabel))]
     private bool _isInPantry;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowAddToPantry))]
     private bool _addedToPantry;
 
+    [ObservableProperty]
+    private string _pantryCategoryLabel = string.Empty;
+
+    [ObservableProperty]
+    private string _pantryItemId = string.Empty;
+
     public bool ShowAddToPantry => !IsInPantry && !AddedToPantry;
+    public bool ShowRemoveFromPantry => IsInPantry;
+    public bool ShowPantryLabel => IsInPantry;
+
+    public Action<CartPreviewItem>? AddToPantryRequested { get; set; }
+    public Action<CartPreviewItem>? RemoveFromPantryRequested { get; set; }
+
+    [RelayCommand]
+    private void AddToPantry()
+    {
+        AddToPantryRequested?.Invoke(this);
+    }
+
+    [RelayCommand]
+    private void RemoveFromPantry()
+    {
+        RemoveFromPantryRequested?.Invoke(this);
+    }
 }
 
 public partial class AddToCartDialogViewModel : ViewModelBase
@@ -56,11 +81,20 @@ public partial class AddToCartDialogViewModel : ViewModelBase
         _ingredientLines = ingredientLines;
 
         List<CartPreviewData> previewData = _cartService.PreviewAddToCart(ingredientLines);
+        List<CartPreviewItem> items = [];
+
         foreach (CartPreviewData data in previewData)
         {
-            bool inPantry = _pantryService.Exists(data.FoodName);
+            PantryItem? pantryItem = _pantryService.FindByName(data.FoodName);
+            bool inPantry = pantryItem is not null;
+            string categoryLabel = pantryItem?.Category switch
+            {
+                PantryCategory.AlwaysHave => "Always have",
+                PantryCategory.CheckIfHave => "Check if have",
+                _ => string.Empty,
+            };
 
-            PreviewItems.Add(new CartPreviewItem
+            var item = new CartPreviewItem
             {
                 DisplayName = data.DisplayName,
                 FormattedLine = data.FormattedLine,
@@ -68,23 +102,47 @@ public partial class AddToCartDialogViewModel : ViewModelBase
                 IsMerge = data.IsMerge,
                 IsChecked = !inPantry,
                 IsInPantry = inPantry,
-            });
+                PantryCategoryLabel = categoryLabel,
+                PantryItemId = pantryItem?.Id ?? string.Empty,
+            };
+            item.AddToPantryRequested = HandleAddToPantry;
+            item.RemoveFromPantryRequested = HandleRemoveFromPantry;
+            items.Add(item);
+        }
+
+        foreach (CartPreviewItem item in items.OrderBy(i => i.IsInPantry))
+        {
+            PreviewItems.Add(item);
         }
 
         OnPropertyChanged(nameof(HasItems));
     }
 
-    [RelayCommand]
-    private void AddToPantry(CartPreviewItem item)
+    private void HandleAddToPantry(CartPreviewItem item)
     {
-        _pantryService.Add(new PantryItem
+        PantryItem created = _pantryService.Add(new PantryItem
         {
             Name = item.FoodName,
             Category = PantryCategory.CheckIfHave,
         });
 
+        item.PantryItemId = created.Id;
+        item.PantryCategoryLabel = "Check if have";
         item.AddedToPantry = true;
         item.IsChecked = false;
+    }
+
+    private void HandleRemoveFromPantry(CartPreviewItem item)
+    {
+        if (!string.IsNullOrEmpty(item.PantryItemId))
+        {
+            _pantryService.Delete(item.PantryItemId);
+        }
+
+        item.IsInPantry = false;
+        item.PantryCategoryLabel = string.Empty;
+        item.PantryItemId = string.Empty;
+        item.IsChecked = true;
     }
 
     [RelayCommand]

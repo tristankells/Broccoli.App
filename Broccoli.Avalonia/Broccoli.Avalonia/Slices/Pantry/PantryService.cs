@@ -43,6 +43,17 @@ public class PantryService : IPantryService
         }
     }
 
+    public PantryItem? FindByName(string itemName)
+    {
+        using var context = BroccoliDbContext.CreateForApp();
+        string lowerName = itemName.ToLowerInvariant();
+        return context.PantryItems
+            .AsEnumerable()
+            .FirstOrDefault(i =>
+                i.Name.ToLower().Contains(lowerName) ||
+                lowerName.Contains(i.Name.ToLower()));
+    }
+
     public bool Exists(string itemName)
     {
         using var context = BroccoliDbContext.CreateForApp();

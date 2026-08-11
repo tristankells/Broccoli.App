@@ -3,6 +3,8 @@ using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
+using Broccoli.Avalonia.Slices.Groceries;
+using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -16,6 +18,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     private readonly IngredientParserService? _parser;
     private readonly ISeasonalityService? _seasonalityService;
     private readonly IMacroTargetService? _macroService;
+    private readonly IngredientCartService? _cartService;
+    private readonly IPantryService? _pantryService;
 
     private List<Recipe> _allRecipes = [];
     private readonly List<RecipeCardViewModel> _allCards = [];
@@ -47,18 +51,22 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     public double? CompareTargetCaloriesPerMeal { get; private set; }
 
     public RecipeListPageViewModel(IRecipeService recipeService)
-        : this(recipeService, null, null, null) { }
+        : this(recipeService, null, null, null, null, null) { }
 
     public RecipeListPageViewModel(
         IRecipeService recipeService,
         IngredientParserService? parser,
         ISeasonalityService? seasonalityService,
-        IMacroTargetService? macroService = null)
+        IMacroTargetService? macroService = null,
+        IngredientCartService? cartService = null,
+        IPantryService? pantryService = null)
     {
         _recipeService = recipeService;
         _parser = parser;
         _seasonalityService = seasonalityService;
         _macroService = macroService;
+        _cartService = cartService;
+        _pantryService = pantryService;
 
         WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => Reload());
     }
@@ -102,7 +110,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             SeasonalityResult? seasonality = null;
             string? imagePath = null;
 
-            if (recipe.Images.Count > 0)
+            if (ShowImages && recipe.Images.Count > 0)
             {
                 imagePath = _recipeService.GetImagePath(recipe.Id, recipe.Images[0]);
             }
@@ -128,9 +136,12 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             }
 
             double servings = recipe.Servings > 0 ? recipe.Servings.Value : 1;
-            _allCards.Add(RecipeCardViewModel.FromRecipe(recipe, imagePath,
+            RecipeCardViewModel card = RecipeCardViewModel.FromRecipe(recipe, imagePath,
                 cal / servings, pro / servings, carb / servings, fat / servings, seasonality,
-                CompareTargetCaloriesPerMeal, CalorieMatchTolerancePercent));
+                CompareTargetCaloriesPerMeal, CalorieMatchTolerancePercent,
+                ShowImages, ShowTags, ShowSeasonality, ShowNutrition);
+            card.AddToCartRequested = c => AddToCart(c);
+            _allCards.Add(card);
         }
 
         FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
@@ -202,4 +213,21 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     [RelayCommand]
     private void SelectRecipe(RecipeCardViewModel card) => RecipeSelected?.Invoke(card.Recipe);
+
+    [RelayCommand]
+    private void AddToCart(RecipeCardViewModel card)
+    {
+        if (_cartService is null || _pantryService is null || string.IsNullOrWhiteSpace(card.Recipe.Ingredients))
+        {
+            return;
+        }
+
+        List<string> ingredientLines = card.Recipe.Ingredients
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        var dialogViewModel = new AddToCartDialogViewModel(_cartService, _pantryService, card.Recipe.Name, ingredientLines);
+        var dialog = new AddToCartDialog { DataContext = dialogViewModel };
+        dialog.Show();
+    }
 }

@@ -8,11 +8,11 @@
         WindowStartupLocation="CenterOwner">
 
     <Grid ShowGridLines="True" Margin="16">
-           <Grid.RowDefinitions>
-       <RowDefinition Height="Auto"></RowDefinition>
-       <RowDefinition Height="*"></RowDefinition>
-       <RowDefinition Height="Auto"></RowDefinition>
-   </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Grid.RowSpan="" Spacing="8" Margin="0,0,0,12">
             <TextBlock Text="Add to Shopping Cart" FontSize="18" FontWeight="Bold" />
             <TextBlock IsVisible="{Binding HasItems}">

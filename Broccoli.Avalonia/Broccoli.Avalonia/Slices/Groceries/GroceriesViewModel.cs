@@ -2,6 +2,7 @@ using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
@@ -32,6 +33,7 @@ public partial class GroceriesViewModel : ViewModelBase
     public GroceriesViewModel(IGroceryListService groceryListService)
     {
         _groceryListService = groceryListService;
+        WeakReferenceMessenger.Default.Register<GroceryListChangedMessage>(this, (_, _) => LoadItems());
         LoadItems();
     }
 

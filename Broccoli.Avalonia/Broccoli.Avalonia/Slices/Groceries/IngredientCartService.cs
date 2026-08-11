@@ -3,6 +3,14 @@ using Broccoli.Avalonia.Models;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
+public sealed class CartPreviewData
+{
+    public string DisplayName { get; init; } = string.Empty;
+    public string FormattedLine { get; init; } = string.Empty;
+    public string FoodName { get; init; } = string.Empty;
+    public bool IsMerge { get; init; }
+}
+
 public class IngredientCartService(
     IngredientParserService parser,
     IGroceryListService groceryListService)
@@ -34,13 +42,59 @@ public class IngredientCartService(
 
     public void AddToCart(IEnumerable<string> selectedLines)
     {
+        (List<GroceryListItem> toAdd, List<GroceryListItem> toUpdate) = ComputeCartChanges(selectedLines);
+
+        foreach (GroceryListItem item in toUpdate)
+        {
+            groceryListService.Update(item);
+        }
+
+        if (toAdd.Count > 0)
+        {
+            groceryListService.AddMultiple(toAdd);
+        }
+    }
+
+    public List<CartPreviewData> PreviewAddToCart(IEnumerable<string> selectedLines)
+    {
+        (List<GroceryListItem> toAdd, List<GroceryListItem> toUpdate) = ComputeCartChanges(selectedLines);
+
+        List<CartPreviewData> preview = [];
+
+        foreach (GroceryListItem item in toUpdate)
+        {
+            preview.Add(new CartPreviewData
+            {
+                DisplayName = $"{item.Name} (merge with existing)",
+                FormattedLine = item.Name,
+                FoodName = ExtractFoodName(item.Name),
+                IsMerge = true,
+            });
+        }
+
+        foreach (GroceryListItem item in toAdd)
+        {
+            preview.Add(new CartPreviewData
+            {
+                DisplayName = item.Name,
+                FormattedLine = item.Name,
+                FoodName = ExtractFoodName(item.Name),
+                IsMerge = false,
+            });
+        }
+
+        return preview;
+    }
+
+    private (List<GroceryListItem> toAdd, List<GroceryListItem> toUpdate) ComputeCartChanges(IEnumerable<string> selectedLines)
+    {
         var lines = selectedLines
             .Where(l => !string.IsNullOrWhiteSpace(l))
             .ToList();
 
         if (lines.Count == 0)
         {
-            return;
+            return ([], []);
         }
 
         List<ParsedIngredientMatch> newMatches = parser.ParseAndMatchIngredients(string.Join("\n", lines));
@@ -83,15 +137,7 @@ public class IngredientCartService(
             }
         }
 
-        foreach (GroceryListItem item in toUpdate)
-        {
-            groceryListService.Update(item);
-        }
-
-        if (toAdd.Count > 0)
-        {
-            groceryListService.AddMultiple(toAdd);
-        }
+        return (toAdd, toUpdate);
     }
 
     private static List<ParsedIngredientMatch> DeduplicateUnmatched(List<ParsedIngredientMatch> matches)
@@ -205,5 +251,27 @@ public class IngredientCartService(
     {
         int comma = name.IndexOf(',');
         return (comma >= 0 ? name[..comma] : name).Trim().ToLowerInvariant();
+    }
+
+    private static string ExtractFoodName(string line)
+    {
+        if (line.EndsWith(" (merge with existing)", StringComparison.Ordinal))
+        {
+            line = line[..^22];
+        }
+
+        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(
+            line,
+            @"^[\d.]+(?:g|kg|ml|l|cups?|tbsp|tsp|oz|lbs?)?\s*(?:of\s+)?(.+)$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        if (match.Success)
+        {
+            string food = match.Groups[1].Value.Trim();
+            int comma = food.IndexOf(',');
+            return (comma >= 0 ? food[..comma] : food).Trim();
+        }
+
+        return line;
     }
 }

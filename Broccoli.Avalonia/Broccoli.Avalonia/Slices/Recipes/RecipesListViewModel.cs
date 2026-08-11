@@ -2,6 +2,8 @@ using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
+using Broccoli.Avalonia.Slices.Groceries;
+using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes.Import;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,6 +17,8 @@ public partial class RecipesListViewModel : ViewModelBase
     private readonly IFoodService? _foodService;
     private readonly ISeasonalityService? _seasonalityService;
     private readonly IMacroTargetService? _macroService;
+    private readonly IngredientCartService? _cartService;
+    private readonly IPantryService? _pantryService;
     private readonly ImportDialogViewModel? _importDialog;
 
     [ObservableProperty]
@@ -22,20 +26,24 @@ public partial class RecipesListViewModel : ViewModelBase
 
     private readonly RecipeListPageViewModel _listPage;
 
-    public RecipesListViewModel() : this(new RecipeService(), null, null, null, null, null) { }
+    public RecipesListViewModel() : this(new RecipeService(), null, null, null, null, null, null, null) { }
 
     public RecipesListViewModel(IRecipeService recipeService,
         IngredientParserService? parser, IFoodService? foodService,
         ISeasonalityService? seasonalityService, IMacroTargetService? macroService,
-        ImportDialogViewModel? importDialog = null)
+        ImportDialogViewModel? importDialog = null,
+        IngredientCartService? cartService = null,
+        IPantryService? pantryService = null)
     {
         _recipeService = recipeService;
         _parser = parser;
         _foodService = foodService;
         _seasonalityService = seasonalityService;
         _macroService = macroService;
+        _cartService = cartService;
+        _pantryService = pantryService;
         _importDialog = importDialog;
-        _listPage = new RecipeListPageViewModel(_recipeService, _parser, _seasonalityService, _macroService)
+        _listPage = new RecipeListPageViewModel(_recipeService, _parser, _seasonalityService, _macroService, _cartService, _pantryService)
         {
             AddRecipeRequested = ShowAdd,
             ImportRecipeRequested = ShowImport,

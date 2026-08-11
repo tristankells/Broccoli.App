@@ -59,6 +59,12 @@ public class MacroTargetSettings
     [JsonPropertyName("showCardNutrition")]
     public bool ShowCardNutrition { get; set; } = true;
 
+    [JsonPropertyName("showCardCalorieMatch")]
+    public bool ShowCardCalorieMatch { get; set; } = false;
+
+    [JsonPropertyName("calorieMatchTolerancePercent")]
+    public double CalorieMatchTolerancePercent { get; set; } = 15;
+
     [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

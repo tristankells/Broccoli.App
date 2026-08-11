@@ -14,6 +14,11 @@ public partial class ParsedIngredientRow : ViewModelBase
     [ObservableProperty] private string _carbsText = string.Empty;
     [ObservableProperty] private string _fatText = string.Empty;
 
+    [ObservableProperty] private bool _isTopCalories;
+    [ObservableProperty] private bool _isTopProtein;
+    [ObservableProperty] private bool _isTopCarbs;
+    [ObservableProperty] private bool _isTopFat;
+
     public static ParsedIngredientRow FromMatch(ParsedIngredientMatch match)
     {
         return new ParsedIngredientRow

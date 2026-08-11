@@ -56,6 +56,15 @@ internal partial class RecipeCardViewModel : ViewModelBase
     private bool _hasSeasonality;
 
     [ObservableProperty]
+    private bool _hasCalorieMatch;
+
+    [ObservableProperty]
+    private bool _calorieMatchInRange;
+
+    [ObservableProperty]
+    private string _calorieMatchText = string.Empty;
+
+    [ObservableProperty]
     private HashSet<SearchWord> _searchWords = [];
 
     public static RecipeCardViewModel FromRecipe(
@@ -65,7 +74,9 @@ internal partial class RecipeCardViewModel : ViewModelBase
         double proPerServing,
         double carbPerServing,
         double fatPerServing,
-        SeasonalityResult? seasonality)
+        SeasonalityResult? seasonality,
+        double? targetMealCalories = null,
+        double tolerancePercent = 15)
     {
         bool hasImage = !string.IsNullOrEmpty(imagePath);
         bool hasTags = recipe.Tags.Count > 0;
@@ -96,6 +107,12 @@ internal partial class RecipeCardViewModel : ViewModelBase
                 _ => "Gray",
             },
             HasSeasonality = hasSeason,
+            HasCalorieMatch = targetMealCalories.HasValue && targetMealCalories > 0 && hasNutrition,
+            CalorieMatchInRange = targetMealCalories.HasValue && targetMealCalories > 0 && hasNutrition
+                && Math.Abs(calPerServing - targetMealCalories.Value) / targetMealCalories.Value * 100 <= tolerancePercent,
+            CalorieMatchText = targetMealCalories.HasValue && targetMealCalories > 0
+                ? Math.Abs(calPerServing - targetMealCalories.Value) / targetMealCalories.Value * 100 <= tolerancePercent ? "=" : "!"
+                : string.Empty,
             SearchWords = RetrieveSearchWords(recipe),
         };
     }

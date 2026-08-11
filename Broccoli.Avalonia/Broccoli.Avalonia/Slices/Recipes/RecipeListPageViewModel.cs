@@ -6,6 +6,7 @@ using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
 
@@ -41,6 +42,9 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     public bool ShowTags { get; set; } = true;
     public bool ShowSeasonality { get; set; } = true;
     public bool ShowNutrition { get; set; } = true;
+    public bool ShowCalorieMatch { get; set; }
+    public double CalorieMatchTolerancePercent { get; set; } = 15;
+    public double? CompareTargetCaloriesPerMeal { get; private set; }
 
     public RecipeListPageViewModel(IRecipeService recipeService)
         : this(recipeService, null, null, null) { }
@@ -55,6 +59,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _parser = parser;
         _seasonalityService = seasonalityService;
         _macroService = macroService;
+
+        WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => Reload());
     }
 
     private void LoadCardSettings()
@@ -69,6 +75,19 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         ShowTags = settings.ShowCardTags;
         ShowSeasonality = settings.ShowCardSeasonality;
         ShowNutrition = settings.ShowCardNutrition;
+        ShowCalorieMatch = settings.ShowCardCalorieMatch;
+        CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
+
+        CompareTargetCaloriesPerMeal = null;
+        if (ShowCalorieMatch && !string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
+        {
+            List<MacroTarget> targets = _macroService.GetAll();
+            MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
+            if (chosen is not null && chosen.RecommendedCalories > 0)
+            {
+                CompareTargetCaloriesPerMeal = chosen.RecommendedCalories / 3.0;
+            }
+        }
     }
 
     public void Reload()
@@ -110,7 +129,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
             double servings = recipe.Servings > 0 ? recipe.Servings.Value : 1;
             _allCards.Add(RecipeCardViewModel.FromRecipe(recipe, imagePath,
-                cal / servings, pro / servings, carb / servings, fat / servings, seasonality));
+                cal / servings, pro / servings, carb / servings, fat / servings, seasonality,
+                CompareTargetCaloriesPerMeal, CalorieMatchTolerancePercent));
         }
 
         FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);

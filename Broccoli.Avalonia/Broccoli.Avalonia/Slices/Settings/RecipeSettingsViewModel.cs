@@ -3,6 +3,7 @@ using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Settings;
 
@@ -18,6 +19,9 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _showCardTags = true;
     [ObservableProperty] private bool _showCardSeasonality = true;
     [ObservableProperty] private bool _showCardNutrition = true;
+
+    [ObservableProperty] private bool _showCardCalorieMatch;
+    [ObservableProperty] private double _calorieMatchTolerancePercent = 15;
 
     public List<MacroTarget> AvailableTargets { get; } = new();
     public int SelectedTargetIndex
@@ -48,41 +52,44 @@ public partial class RecipeSettingsViewModel : ViewModelBase
 
     private void Load()
     {
-        try
-        {
-            MacroTargetSettings settings = _macroService.GetSettings();
-            ComparisonEnabled = settings.RecipeMealComparisonEnabled;
-            ComparisonPersonId = settings.RecipeMealComparisonPersonId;
-            ShowCardImage = settings.ShowCardImage;
-            ShowCardTags = settings.ShowCardTags;
-            ShowCardSeasonality = settings.ShowCardSeasonality;
-            ShowCardNutrition = settings.ShowCardNutrition;
+        MacroTargetSettings settings = _macroService.GetSettings();
+        ComparisonEnabled = settings.RecipeMealComparisonEnabled;
+        ComparisonPersonId = settings.RecipeMealComparisonPersonId;
+        ShowCardImage = settings.ShowCardImage;
+        ShowCardTags = settings.ShowCardTags;
+        ShowCardSeasonality = settings.ShowCardSeasonality;
+        ShowCardNutrition = settings.ShowCardNutrition;
+        ShowCardCalorieMatch = settings.ShowCardCalorieMatch;
+        CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
 
-            List<MacroTarget> targets = _macroService.GetAll();
-            AvailableTargets.Clear();
-            AvailableTargets.AddRange(targets);
-            OnPropertyChanged(nameof(SelectedTargetIndex));
+        List<MacroTarget> targets = _macroService.GetAll();
+        AvailableTargets.Clear();
+        AvailableTargets.AddRange(targets);
+
+        if (AvailableTargets.Count > 0 && string.IsNullOrWhiteSpace(ComparisonPersonId))
+        {
+            ComparisonPersonId = AvailableTargets[0].Id;
         }
-        catch { StatusMessage = "Failed to load settings."; }
+
+        OnPropertyChanged(nameof(SelectedTargetIndex));
     }
 
     [RelayCommand]
     private void Save()
     {
         StatusMessage = null;
-        try
-        {
-            MacroTargetSettings settings = _macroService.GetSettings();
-            settings.RecipeMealComparisonEnabled = ComparisonEnabled;
-            settings.RecipeMealComparisonPersonId = ComparisonPersonId;
-            settings.ShowCardImage = ShowCardImage;
-            settings.ShowCardTags = ShowCardTags;
-            settings.ShowCardSeasonality = ShowCardSeasonality;
-            settings.ShowCardNutrition = ShowCardNutrition;
-            _macroService.SaveSettings(settings);
-            StatusMessage = "Saved.";
-        }
-        catch { StatusMessage = "Failed to save."; }
+        MacroTargetSettings settings = _macroService.GetSettings();
+        settings.RecipeMealComparisonEnabled = ComparisonEnabled;
+        settings.RecipeMealComparisonPersonId = ComparisonPersonId;
+        settings.ShowCardImage = ShowCardImage;
+        settings.ShowCardTags = ShowCardTags;
+        settings.ShowCardSeasonality = ShowCardSeasonality;
+        settings.ShowCardNutrition = ShowCardNutrition;
+        settings.ShowCardCalorieMatch = ShowCardCalorieMatch;
+        settings.CalorieMatchTolerancePercent = CalorieMatchTolerancePercent;
+        _macroService.SaveSettings(settings);
+        StatusMessage = "Saved.";
+        WeakReferenceMessenger.Default.Send(new CardSettingsChangedMessage());
     }
 
     [RelayCommand]

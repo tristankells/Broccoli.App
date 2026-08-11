@@ -103,30 +103,26 @@ public partial class RecipeDetailViewModel : ViewModelBase
             return;
         }
 
-        try
+        MacroTargetSettings settings = _macroService.GetSettings();
+        if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
         {
-            MacroTargetSettings settings = _macroService.GetSettings();
-            if (!settings.RecipeMealComparisonEnabled || string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
-            {
-                return;
-            }
-
-            List<MacroTarget> targets = _macroService.GetAll();
-            MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
-            if (chosen is null)
-            {
-                return;
-            }
-
-            IsComparisonEnabled = true;
-            ComparisonPersonName = chosen.Name;
-            MealTargetCalories = chosen.RecommendedCalories / 3.0;
-            MealTargetProteinG = chosen.RecommendedProteinG / 3.0;
-            MealTargetCarbsG = chosen.RecommendedCarbsG / 3.0;
-            MealTargetFatG = chosen.RecommendedFatG / 3.0;
-            RefreshComparison();
+            return;
         }
-        catch { }
+
+        List<MacroTarget> targets = _macroService.GetAll();
+        MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
+        if (chosen is null)
+        {
+            return;
+        }
+
+        IsComparisonEnabled = true;
+        ComparisonPersonName = chosen.Name;
+        MealTargetCalories = chosen.RecommendedCalories / 3.0;
+        MealTargetProteinG = chosen.RecommendedProteinG / 3.0;
+        MealTargetCarbsG = chosen.RecommendedCarbsG / 3.0;
+        MealTargetFatG = chosen.RecommendedFatG / 3.0;
+        RefreshComparison();
     }
 
     private void ParseIngredients()

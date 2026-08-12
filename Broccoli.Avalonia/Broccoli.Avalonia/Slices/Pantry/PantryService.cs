@@ -1,5 +1,7 @@
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Pantry;
 
@@ -9,7 +11,7 @@ public class PantryService : IPantryService
     {
         using var context = BroccoliDbContext.CreateForApp();
         return context.PantryItems
-            .OrderBy(i => i.CreatedAt)
+            .OrderBy(pantryItem => pantryItem.CreatedAt)
             .ToList();
     }
 
@@ -21,6 +23,8 @@ public class PantryService : IPantryService
         using var context = BroccoliDbContext.CreateForApp();
         context.PantryItems.Add(item);
         context.SaveChanges();
+
+        WeakReferenceMessenger.Default.Send(new PantryListChangedMessage());
         return item;
     }
 
@@ -29,6 +33,8 @@ public class PantryService : IPantryService
         using var context = BroccoliDbContext.CreateForApp();
         context.PantryItems.Update(item);
         context.SaveChanges();
+
+        WeakReferenceMessenger.Default.Send(new PantryListChangedMessage());
         return item;
     }
 
@@ -41,6 +47,8 @@ public class PantryService : IPantryService
             context.PantryItems.Remove(item);
             context.SaveChanges();
         }
+
+        WeakReferenceMessenger.Default.Send(new PantryListChangedMessage());
     }
 
     public PantryItem? FindByName(string itemName)

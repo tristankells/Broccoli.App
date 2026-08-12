@@ -8,6 +8,7 @@ public sealed class CartPreviewData
     public string DisplayName { get; init; } = string.Empty;
     public string FormattedLine { get; init; } = string.Empty;
     public string FoodName { get; init; } = string.Empty;
+    public string OriginalLine { get; init; } = string.Empty;
     public bool IsMerge { get; init; }
 }
 
@@ -42,13 +43,14 @@ public class IngredientCartService(
 
     public void AddToCart(IEnumerable<string> selectedLines)
     {
-        (List<GroceryListItem> toAdd, List<GroceryListItem> toUpdate) = ComputeCartChanges(selectedLines);
+        List<CartChange> changes = ComputeCartChanges(selectedLines);
 
-        foreach (GroceryListItem item in toUpdate)
+        foreach (GroceryListItem item in changes.Where(c => c.IsUpdate).Select(c => c.Item))
         {
             groceryListService.Update(item);
         }
 
+        List<GroceryListItem> toAdd = changes.Where(c => !c.IsUpdate).Select(c => c.Item).ToList();
         if (toAdd.Count > 0)
         {
             groceryListService.AddMultiple(toAdd);
@@ -57,36 +59,42 @@ public class IngredientCartService(
 
     public List<CartPreviewData> PreviewAddToCart(IEnumerable<string> selectedLines)
     {
-        (List<GroceryListItem> toAdd, List<GroceryListItem> toUpdate) = ComputeCartChanges(selectedLines);
+        List<CartChange> changes = ComputeCartChanges(selectedLines);
 
         List<CartPreviewData> preview = [];
 
-        foreach (GroceryListItem item in toUpdate)
+        foreach (CartChange change in changes)
         {
-            preview.Add(new CartPreviewData
+            if (change.IsUpdate)
             {
-                DisplayName = $"{item.Name} (merge with existing)",
-                FormattedLine = item.Name,
-                FoodName = ExtractFoodName(item.Name),
-                IsMerge = true,
-            });
-        }
-
-        foreach (GroceryListItem item in toAdd)
-        {
-            preview.Add(new CartPreviewData
+                preview.Add(new CartPreviewData
+                {
+                    DisplayName = $"{change.Item.Name} (merge with existing)",
+                    FormattedLine = change.Item.Name,
+                    FoodName = ExtractFoodName(change.Item.Name),
+                    OriginalLine = change.OriginalLine,
+                    IsMerge = true,
+                });
+            }
+            else
             {
-                DisplayName = item.Name,
-                FormattedLine = item.Name,
-                FoodName = ExtractFoodName(item.Name),
-                IsMerge = false,
-            });
+                preview.Add(new CartPreviewData
+                {
+                    DisplayName = change.Item.Name,
+                    FormattedLine = change.Item.Name,
+                    FoodName = ExtractFoodName(change.Item.Name),
+                    OriginalLine = change.OriginalLine,
+                    IsMerge = false,
+                });
+            }
         }
 
         return preview;
     }
 
-    private (List<GroceryListItem> toAdd, List<GroceryListItem> toUpdate) ComputeCartChanges(IEnumerable<string> selectedLines)
+    private sealed record CartChange(GroceryListItem Item, string OriginalLine, bool IsUpdate);
+
+    private List<CartChange> ComputeCartChanges(IEnumerable<string> selectedLines)
     {
         var lines = selectedLines
             .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -94,7 +102,7 @@ public class IngredientCartService(
 
         if (lines.Count == 0)
         {
-            return ([], []);
+            return [];
         }
 
         List<ParsedIngredientMatch> newMatches = parser.ParseAndMatchIngredients(string.Join("\n", lines));
@@ -104,12 +112,12 @@ public class IngredientCartService(
 
         List<GroceryListItem> existingItems = groceryListService.GetAll();
 
-        var toUpdate = new List<GroceryListItem>();
-        var toAdd    = new List<GroceryListItem>();
+        var changes = new List<CartChange>();
         var claimedIds = new HashSet<string>();
 
         foreach (ParsedIngredientMatch newMatch in newMatches)
         {
+            string originalLine = newMatch.ParsedIngredient.RawLine;
             (GroceryListItem? existingItem, double existingQty, string? effectiveUnit) = FindMatch(newMatch, existingItems, claimedIds);
 
             if (existingItem is not null)
@@ -126,20 +134,21 @@ public class IngredientCartService(
                 existingItem.Name = BuildLine(merged, unit, food);
                 existingItem.QuantityHint = ComputeHint(existingItem.Name, parser);
                 claimedIds.Add(existingItem.Id);
-                toUpdate.Add(existingItem);
+                changes.Add(new CartChange(existingItem, originalLine, true));
             }
             else
             {
-                toAdd.Add(new GroceryListItem
+                var newItem = new GroceryListItem
                 {
                     Name      = Format(newMatch),
                     IsChecked = false,
                     QuantityHint = newMatch.GetQuantityHint(),
-                });
+                };
+                changes.Add(new CartChange(newItem, originalLine, false));
             }
         }
 
-        return (toAdd, toUpdate);
+        return changes;
     }
 
     private static List<ParsedIngredientMatch> DeduplicateUnmatched(List<ParsedIngredientMatch> matches)

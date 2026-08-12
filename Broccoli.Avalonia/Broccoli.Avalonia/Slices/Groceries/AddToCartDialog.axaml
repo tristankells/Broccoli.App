@@ -44,7 +44,7 @@
                                         Command="{Binding AddToPantryCommand}"
                                         FontSize="11" Padding="6,2"
                                         IsVisible="{Binding ShowAddToPantry}" />
-                                <Button Grid.Column="3" Content="Remove"
+                                <Button Grid.Column="3" Content="Remove from Pantry"
                                         Command="{Binding RemoveFromPantryCommand}"
                                         FontSize="11" Padding="6,2"
                                         IsVisible="{Binding ShowRemoveFromPantry}" />

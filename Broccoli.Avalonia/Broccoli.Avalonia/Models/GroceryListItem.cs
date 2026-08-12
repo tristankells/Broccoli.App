@@ -1,8 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Broccoli.Avalonia.Models;
 
-public class GroceryListItem
+public partial class GroceryListItem : ObservableObject
 {
     /// <summary>
     /// Unique identifier of the grocery list item
@@ -46,5 +47,11 @@ public class GroceryListItem
     /// Null when the food cannot be matched or has no meaningful unit conversion.
     /// </summary>
     public string? QuantityHint { get; set; }
+
+    [JsonIgnore]
+    [ObservableProperty] private bool _isEditing;
+
+    [JsonIgnore]
+    [ObservableProperty] private string _editText = string.Empty;
 }
 

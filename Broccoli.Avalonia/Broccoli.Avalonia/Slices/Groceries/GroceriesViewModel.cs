@@ -175,6 +175,47 @@ public partial class GroceriesViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void StartEdit(GroceryListItem item)
+    {
+        item.EditText = item.Name;
+        item.IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void CommitEdit(GroceryListItem item)
+    {
+        if (!item.IsEditing)
+        {
+            return;
+        }
+
+        string newName = item.EditText.Trim();
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            item.IsEditing = false;
+            return;
+        }
+
+        item.Name = newName;
+        item.IsEditing = false;
+
+        if (_parser is not null)
+        {
+            List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(item.Name);
+            item.QuantityHint = matches.FirstOrDefault()?.GetQuantityHint();
+        }
+
+        try
+        {
+            _groceryListService.Update(item);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error updating item: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
     private void ResetList()
     {
         try

@@ -12,6 +12,7 @@ public partial class CartPreviewItem : ObservableObject
 {
     public string DisplayName { get; init; } = string.Empty;
     public string FormattedLine { get; init; } = string.Empty;
+    public string OriginalLine { get; init; } = string.Empty;
     public string FoodName { get; init; } = string.Empty;
     public bool IsMerge { get; init; }
 
@@ -98,6 +99,7 @@ public partial class AddToCartDialogViewModel : ViewModelBase
             {
                 DisplayName = data.DisplayName,
                 FormattedLine = data.FormattedLine,
+                OriginalLine = data.OriginalLine,
                 FoodName = data.FoodName,
                 IsMerge = data.IsMerge,
                 IsChecked = !inPantry,
@@ -122,7 +124,7 @@ public partial class AddToCartDialogViewModel : ViewModelBase
     {
         PantryItem created = _pantryService.Add(new PantryItem
         {
-            Name = item.FoodName,
+            Name = StripMeasurements(item.FoodName),
             Category = PantryCategory.CheckIfHave,
         });
 
@@ -130,6 +132,7 @@ public partial class AddToCartDialogViewModel : ViewModelBase
         item.PantryCategoryLabel = "Check if have";
         item.AddedToPantry = true;
         item.IsChecked = false;
+        item.IsInPantry = true;
     }
 
     private void HandleRemoveFromPantry(CartPreviewItem item)
@@ -140,6 +143,7 @@ public partial class AddToCartDialogViewModel : ViewModelBase
         }
 
         item.IsInPantry = false;
+        item.AddedToPantry = false;
         item.PantryCategoryLabel = string.Empty;
         item.PantryItemId = string.Empty;
         item.IsChecked = true;
@@ -149,19 +153,13 @@ public partial class AddToCartDialogViewModel : ViewModelBase
     private void Confirm()
     {
         List<string> checkedLines = PreviewItems
-            .Where(item => item.IsChecked && !item.IsMerge)
-            .Select(item => item.FormattedLine)
+            .Where(item => item.IsChecked)
+            .Select(item => item.OriginalLine)
             .ToList();
 
-        List<string> checkedMergeLines = PreviewItems
-            .Where(item => item.IsChecked && item.IsMerge)
-            .Select(item => item.FormattedLine)
-            .ToList();
-
-        if (checkedLines.Count > 0 || checkedMergeLines.Count > 0)
+        if (checkedLines.Count > 0)
         {
-            List<string> allChecked = [..checkedLines, ..checkedMergeLines];
-            _cartService.AddToCart(allChecked);
+            _cartService.AddToCart(checkedLines);
         }
 
         WeakReferenceMessenger.Default.Send(new GroceryListChangedMessage());
@@ -172,5 +170,20 @@ public partial class AddToCartDialogViewModel : ViewModelBase
     private void Cancel()
     {
         RequestClose?.Invoke();
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex s_measurementPattern = new(
+        @"\b(cups?|tablespoons?|tbl|tbsps?|teaspoons?|tsps?|grams?|kilograms?|kgs?|milliliters?|millilitres?|mls?|liters?|litres?|ls?|ounces?|oz|lbs?|pounds?|drizzle|pinch|packs?|twin\s+pack|medium|large|small|heads?|cans?|cloves?|bunches?|stalks?|slices?|pieces?|sheets?|of)\s*",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static string StripMeasurements(string foodName)
+    {
+        string result = s_measurementPattern.Replace(foodName, " ").Trim();
+        while (result.Contains("  "))
+        {
+            result = result.Replace("  ", " ");
+        }
+
+        return string.IsNullOrWhiteSpace(result) ? foodName : result;
     }
 }

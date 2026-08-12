@@ -1,8 +1,9 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Pantry;
 
@@ -30,6 +31,7 @@ public partial class PantryViewModel : ViewModelBase
     public PantryViewModel(IPantryService pantryService)
     {
         _pantryService = pantryService;
+        WeakReferenceMessenger.Default.Register<PantryListChangedMessage>(this, (_, _) => Load());
         Load();
     }
 

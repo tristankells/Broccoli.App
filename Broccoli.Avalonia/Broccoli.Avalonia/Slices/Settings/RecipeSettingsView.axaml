@@ -56,8 +56,6 @@
                     <StackPanel Spacing="4" IsVisible="{Binding ComparisonEnabled}">
                         <TextBlock Text="Compare against" FontSize="12" />
                         <ComboBox x:Name="TargetComboBox" SelectedIndex="{Binding SelectedTargetIndex}" Width="250" />
-                        <Button Content="Refresh profiles" Command="{Binding RefreshTargetsCommand}"
-                                FontSize="11" Padding="6,2" HorizontalAlignment="Left" />
                     </StackPanel>
                 </StackPanel>
             </Border>

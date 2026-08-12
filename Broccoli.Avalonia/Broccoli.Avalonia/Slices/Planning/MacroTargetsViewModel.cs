@@ -2,6 +2,7 @@ using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Planning;
@@ -126,6 +127,7 @@ public partial class MacroTargetsViewModel : ViewModelBase
             var row = MacroTargetRowViewModel.Create(target, Settings, OnRowChanged);
             row.RefreshCalculatedDisplay();
             Targets.Add(row);
+            WeakReferenceMessenger.Default.Send(new MacroTargetsChangedMessage());
         }
         catch (Exception ex)
         {
@@ -142,6 +144,7 @@ public partial class MacroTargetsViewModel : ViewModelBase
         try
         {
             _macroTargetService.Delete(row.Model.Id);
+            WeakReferenceMessenger.Default.Send(new MacroTargetsChangedMessage());
         }
         catch (Exception ex)
         {
@@ -160,6 +163,7 @@ public partial class MacroTargetsViewModel : ViewModelBase
             _calculator.Calculate(row.Model, Settings);
             row.RefreshCalculatedDisplay();
             _macroTargetService.Update(row.Model);
+            WeakReferenceMessenger.Default.Send(new MacroTargetsChangedMessage());
         }
         catch (Exception ex)
         {

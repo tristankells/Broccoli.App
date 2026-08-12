@@ -7,6 +7,7 @@ namespace Broccoli.Avalonia.Slices.Recipes;
 
 internal partial class RecipeCardViewModel : ViewModelBase
 {
+    public Action<RecipeCardViewModel>? AddToCartRequested { get; set; }
     [ObservableProperty]
     private Recipe _recipe = null!;
 
@@ -76,12 +77,16 @@ internal partial class RecipeCardViewModel : ViewModelBase
         double fatPerServing,
         SeasonalityResult? seasonality,
         double? targetMealCalories = null,
-        double tolerancePercent = 15)
+        double tolerancePercent = 15,
+        bool showImages = true,
+        bool showTags = true,
+        bool showSeasonality = true,
+        bool showNutrition = true)
     {
-        bool hasImage = !string.IsNullOrEmpty(imagePath);
-        bool hasTags = recipe.Tags.Count > 0;
-        bool hasNutrition = calPerServing > 0 || proPerServing > 0 || carbPerServing > 0 || fatPerServing > 0;
-        bool hasSeason = seasonality?.Label != SeasonalityLabel.Unavailable && seasonality?.Score != null;
+        bool hasImage = showImages && !string.IsNullOrEmpty(imagePath);
+        bool hasTags = showTags && recipe.Tags.Count > 0;
+        bool hasNutrition = showNutrition && (calPerServing > 0 || proPerServing > 0 || carbPerServing > 0 || fatPerServing > 0);
+        bool hasSeason = showSeasonality && seasonality?.Label != SeasonalityLabel.Unavailable && seasonality?.Score != null;
 
         return new RecipeCardViewModel
         {

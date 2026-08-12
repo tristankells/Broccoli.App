@@ -38,6 +38,9 @@ public class BroccoliDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<GroceryListItem>().Ignore(x => x.IsEditing);
+        modelBuilder.Entity<GroceryListItem>().Ignore(x => x.EditText);
+
         // MealPrepPlan.RecipeIds is a simple string list -> store as a JSON-encoded column.
         modelBuilder.Entity<MealPrepPlan>()
             .Property(p => p.RecipeIds)

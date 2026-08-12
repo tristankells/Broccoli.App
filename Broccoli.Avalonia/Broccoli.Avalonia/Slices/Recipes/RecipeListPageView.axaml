@@ -48,7 +48,8 @@
                     <DataTemplate x:DataType="vm:RecipeCardViewModel">
                         <Button Background="Transparent" BorderThickness="0" Padding="0"
                                 Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
-                                CommandParameter="{Binding}">
+                                CommandParameter="{Binding}"
+                                ContextRequested="OnCardContextRequested">
                             <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
                                     CornerRadius="6" Padding="0" ClipToBounds="True">
                                 <StackPanel Height="180">

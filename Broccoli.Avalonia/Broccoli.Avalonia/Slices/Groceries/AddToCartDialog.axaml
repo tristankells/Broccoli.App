@@ -1,0 +1,65 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Broccoli.Avalonia.Slices.Groceries"
+        x:Class="Broccoli.Avalonia.Slices.Groceries.AddToCartDialog"
+        x:DataType="vm:AddToCartDialogViewModel"
+        Title="Add to Shopping Cart" Width="560" Height="450"
+        Icon="/Assets/avalonia-logo.ico"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid ShowGridLines="True" Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,12">
+            <TextBlock Text="Add to Shopping Cart" FontSize="18" FontWeight="Bold" />
+            <TextBlock IsVisible="{Binding HasItems}">
+                <Run Text="Recipe: " />
+                <Run Text="{Binding RecipeName}" FontWeight="SemiBold" />
+            </TextBlock>
+            <TextBlock Text="The following items will be added:" IsVisible="{Binding HasItems}" />
+            <TextBlock Text="This recipe has no ingredients to add." Foreground="Gray"
+                       IsVisible="{Binding !HasItems}" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding HasItems}">
+            <ItemsControl ItemsSource="{Binding PreviewItems}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CartPreviewItem">
+                        <Border Margin="0,1" Padding="8,4" CornerRadius="2"
+                                Background="{DynamicResource AppSidebarBackgroundBrush}">
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked}"
+                                          VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" />
+                                    <TextBlock Text="{Binding PantryCategoryLabel}"
+                                               FontSize="9" Foreground="Gray"
+                                               IsVisible="{Binding ShowPantryLabel}" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Content="Add to Pantry"
+                                        Command="{Binding AddToPantryCommand}"
+                                        FontSize="11" Padding="6,2"
+                                        IsVisible="{Binding ShowAddToPantry}" />
+                                <Button Grid.Column="3" Content="Remove from Pantry"
+                                        Command="{Binding RemoveFromPantryCommand}"
+                                        FontSize="11" Padding="6,2"
+                                        IsVisible="{Binding ShowRemoveFromPantry}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8"
+                    HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Cancel" Command="{Binding CancelCommand}" />
+            <Button Content="Add to Cart" Command="{Binding ConfirmCommand}" Classes="accent"
+                    IsVisible="{Binding HasItems}" />
+        </StackPanel>
+    </Grid>
+</Window>

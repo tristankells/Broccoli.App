@@ -63,11 +63,29 @@
                                               Command="{Binding $parent[ItemsControl].((vm:GroceriesViewModel)DataContext).ToggleItemCommand}"
                                               CommandParameter="{Binding}"
                                               VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding Name}"
-                                               VerticalAlignment="Center"
-                                               Margin="8,0"
-                                               TextWrapping="Wrap" />
+                                    <StackPanel Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center"
+                                                Margin="8,0"
+                                                IsVisible="{Binding !IsEditing}"
+                                                PointerPressed="OnItemPointerPressed">
+                                        <TextBlock Text="{Binding Name}"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding QuantityHint}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="Gray"
+                                                   FontStyle="Italic"
+                                                   Margin="4,0,0,0"
+                                                   IsVisible="{Binding QuantityHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    </StackPanel>
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding EditText}"
+                                             VerticalAlignment="Center"
+                                             Margin="8,0"
+                                             IsVisible="{Binding IsEditing}"
+                                             KeyDown="OnEditKeyDown"
+                                             LostFocus="OnEditLostFocus" />
                                     <Button Grid.Column="2" Padding="4"
                                             Command="{Binding $parent[ItemsControl].((vm:GroceriesViewModel)DataContext).DeleteItemCommand}"
                                             CommandParameter="{Binding}"

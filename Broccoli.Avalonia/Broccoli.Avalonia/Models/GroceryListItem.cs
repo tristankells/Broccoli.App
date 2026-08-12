@@ -1,8 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Broccoli.Avalonia.Models;
 
-public class GroceryListItem
+public partial class GroceryListItem : ObservableObject
 {
     /// <summary>
     /// Unique identifier of the grocery list item
@@ -39,5 +40,18 @@ public class GroceryListItem
     /// </summary>
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Approximate weight/item conversion hint based on the food database.
+    /// e.g. "(~305g)" for item-based inputs or "(~5 medium carrots)" for gram-based inputs.
+    /// Null when the food cannot be matched or has no meaningful unit conversion.
+    /// </summary>
+    public string? QuantityHint { get; set; }
+
+    [JsonIgnore]
+    [ObservableProperty] private bool _isEditing;
+
+    [JsonIgnore]
+    [ObservableProperty] private string _editText = string.Empty;
 }
 

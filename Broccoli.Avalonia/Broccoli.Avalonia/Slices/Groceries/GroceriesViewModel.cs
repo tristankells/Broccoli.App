@@ -1,7 +1,9 @@
+using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
@@ -9,6 +11,9 @@ namespace Broccoli.Avalonia.Slices.Groceries;
 public partial class GroceriesViewModel : ViewModelBase
 {
     private readonly IGroceryListService _groceryListService;
+    private readonly IngredientParserService? _parser;
+
+    public Func<string, Task>? SetClipboardTextAsync { get; set; }
 
     public ObservableCollection<GroceryListItem> Items { get; } = new();
 
@@ -25,13 +30,15 @@ public partial class GroceriesViewModel : ViewModelBase
         }
     }
 
-    public GroceriesViewModel() : this(new GroceryListService())
+    public GroceriesViewModel() : this(new GroceryListService(), null!)
     {
     }
 
-    public GroceriesViewModel(IGroceryListService groceryListService)
+    public GroceriesViewModel(IGroceryListService groceryListService, IngredientParserService? parser = null)
     {
         _groceryListService = groceryListService;
+        _parser = parser;
+        WeakReferenceMessenger.Default.Register<GroceryListChangedMessage>(this, (_, _) => LoadItems());
         LoadItems();
     }
 
@@ -73,10 +80,18 @@ public partial class GroceriesViewModel : ViewModelBase
 
         try
         {
+            string? hint = null;
+            if (_parser is not null)
+            {
+                List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(name);
+                hint = matches.FirstOrDefault()?.GetQuantityHint();
+            }
+
             var item = new GroceryListItem
             {
                 Name = name,
                 IsChecked = false,
+                QuantityHint = hint,
             };
 
             GroceryListItem created = _groceryListService.Add(item);
@@ -127,9 +142,77 @@ public partial class GroceriesViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private Task CopyToClipboard()
+    private async Task CopyToClipboard()
     {
-        return Task.CompletedTask;
+        if (SetClipboardTextAsync is null)
+        {
+            return;
+        }
+
+        List<GroceryListItem> uncheckedItems = Items
+            .Where(item => !item.IsChecked)
+            .ToList();
+
+        if (uncheckedItems.Count == 0)
+        {
+            return;
+        }
+
+        var lines = new List<string>(uncheckedItems.Count);
+        foreach (GroceryListItem item in uncheckedItems)
+        {
+            if (item.QuantityHint is not null)
+            {
+                lines.Add(item.Name + " " + item.QuantityHint);
+            }
+            else
+            {
+                lines.Add(item.Name);
+            }
+        }
+
+        await SetClipboardTextAsync(string.Join(Environment.NewLine, lines));
+    }
+
+    [RelayCommand]
+    private void StartEdit(GroceryListItem item)
+    {
+        item.EditText = item.Name;
+        item.IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void CommitEdit(GroceryListItem item)
+    {
+        if (!item.IsEditing)
+        {
+            return;
+        }
+
+        string newName = item.EditText.Trim();
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            item.IsEditing = false;
+            return;
+        }
+
+        item.Name = newName;
+        item.IsEditing = false;
+
+        if (_parser is not null)
+        {
+            List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(item.Name);
+            item.QuantityHint = matches.FirstOrDefault()?.GetQuantityHint();
+        }
+
+        try
+        {
+            _groceryListService.Update(item);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error updating item: {ex.Message}";
+        }
     }
 
     [RelayCommand]

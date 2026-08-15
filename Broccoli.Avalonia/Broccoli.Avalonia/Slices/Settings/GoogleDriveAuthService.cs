@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Broccoli.Avalonia.Slices.Settings.Sync;
 using Broccoli.Avalonia.Storage;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
@@ -26,9 +27,10 @@ public interface IGoogleDriveAuthService
     /// Runs the OAuth login flow (opens the system browser), then records and returns the
     /// connected Google account. Throws <see cref="InvalidOperationException"/> if no OAuth
     /// client id is available (neither the platform-embedded id nor a user-supplied override at
-    /// <see cref="AppPaths.GoogleDriveOAuthConfigFilePath"/>).
+    /// <see cref="AppPaths.GoogleDriveOAuthConfigFilePath"/>). Reports progress via
+    /// <paramref name="progress"/>.
     /// </summary>
-    Task<GoogleDriveAccountInfo> ConnectAsync(CancellationToken cancellationToken = default);
+    Task<GoogleDriveAccountInfo> ConnectAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default);
 
     /// <summary>Signs out: clears the cached OAuth token and the locally-recorded account.</summary>
     Task DisconnectAsync();
@@ -72,7 +74,7 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
         }
     }
 
-    public async Task<GoogleDriveAccountInfo> ConnectAsync(CancellationToken cancellationToken = default)
+    public async Task<GoogleDriveAccountInfo> ConnectAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         GoogleDriveOAuthOptions oauthOptions = LoadOAuthOptions();
         if (!oauthOptions.IsConfigured)
@@ -82,6 +84,8 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
                 "(see IGoogleDriveOAuthPlatform), or provide an override at " +
                 $"\"{AppPaths.GoogleDriveOAuthConfigFilePath}\".");
         }
+
+        SyncProgress.Report(progress, "Opening the browser to sign in to Google...");
 
         // Desktop clients supply a client secret (Google requires it for "Desktop app" clients);
         // mobile clients have none and rely on PKCE. The platform's code receiver captures the
@@ -93,6 +97,8 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
             cancellationToken,
             new FileDataStore(AppPaths.GoogleDriveTokenFolder, fullPath: true),
             _platform.CreateCodeReceiver());
+
+        SyncProgress.Report(progress, "Retrieving your account details...");
 
         using var driveService = new DriveService(new BaseClientService.Initializer
         {

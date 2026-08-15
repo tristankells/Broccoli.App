@@ -5,6 +5,7 @@ using Android.Gms.Auth.Api.Identity;
 using Android.Gms.Common.Apis;
 using Android.Gms.Extensions;
 using Broccoli.Avalonia.Slices.Settings;
+using Broccoli.Avalonia.Slices.Settings.Sync;
 using Broccoli.Avalonia.Storage;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
@@ -54,12 +55,15 @@ public sealed class AndroidGoogleDriveAuthService : IGoogleDriveAuthService
         }
     }
 
-    public async Task<GoogleDriveAccountInfo> ConnectAsync(CancellationToken cancellationToken = default)
+    public async Task<GoogleDriveAccountInfo> ConnectAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+        SyncProgress.Report(progress, "Requesting Drive access from Google...");
+
         AuthorizationResult result = await AuthorizeAsync(cancellationToken);
 
         if (result.HasResolution)
         {
+            SyncProgress.Report(progress, "Waiting for you to approve access in the browser...");
             result = await LaunchConsentAsync(result, cancellationToken);
         }
 
@@ -67,6 +71,8 @@ public sealed class AndroidGoogleDriveAuthService : IGoogleDriveAuthService
         {
             throw new InvalidOperationException("Google Drive authorization was not completed.");
         }
+
+        SyncProgress.Report(progress, "Retrieving your account details...");
 
         using DriveService drive = CreateDriveService(result.AccessToken);
         string email = await GetEmailAsync(drive, cancellationToken);

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="dev.broccoli.app">
 	<uses-permission android:name="android.permission.INTERNET" />
 	<application android:label="Broccoli.Avalonia" android:icon="@drawable/Icon" />
 </manifest>

@@ -1,16 +1,15 @@
 namespace Broccoli.Avalonia.Slices.Settings;
 
 /// <summary>
-/// OAuth "installed application" client credentials for the Google Drive backup login flow.
-/// Not baked into the app binary — read from a user-editable local JSON file so anyone who
-/// wants to enable Drive backup can supply their own OAuth client registered in
-/// <see href="https://console.cloud.google.com/apis/credentials">Google Cloud Console</see>
-/// (type "Desktop app"), without requiring a rebuild.
+/// OAuth "installed application" client id for the Google Drive backup login flow.
+/// Only the client id is needed — the flow uses PKCE (RFC 7636) rather than a client secret,
+/// because an installed/desktop app cannot keep a secret confidential. The id is public by
+/// design and ships embedded per-platform (see <see cref="IGoogleDriveOAuthPlatform"/>), but a
+/// user can optionally override it via a local JSON file without a rebuild.
 /// </summary>
 public class GoogleDriveOAuthOptions
 {
     public string ClientId { get; set; } = string.Empty;
-    public string ClientSecret { get; set; } = string.Empty;
 
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(ClientId) && !string.IsNullOrWhiteSpace(ClientSecret);
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(ClientId);
 }

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Broccoli.Avalonia.Shell;
+using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,21 @@ namespace Broccoli.Avalonia;
 
 public partial class App : Application
 {
+    /// <summary>
+    /// Set by a platform head (e.g. Android) before the app initializes, to supply its own
+    /// Google OAuth client id and code receiver. Desktop leaves this null and falls back to
+    /// <see cref="DesktopGoogleDriveOAuthPlatform"/>.
+    /// </summary>
+    public static IGoogleDriveOAuthPlatform? GoogleDriveOAuthPlatformOverride { get; set; }
+
+    /// <summary>
+    /// Set by a platform head (e.g. Android) before the app initializes to replace the entire
+    /// Google Drive auth service with a platform-specific implementation. Android does this because
+    /// it must use Google Identity Services' <c>AuthorizationClient</c> instead of the shared
+    /// loopback/custom-scheme OAuth flow. Desktop/iOS leave this null.
+    /// </summary>
+    public static IGoogleDriveAuthService? GoogleDriveAuthServiceOverride { get; set; }
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -22,19 +38,26 @@ public partial class App : Application
         // CommunityToolkit.Mvvm's Ioc.Default, so view models declare their dependencies through
         // constructor injection instead of `new`-ing services/other view models directly.
         var services = new ServiceCollection();
+        services.AddSingleton<IGoogleDriveOAuthPlatform>(
+            GoogleDriveOAuthPlatformOverride ?? new DesktopGoogleDriveOAuthPlatform());
+        if (GoogleDriveAuthServiceOverride is { } authServiceOverride)
+        {
+            services.AddSingleton<IGoogleDriveAuthService>(authServiceOverride);
+        }
+
         services.AddAppServices();
         ServiceProvider provider = services.BuildServiceProvider();
         Ioc.Default.ConfigureServices(provider);
 
+        // Ensure the local SQLite database exists and is on the latest schema before
+        // anything (including sync) touches it. Must run on every platform, not just desktop.
+        using (var db = Storage.BroccoliDbContext.CreateForApp())
+        {
+            db.Database.Migrate();
+        }
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Ensure the local SQLite database exists and is on the latest schema before
-            // anything (including sync) touches it.
-            using (var db = Storage.BroccoliDbContext.CreateForApp())
-            {
-                db.Database.Migrate();
-            }
-
             MainViewModel mainViewModel = provider.GetRequiredService<MainViewModel>();
             desktop.MainWindow = new MainWindow
             {

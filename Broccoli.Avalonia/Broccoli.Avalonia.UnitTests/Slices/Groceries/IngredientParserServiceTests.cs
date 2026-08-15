@@ -149,4 +149,21 @@ public class IngredientParserServiceTests
 
         Assert.AreEqual("Carrots", results[0].ParsedIngredient.FoodDescription);
     }
+
+    [TestMethod]
+    public void QuantityHint_FoodMeasuredInGramsWithNumericPrefix_ReturnsNull()
+    {
+        Food food = new()
+        {
+            Id = 1,
+            Name = "Blackberries, frozen, unsweetened",
+            Measure = "100g",
+            GramsPerMeasure = 100,
+        };
+        IngredientParserService service = CreateService(new Dictionary<string, Food> { { "blackberries", food } });
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("100g blackberries");
+
+        Assert.IsTrue(results[0].IsMatched);
+        Assert.IsNull(results[0].GetQuantityHint());
+    }
 }

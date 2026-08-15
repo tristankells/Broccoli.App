@@ -149,12 +149,19 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     partial void OnIngredientsChanged(string value) => ParseIngredients();
 
+    partial void OnServingsChanged(int? value)
+    {
+        RefreshNutrition();
+        RefreshComparison();
+    }
+
     private void ParseIngredients()
     {
         if (_parser is null || string.IsNullOrWhiteSpace(Ingredients))
         {
             ParsedMatches.Clear();
             RefreshNutrition();
+            RefreshComparison();
             return;
         }
 
@@ -204,6 +211,7 @@ public partial class RecipeEditViewModel : ViewModelBase
         if (topFatIdx  >= 0) ParsedMatches[topFatIdx].IsTopFat       = true;
 
         RefreshNutrition();
+        RefreshComparison();
     }
 
     private void RefreshNutrition()

@@ -50,7 +50,7 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public IGoogleDriveSyncService SyncService => _googleDriveSyncService;
 
-    public SettingsViewModel() : this(new GoogleDriveAuthService())
+    public SettingsViewModel() : this(new GoogleDriveAuthService(new DesktopGoogleDriveOAuthPlatform()))
     {
     }
 

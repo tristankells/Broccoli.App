@@ -83,9 +83,9 @@ public static class AppPaths
     public static string GoogleDriveAccountFilePath => Path.Combine(RootFolder, "google-drive-account.json");
 
     /// <summary>
-    /// User-editable JSON file holding the Google OAuth client id/secret used for the Drive
-    /// backup "installed app" login flow. Not baked into the app: users/operators who want to
-    /// enable Drive backup provide their own OAuth client registered in Google Cloud Console.
+    /// Optional user-editable JSON file that can override the embedded Google OAuth client id used
+    /// for the Drive backup "installed app" login flow. Not required for normal use — the default
+    /// client id ships in the app binary (see <c>GoogleDriveAuthService.DefaultClientId</c>).
     /// </summary>
     public static string GoogleDriveOAuthConfigFilePath => Path.Combine(RootFolder, "google-drive-oauth.json");
 

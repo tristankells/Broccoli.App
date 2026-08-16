@@ -34,9 +34,10 @@ public interface IGoogleDriveSyncService
 
     /// <summary>
     /// Full two-way sync: pulls remote changes, pushes local changes, detects conflicts.
-    /// Safe to call on startup and from a manual "Sync now" button.
+    /// Safe to call on startup and from a manual "Sync now" button. Reports stage progress via
+    /// <paramref name="progress"/>.
     /// </summary>
-    Task<SyncResult> SyncAsync(CancellationToken cancellationToken = default);
+    Task<SyncResult> SyncAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Best-effort, push-only pass used when the app is closing: only pushes local changes, and
@@ -44,7 +45,7 @@ public interface IGoogleDriveSyncService
     /// leaves reconciliation to the next full <see cref="SyncAsync"/> on startup, to avoid ever
     /// risking a silent overwrite while the app has no time to show a conflict prompt).
     /// </summary>
-    Task<SyncResult> PushOnlyAsync(CancellationToken cancellationToken = default);
+    Task<SyncResult> PushOnlyAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default);
 
     /// <summary>Keeps the local version of a conflicted recipe/database and pushes it to Drive, clearing the conflict.</summary>
     Task ResolveConflictKeepLocalAsync(SyncConflict conflict, CancellationToken cancellationToken = default);
@@ -74,8 +75,10 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     public IReadOnlyList<SyncConflict> GetPendingConflicts() => LoadConflicts();
 
-    public async Task<SyncResult> SyncAsync(CancellationToken cancellationToken = default)
+    public async Task<SyncResult> SyncAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+        SyncProgress.Report(progress, "Connecting to Google Drive...", 0.05);
+
         DriveService? drive = await _authService.TryGetDriveServiceAsync(cancellationToken);
         if (drive is null)
         {
@@ -88,8 +91,12 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
         try
         {
+            SyncProgress.Report(progress, "Locating the backup folder...", 0.1);
+
             string rootFolderId = await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: false, cancellationToken);
             string recipesFolderId = await GetOrCreateFolderIdAsync(drive, state, isRecipesFolder: true, cancellationToken);
+
+            SyncProgress.Report(progress, "Reading sync state...", 0.2);
 
             SyncManifest manifest = await ReadJsonFromDriveAsync<SyncManifest>(drive, rootFolderId, ManifestFileName, cancellationToken)
                            ?? new SyncManifest { Version = 0 };
@@ -101,9 +108,14 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             List<SyncConflict> conflicts = LoadConflicts();
             bool didPushAnything = false;
 
+            SyncProgress.Report(progress, "Syncing recipe changes...", 0.35);
             didPushAnything |= await SyncTombstonesAsync(drive, recipesFolderId, mergedTombstones, cancellationToken);
             didPushAnything |= await SyncRecipesAsync(drive, recipesFolderId, mergedTombstones, sinceUtc, conflicts, result, cancellationToken);
+
+            SyncProgress.Report(progress, "Syncing app data...", 0.7);
             didPushAnything |= await SyncDatabaseAsync(drive, rootFolderId, sinceUtc, conflicts, result, cancellationToken);
+
+            SyncProgress.Report(progress, "Finalizing...", 0.85);
 
             // Push the merged tombstone list back if we picked up anything new from either side.
             await WriteJsonToDriveAsync(drive, rootFolderId, TombstonesFileName, mergedTombstones, cancellationToken);
@@ -125,6 +137,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             state.DriveRecipesFolderId = recipesFolderId;
             SaveState(state);
 
+            SyncProgress.Report(progress, "Sync complete.", 1.0);
+
             result.Conflicts = conflicts;
             return result;
         }
@@ -138,8 +152,10 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         }
     }
 
-    public async Task<SyncResult> PushOnlyAsync(CancellationToken cancellationToken = default)
+    public async Task<SyncResult> PushOnlyAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default)
     {
+        SyncProgress.Report(progress, "Connecting to Google Drive...", 0.05);
+
         DriveService? drive = await _authService.TryGetDriveServiceAsync(cancellationToken);
         if (drive is null)
         {
@@ -158,6 +174,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
                 return new SyncResult { Success = false, ErrorMessage = "Not yet synced on this device." };
             }
 
+            SyncProgress.Report(progress, "Reading sync state...", 0.2);
+
             SyncManifest manifest = await ReadJsonFromDriveAsync<SyncManifest>(drive, state.DriveRootFolderId, ManifestFileName, cancellationToken)
                           ?? new SyncManifest { Version = 0 };
 
@@ -172,7 +190,10 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             TombstoneFile localTombstones = TombstoneStore.Load();
             bool didPushAnything = false;
 
+            SyncProgress.Report(progress, "Pushing recipe changes...", 0.35);
             didPushAnything |= await PushChangedRecipesOnlyAsync(drive, state.DriveRecipesFolderId, sinceUtc, result, cancellationToken);
+
+            SyncProgress.Report(progress, "Pushing app data...", 0.7);
             didPushAnything |= await PushDatabaseIfChangedAsync(drive, state.DriveRootFolderId, sinceUtc, result, cancellationToken);
             await WriteJsonToDriveAsync(drive, state.DriveRootFolderId, TombstonesFileName, localTombstones, cancellationToken);
 
@@ -188,6 +209,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
                 state.LastSyncedAtUtc = DateTime.UtcNow;
                 SaveState(state);
             }
+
+            SyncProgress.Report(progress, "Sync complete.", 1.0);
 
             return result;
         }

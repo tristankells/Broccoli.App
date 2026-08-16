@@ -7,14 +7,14 @@
   <ItemGroup>
     <!-- Avalonia packages -->
     <!-- Important: keep version in sync! -->
-    <PackageVersion Include="Avalonia" Version="12.1.0" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.0" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.0" />
+    <PackageVersion Include="Avalonia" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.1" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
-    <PackageVersion Include="Avalonia.Desktop" Version="12.1.0" />
-    <PackageVersion Include="Avalonia.iOS" Version="12.0.5" />
-    <PackageVersion Include="Avalonia.Browser" Version="12.0.5" />
-    <PackageVersion Include="Avalonia.Android" Version="12.0.5" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.iOS" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Browser" Version="12.1.1" />
+    <PackageVersion Include="Avalonia.Android" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
@@ -32,6 +32,9 @@
     <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+    <PackageVersion Include="Xamarin.GooglePlayServices.Auth" Version="121.6.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Process" Version="2.11.0.1" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.Runtime" Version="2.11.0.1" />
   </ItemGroup>
 
   <!--<ItemGroup>

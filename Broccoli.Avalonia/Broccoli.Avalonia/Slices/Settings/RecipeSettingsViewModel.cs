@@ -48,6 +48,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     {
         _macroService = macroService;
         Load();
+        WeakReferenceMessenger.Default.Register<MacroTargetsChangedMessage>(this, (_, _) => Load());
     }
 
     private void Load()
@@ -90,11 +91,5 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         _macroService.SaveSettings(settings);
         StatusMessage = "Saved.";
         WeakReferenceMessenger.Default.Send(new CardSettingsChangedMessage());
-    }
-
-    [RelayCommand]
-    private void RefreshTargets()
-    {
-        Load();
     }
 }

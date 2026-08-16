@@ -29,6 +29,13 @@ public partial class MainViewModel : ViewModelBase
     private ViewModelBase? _currentPage;
 
     /// <summary>
+    /// Whether the navigation drawer is open. Bound two-way to <c>DrawerPage.IsOpen</c> so that
+    /// navigating (below) also dismisses the drawer after a selection on small screens.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isMenuOpen;
+
+    /// <summary>
     /// Resolved on first access only (see <see cref="ServiceCollectionExtensions.AddAppServices"/>),
     /// so opening the app never eagerly constructs the settings view model or touches the file
     /// system for the stored Drive account unless the user actually opens the settings flyout.
@@ -86,6 +93,7 @@ public partial class MainViewModel : ViewModelBase
     partial void OnSelectedMenuItemChanged(MenuItem? value)
     {
         CurrentPage = value?.Page;
+        IsMenuOpen = false;
     }
 
     public record MenuItem(string Title, Geometry Icon, ViewModelBase Page);

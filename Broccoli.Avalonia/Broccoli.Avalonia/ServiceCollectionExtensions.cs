@@ -9,6 +9,7 @@ using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Broccoli.Avalonia;
 
@@ -24,7 +25,7 @@ public static class ServiceCollectionExtensions
     {
         // Services
         services.AddSingleton<IRecipeService, RecipeService>();
-        services.AddSingleton<IGoogleDriveAuthService, GoogleDriveAuthService>();
+        services.TryAddSingleton<IGoogleDriveAuthService, GoogleDriveAuthService>();
         services.AddSingleton<IGoogleDriveSyncService, GoogleDriveSyncService>();
         services.AddSingleton<IMacroTargetService, MacroTargetService>();
         services.AddSingleton<MacroCalculatorService>();

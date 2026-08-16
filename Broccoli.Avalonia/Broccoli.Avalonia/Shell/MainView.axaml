@@ -1,34 +1,45 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:vm="using:Broccoli.Avalonia.Shell"
-                 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-                x:Class="Broccoli.Avalonia.Shell.MainView"
-                x:DataType="vm:MainViewModel">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Shell"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Broccoli.Avalonia.Shell.MainView"
+             x:DataType="vm:MainViewModel">
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
-to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainViewModel />
     </Design.DataContext>
 
-
-    <Grid ShowGridLines="True" ColumnDefinitions="56,*" Background="{DynamicResource AppContentBackgroundBrush}">
-      <!-- Sidebar -->
-      <Grid ShowGridLines="True" Grid.Column="0" Background="{DynamicResource AppSidebarBackgroundBrush}">
-        <ListBox ItemsSource="{Binding MenuItems}"
-                 SelectedItem="{Binding SelectedMenuItem}"
-                 Background="Transparent">
-          <ListBox.ItemTemplate>
-            <DataTemplate>
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <PathIcon Data="{Binding Icon}" Width="24" Height="24" />
-              </StackPanel>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-      </Grid>
-      <!-- Content area -->
-      <TransitioningContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
-    </Grid>
+    <!-- DrawerPage adapts automatically: below DrawerBreakpointLength the drawer collapses into
+         a hamburger button (top bar) that opens an overlay drawer; above it a compact icon rail
+         is shown and can expand inline. -->
+    <DrawerPage Header="{Binding SelectedMenuItem.Title}"
+                DrawerLayoutBehavior="CompactInline"
+                DrawerBreakpointLength="600"
+                CompactDrawerLength="56"
+                DrawerLength="260"
+                IsOpen="{Binding IsMenuOpen, Mode=TwoWay}"
+                ContentTemplate="{x:Null}"
+                DrawerBackground="{DynamicResource AppSidebarBackgroundBrush}"
+                Background="{DynamicResource AppContentBackgroundBrush}">
+        <DrawerPage.Drawer>
+            <ListBox ItemsSource="{Binding MenuItems}"
+                     SelectedItem="{Binding SelectedMenuItem}"
+                     Background="Transparent">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,6" Spacing="4">
+                            <PathIcon Data="{Binding Icon}" Width="20" Height="20" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding Title}" FontSize="11" HorizontalAlignment="Center" TextAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DrawerPage.Drawer>
+        <DrawerPage.Content>
+            <TransitioningContentControl Content="{Binding CurrentPage}" />
+        </DrawerPage.Content>
+    </DrawerPage>
 </UserControl>

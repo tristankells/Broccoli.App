@@ -2,6 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!--
+		Google OAuth reverse client-id scheme. Must match iOSGoogleDriveOAuthPlatform.Scheme,
+		i.e. "com.googleusercontent.apps." + the iOS OAuth client id. Update once the client id
+		is set in iOSGoogleDriveOAuthPlatform.cs.
+	-->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Broccoli.Avalonia</string>
 	<key>CFBundleIdentifier</key>

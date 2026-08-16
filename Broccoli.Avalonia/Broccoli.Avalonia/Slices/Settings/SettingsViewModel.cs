@@ -10,6 +10,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IGoogleDriveAuthService _googleDriveAuthService;
     private readonly IGoogleDriveSyncService _googleDriveSyncService;
+    private readonly IProgress<SyncProgress> _syncProgress;
 
     [ObservableProperty]
     private bool _isConnected;
@@ -35,6 +36,22 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string? _syncStatusMessage;
 
+    /// <summary>True while either connecting or syncing; drives the progress bar visibility.</summary>
+    [ObservableProperty]
+    private bool _isBusy;
+
+    /// <summary>Human-readable stage message shown next to the progress bar.</summary>
+    [ObservableProperty]
+    private string? _progressMessage;
+
+    /// <summary>Determinate progress in [0,1]. Ignored while <see cref="IsProgressIndeterminate"/> is true.</summary>
+    [ObservableProperty]
+    private double _progressValue;
+
+    /// <summary>True to show a busy (indeterminate) bar while waiting on the user/browser.</summary>
+    [ObservableProperty]
+    private bool _isProgressIndeterminate;
+
     public ObservableCollection<SyncConflict> Conflicts { get; } = new();
 
     /// <summary>
@@ -50,7 +67,7 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public IGoogleDriveSyncService SyncService => _googleDriveSyncService;
 
-    public SettingsViewModel() : this(new GoogleDriveAuthService())
+    public SettingsViewModel() : this(new GoogleDriveAuthService(new DesktopGoogleDriveOAuthPlatform()))
     {
     }
 
@@ -63,7 +80,22 @@ public partial class SettingsViewModel : ViewModelBase
     {
         _googleDriveAuthService = googleDriveAuthService;
         _googleDriveSyncService = googleDriveSyncService;
+        _syncProgress = new Progress<SyncProgress>(OnSyncProgress);
         RefreshStatus();
+    }
+
+    private void OnSyncProgress(SyncProgress update)
+    {
+        ProgressMessage = update.Message;
+        if (update.Progress is double value)
+        {
+            IsProgressIndeterminate = false;
+            ProgressValue = value;
+        }
+        else
+        {
+            IsProgressIndeterminate = true;
+        }
     }
 
     private void RefreshStatus()
@@ -92,9 +124,10 @@ public partial class SettingsViewModel : ViewModelBase
     {
         ErrorMessage = null;
         IsConnecting = true;
+        IsBusy = true;
         try
         {
-            GoogleDriveAccountInfo account = await _googleDriveAuthService.ConnectAsync();
+            GoogleDriveAccountInfo account = await _googleDriveAuthService.ConnectAsync(_syncProgress);
             IsConnected = true;
             ConnectedEmail = account.Email;
             ConnectedAtUtc = account.ConnectedAtUtc;
@@ -109,6 +142,7 @@ public partial class SettingsViewModel : ViewModelBase
         finally
         {
             IsConnecting = false;
+            IsBusy = false;
         }
     }
 
@@ -117,6 +151,7 @@ public partial class SettingsViewModel : ViewModelBase
     {
         ErrorMessage = null;
         IsConnecting = true;
+        IsBusy = true;
         try
         {
             await _googleDriveAuthService.DisconnectAsync();
@@ -125,6 +160,7 @@ public partial class SettingsViewModel : ViewModelBase
         finally
         {
             IsConnecting = false;
+            IsBusy = false;
         }
     }
 
@@ -134,9 +170,10 @@ public partial class SettingsViewModel : ViewModelBase
         ErrorMessage = null;
         SyncStatusMessage = null;
         IsSyncing = true;
+        IsBusy = true;
         try
         {
-            SyncResult result = await _googleDriveSyncService.SyncAsync();
+            SyncResult result = await _googleDriveSyncService.SyncAsync(_syncProgress);
             if (!result.Success)
             {
                 ErrorMessage = result.ErrorMessage;
@@ -154,6 +191,7 @@ public partial class SettingsViewModel : ViewModelBase
         finally
         {
             IsSyncing = false;
+            IsBusy = false;
         }
     }
 

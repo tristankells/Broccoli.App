@@ -1,14 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0-android</TargetFramework>
     <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
-    <ApplicationId>com.CompanyName.Broccoli.Avalonia</ApplicationId>
+    <ApplicationId>dev.broccoli.app</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- Google Play services pulls in a very large dependency graph; the debugger's FastDev
+         per-assembly upload breaks with it. Embed assemblies into the APK in Debug instead. -->
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,9 +27,12 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Android" />
     <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+    <PackageReference Include="Xamarin.AndroidX.Lifecycle.Process" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Auth" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Broccoli.Avalonia\Broccoli.Avalonia.csproj" />
   </ItemGroup>
+  
 </Project>

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Broccoli.Avalonia.Slices.Settings.Sync;
 using Broccoli.Avalonia.Storage;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
@@ -8,9 +9,11 @@ using Google.Apis.Util.Store;
 namespace Broccoli.Avalonia.Slices.Settings;
 
 /// <summary>
-/// Handles the Google Drive "sign in for backup" flow: an OAuth "installed app" login
-/// (opens the system browser via a local loopback listener), scoped to only the files this
-/// app itself creates (<c>drive.file</c>), plus reading/clearing the locally-connected account.
+/// Handles the Google Drive "sign in for backup" flow: an OAuth "installed app" login that opens
+/// the system browser, scoped to only the files this app itself creates (<c>drive.file</c>), plus
+/// reading/clearing the locally-connected account. The redirect is captured by the platform-specific
+/// code receiver supplied via <see cref="IGoogleDriveOAuthPlatform"/> (loopback on desktop, custom
+/// URI scheme on mobile); desktop also supplies a client secret, while mobile relies on PKCE only.
 /// </summary>
 public interface IGoogleDriveAuthService
 {
@@ -23,9 +26,11 @@ public interface IGoogleDriveAuthService
     /// <summary>
     /// Runs the OAuth login flow (opens the system browser), then records and returns the
     /// connected Google account. Throws <see cref="InvalidOperationException"/> if no OAuth
-    /// client id/secret has been configured yet (see <see cref="AppPaths.GoogleDriveOAuthConfigFilePath"/>).
+    /// client id is available (neither the platform-embedded id nor a user-supplied override at
+    /// <see cref="AppPaths.GoogleDriveOAuthConfigFilePath"/>). Reports progress via
+    /// <paramref name="progress"/>.
     /// </summary>
-    Task<GoogleDriveAccountInfo> ConnectAsync(CancellationToken cancellationToken = default);
+    Task<GoogleDriveAccountInfo> ConnectAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default);
 
     /// <summary>Signs out: clears the cached OAuth token and the locally-recorded account.</summary>
     Task DisconnectAsync();
@@ -42,6 +47,13 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
 {
     private static readonly string[] Scopes = [DriveService.Scope.DriveFile];
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
+    private readonly IGoogleDriveOAuthPlatform _platform;
+
+    public GoogleDriveAuthService(IGoogleDriveOAuthPlatform platform)
+    {
+        _platform = platform;
+    }
 
     public GoogleDriveAccountInfo? GetStoredAccount()
     {
@@ -62,23 +74,31 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
         }
     }
 
-    public async Task<GoogleDriveAccountInfo> ConnectAsync(CancellationToken cancellationToken = default)
+    public async Task<GoogleDriveAccountInfo> ConnectAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         GoogleDriveOAuthOptions oauthOptions = LoadOAuthOptions();
         if (!oauthOptions.IsConfigured)
         {
             throw new InvalidOperationException(
-                "Google Drive backup isn't configured yet. Add your OAuth client id/secret to " +
-                $"\"{AppPaths.GoogleDriveOAuthConfigFilePath}\" (create an OAuth client of type " +
-                "\"Desktop app\" in Google Cloud Console), then try again.");
+                "Google Drive backup isn't configured yet. Set the client id for this platform " +
+                "(see IGoogleDriveOAuthPlatform), or provide an override at " +
+                $"\"{AppPaths.GoogleDriveOAuthConfigFilePath}\".");
         }
 
+        SyncProgress.Report(progress, "Opening the browser to sign in to Google...");
+
+        // Desktop clients supply a client secret (Google requires it for "Desktop app" clients);
+        // mobile clients have none and rely on PKCE. The platform's code receiver captures the
+        // redirect.
         UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-            new ClientSecrets { ClientId = oauthOptions.ClientId, ClientSecret = oauthOptions.ClientSecret },
+            CreateClientSecrets(oauthOptions),
             Scopes,
             "user",
             cancellationToken,
-            new FileDataStore(AppPaths.GoogleDriveTokenFolder, fullPath: true));
+            new FileDataStore(AppPaths.GoogleDriveTokenFolder, fullPath: true),
+            _platform.CreateCodeReceiver());
+
+        SyncProgress.Report(progress, "Retrieving your account details...");
 
         using var driveService = new DriveService(new BaseClientService.Initializer
         {
@@ -133,11 +153,12 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
         try
         {
             UserCredential credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
-                new ClientSecrets { ClientId = oauthOptions.ClientId, ClientSecret = oauthOptions.ClientSecret },
+                CreateClientSecrets(oauthOptions),
                 Scopes,
                 "user",
                 cancellationToken,
-                new FileDataStore(AppPaths.GoogleDriveTokenFolder, fullPath: true));
+                new FileDataStore(AppPaths.GoogleDriveTokenFolder, fullPath: true),
+                _platform.CreateCodeReceiver());
 
             return new DriveService(new BaseClientService.Initializer
             {
@@ -153,24 +174,38 @@ public class GoogleDriveAuthService : IGoogleDriveAuthService
         }
     }
 
-    private static GoogleDriveOAuthOptions LoadOAuthOptions()
+    private ClientSecrets CreateClientSecrets(GoogleDriveOAuthOptions oauthOptions)
     {
-        string path = AppPaths.GoogleDriveOAuthConfigFilePath;
-        if (!File.Exists(path))
+        var clientSecrets = new ClientSecrets { ClientId = oauthOptions.ClientId };
+        if (_platform.ClientSecret is not null)
         {
-            // Seed an empty template so the user knows exactly where to add their credentials.
-            File.WriteAllText(path, JsonSerializer.Serialize(new GoogleDriveOAuthOptions(), JsonOptions));
-            return new GoogleDriveOAuthOptions();
+            clientSecrets.ClientSecret = _platform.ClientSecret;
         }
 
-        try
+        return clientSecrets;
+    }
+
+    private GoogleDriveOAuthOptions LoadOAuthOptions()
+    {
+        string path = AppPaths.GoogleDriveOAuthConfigFilePath;
+
+        // A user-supplied override (optional) takes precedence over the platform-embedded id.
+        if (File.Exists(path))
         {
-            return JsonSerializer.Deserialize<GoogleDriveOAuthOptions>(File.ReadAllText(path))
-                   ?? new GoogleDriveOAuthOptions();
+            try
+            {
+                GoogleDriveOAuthOptions? options = JsonSerializer.Deserialize<GoogleDriveOAuthOptions>(File.ReadAllText(path));
+                if (options is not null && !string.IsNullOrWhiteSpace(options.ClientId))
+                {
+                    return options;
+                }
+            }
+            catch (JsonException)
+            {
+                // Corrupt/partial override file — fall back to the platform-embedded id.
+            }
         }
-        catch (JsonException)
-        {
-            return new GoogleDriveOAuthOptions();
-        }
+
+        return new GoogleDriveOAuthOptions { ClientId = _platform.ClientId };
     }
 }

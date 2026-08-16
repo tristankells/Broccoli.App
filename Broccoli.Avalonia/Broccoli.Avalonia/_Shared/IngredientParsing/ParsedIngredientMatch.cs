@@ -12,11 +12,37 @@ public enum MatchConfidence
 
 public class ParsedIngredientMatch
 {
+    private static readonly Dictionary<string, string> s_measureNormalizationMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "tablespoon", "tbsp" },
+        { "teaspoon",   "tsp" },
+        { "cup",        "cup" },
+        { "gram",       "g" },
+        { "kilogram",   "kg" },
+        { "milliliter", "ml" },
+        { "millilitre", "ml" },
+        { "liter",      "l" },
+        { "litre",      "l" },
+        { "can",        "can" },
+        { "head",       "head" },
+        { "stalk",      "stalk" },
+        { "clove",      "clove" },
+        { "slice",      "slice" },
+        { "piece",      "piece" },
+        { "bunch",      "bunch" },
+        { "sheet",      "sheet" },
+    };
+
     public required ParsedIngredient ParsedIngredient { get; set; }
+
     public Food? MatchedFood { get; set; }
+
     public required double MatchScore { get; set; }
+
     public required int MatchDistance { get; set; }
+
     public string MatchMethod { get; set; } = string.Empty;
+
     public required bool IsMatched { get; set; }
 
     public MatchConfidence Confidence => IsMatched switch
@@ -27,102 +53,6 @@ public class ParsedIngredientMatch
         _ => MatchConfidence.Low,
     };
 
-    private static readonly Dictionary<string, string> s_measureNormalizationMap = new(StringComparer.OrdinalIgnoreCase)
-    {
-        { "tablespoon", "tbsp"  },
-        { "teaspoon",   "tsp"   },
-        { "cup",        "cup"   },
-        { "gram",       "g"     },
-        { "kilogram",   "kg"    },
-        { "milliliter", "ml"    },
-        { "millilitre", "ml"    },
-        { "liter",      "l"     },
-        { "litre",      "l"     },
-        { "can",        "can"   },
-        { "head",       "head"  },
-        { "stalk",      "stalk" },
-        { "clove",      "clove" },
-        { "slice",      "slice" },
-        { "piece",      "piece" },
-        { "bunch",      "bunch" },
-        { "sheet",      "sheet" },
-    };
-
-    private static string NormalizeFoodMeasure(string? measure)
-    {
-        if (string.IsNullOrWhiteSpace(measure))
-        {
-            return string.Empty;
-        }
-
-        string lower = measure.ToLowerInvariant().Trim();
-
-        if (s_measureNormalizationMap.TryGetValue(lower, out string? exact))
-        {
-            return exact;
-        }
-
-        if (lower.StartsWith("tablespoon"))
-        {
-            return "tbsp";
-        }
-
-        if (lower.StartsWith("teaspoon"))
-        {
-            return "tsp";
-        }
-
-        if (lower.StartsWith("cup"))
-        {
-            return "cup";
-        }
-
-        if (lower.Contains("medium"))
-        {
-            return "medium";
-        }
-
-        if (lower.Contains("large"))
-        {
-            return "large";
-        }
-
-        if (lower.Contains("small"))
-        {
-            return "small";
-        }
-
-        return lower;
-    }
-
-    private static double? GetUnitConversionRatio(string parsedUnit, string foodMeasureUnit)
-    {
-        if (string.IsNullOrEmpty(parsedUnit) || string.IsNullOrEmpty(foodMeasureUnit))
-        {
-            return null;
-        }
-
-        if (string.Equals(parsedUnit, foodMeasureUnit, StringComparison.OrdinalIgnoreCase))
-        {
-            return 1.0;
-        }
-
-        return (parsedUnit, foodMeasureUnit) switch
-        {
-            ("cup",  "tbsp") => 16.0,
-            ("cup",  "tsp")  => 48.0,
-            ("tbsp", "cup")  => 1.0 / 16.0,
-            ("tbsp", "tsp")  => 3.0,
-            ("tsp",  "tbsp") => 1.0 / 3.0,
-            ("tsp",  "cup")  => 1.0 / 48.0,
-            ("kg",   "g")    => 1000.0,
-            ("g",    "kg")   => 0.001,
-            ("l",    "ml")   => 1000.0,
-            ("ml",   "l")    => 0.001,
-            _                => null,
-        };
-    }
-
     public double GetWeightInGrams()
     {
         if (!IsMatched || MatchedFood == null)
@@ -131,7 +61,7 @@ public class ParsedIngredientMatch
         }
 
         string unit = ParsedIngredient.Unit?.ToLowerInvariant() ?? string.Empty;
-        double qty  = ParsedIngredient.Quantity;
+        double qty = ParsedIngredient.Quantity;
 
         if (unit == "g")
         {
@@ -247,8 +177,8 @@ public class ParsedIngredientMatch
             return "-";
         }
 
-        double grams    = GetWeightInGrams();
-        string unit     = ParsedIngredient.Unit?.ToLowerInvariant() ?? string.Empty;
+        double grams = GetWeightInGrams();
+        string unit = ParsedIngredient.Unit?.ToLowerInvariant() ?? string.Empty;
         string gramsStr = $"{grams:F1} g";
 
         if (unit == "g" || string.IsNullOrEmpty(unit))
@@ -271,7 +201,85 @@ public class ParsedIngredientMatch
     }
 
     public double GetCalories() => CalculateNutrient(_ => MatchedFood?.CaloriesPer100g ?? 0);
+
     public double GetFat() => CalculateNutrient(_ => MatchedFood?.FatPer100g ?? 0);
+
     public double GetProtein() => CalculateNutrient(_ => MatchedFood?.ProteinPer100g ?? 0);
+
     public double GetCarbohydrates() => CalculateNutrient(_ => MatchedFood?.CarbohydratesPer100g ?? 0);
+
+    private static string NormalizeFoodMeasure(string? measure)
+    {
+        if (string.IsNullOrWhiteSpace(measure))
+        {
+            return string.Empty;
+        }
+
+        string lower = measure.ToLowerInvariant().Trim();
+
+        if (s_measureNormalizationMap.TryGetValue(lower, out string? exact))
+        {
+            return exact;
+        }
+
+        if (lower.StartsWith("tablespoon"))
+        {
+            return "tbsp";
+        }
+
+        if (lower.StartsWith("teaspoon"))
+        {
+            return "tsp";
+        }
+
+        if (lower.StartsWith("cup"))
+        {
+            return "cup";
+        }
+
+        if (lower.Contains("medium"))
+        {
+            return "medium";
+        }
+
+        if (lower.Contains("large"))
+        {
+            return "large";
+        }
+
+        if (lower.Contains("small"))
+        {
+            return "small";
+        }
+
+        return lower;
+    }
+
+    private static double? GetUnitConversionRatio(string parsedUnit, string foodMeasureUnit)
+    {
+        if (string.IsNullOrEmpty(parsedUnit) || string.IsNullOrEmpty(foodMeasureUnit))
+        {
+            return null;
+        }
+
+        if (string.Equals(parsedUnit, foodMeasureUnit, StringComparison.OrdinalIgnoreCase))
+        {
+            return 1.0;
+        }
+
+        return (parsedUnit, foodMeasureUnit) switch
+        {
+            ("cup", "tbsp") => 16.0,
+            ("cup", "tsp") => 48.0,
+            ("tbsp", "cup") => 1.0 / 16.0,
+            ("tbsp", "tsp") => 3.0,
+            ("tsp", "tbsp") => 1.0 / 3.0,
+            ("tsp", "cup") => 1.0 / 48.0,
+            ("kg", "g") => 1000.0,
+            ("g", "kg") => 0.001,
+            ("l", "ml") => 1000.0,
+            ("ml", "l") => 0.001,
+            _ => null,
+        };
+    }
 }

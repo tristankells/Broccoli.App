@@ -59,6 +59,7 @@ public class MealPrepPlanService : IMealPrepPlanService
                 plan.SortOrder = i;
             }
         }
+
         context.SaveChanges();
     }
 }

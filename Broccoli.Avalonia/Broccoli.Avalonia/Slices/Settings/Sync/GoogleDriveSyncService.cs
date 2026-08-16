@@ -6,54 +6,6 @@ using Microsoft.Data.Sqlite;
 
 namespace Broccoli.Avalonia.Slices.Settings.Sync;
 
-/// <summary>
-/// Orchestrates two-way sync of the local app-data folder with Google Drive for a single user
-/// across multiple devices, under the assumption that devices are used sequentially (not
-/// simultaneously) — see the design discussion this implements:
-///
-///   - Recipes (Markdown + images, already file-per-record) are compared and synced individually.
-///   - The SQLite database is treated as one opaque unit (whole-file compare/replace) since its
-///     contents can't be diffed; a clean snapshot is taken via `VACUUM INTO` before every upload.
-///   - A tiny <see cref="SyncManifest"/> + local <see cref="SyncState"/> let devices cheaply detect
-///     "has anything changed since I last synced?" without downloading the whole store every time.
-///   - Deletions are tracked as tombstones (<see cref="TombstoneStore"/>) so removing a recipe on
-///     one device correctly removes it everywhere instead of being silently re-uploaded by a
-///     device that still has the old local copy.
-///   - If the *same* recipe (or the database) changed on both sides since the last sync — the rare
-///     "edited offline on two devices" case — nothing is auto-merged or silently overwritten: the
-///     remote version is downloaded as a conflict copy and the user is asked to pick a side from
-///     Settings (see <see cref="ResolveConflictKeepLocalAsync"/> / <see cref="ResolveConflictUseDriveAsync"/>).
-/// </summary>
-public interface IGoogleDriveSyncService
-{
-    /// <summary>Timestamp of the last fully-successful sync (from local state), or null if never synced.</summary>
-    DateTime? LastSyncedAtUtc { get; }
-
-    /// <summary>Conflicts detected by a previous sync that still need the user to pick a side.</summary>
-    IReadOnlyList<SyncConflict> GetPendingConflicts();
-
-    /// <summary>
-    /// Full two-way sync: pulls remote changes, pushes local changes, detects conflicts.
-    /// Safe to call on startup and from a manual "Sync now" button. Reports stage progress via
-    /// <paramref name="progress"/>.
-    /// </summary>
-    Task<SyncResult> SyncAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Best-effort, push-only pass used when the app is closing: only pushes local changes, and
-    /// only if Drive hasn't moved ahead since our last full sync (otherwise it backs off and
-    /// leaves reconciliation to the next full <see cref="SyncAsync"/> on startup, to avoid ever
-    /// risking a silent overwrite while the app has no time to show a conflict prompt).
-    /// </summary>
-    Task<SyncResult> PushOnlyAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default);
-
-    /// <summary>Keeps the local version of a conflicted recipe/database and pushes it to Drive, clearing the conflict.</summary>
-    Task ResolveConflictKeepLocalAsync(SyncConflict conflict, CancellationToken cancellationToken = default);
-
-    /// <summary>Replaces the local version of a conflicted recipe/database with the Drive version, clearing the conflict.</summary>
-    Task ResolveConflictUseDriveAsync(SyncConflict conflict, CancellationToken cancellationToken = default);
-}
-
 public class GoogleDriveSyncService : IGoogleDriveSyncService
 {
     private const string ManifestFileName = "sync-manifest.json";
@@ -72,6 +24,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     }
 
     public DateTime? LastSyncedAtUtc => LoadState().LastSyncedAtUtc;
+
+    private static string ConflictsIndexPath => Path.Combine(AppPaths.ConflictsFolder, "conflicts-index.json");
 
     public IReadOnlyList<SyncConflict> GetPendingConflicts() => LoadConflicts();
 
@@ -124,7 +78,10 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             if (didPushAnything)
             {
                 newVersion = manifest.Version + 1;
-                await WriteJsonToDriveAsync(drive, rootFolderId, ManifestFileName,
+                await WriteJsonToDriveAsync(
+                    drive,
+                    rootFolderId,
+                    ManifestFileName,
                     new SyncManifest { Version = newVersion, UpdatedByDeviceId = state.DeviceId, UpdatedAtUtc = DateTime.UtcNow },
                     cancellationToken);
             }
@@ -201,7 +158,10 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             if (didPushAnything)
             {
                 newVersion = manifest.Version + 1;
-                await WriteJsonToDriveAsync(drive, state.DriveRootFolderId, ManifestFileName,
+                await WriteJsonToDriveAsync(
+                    drive,
+                    state.DriveRootFolderId,
+                    ManifestFileName,
                     new SyncManifest { Version = newVersion, UpdatedByDeviceId = state.DeviceId, UpdatedAtUtc = DateTime.UtcNow },
                     cancellationToken);
 
@@ -271,10 +231,14 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     }
 
     // ── Recipes ──────────────────────────────────────────────────────────────
-
     private static async Task<bool> SyncRecipesAsync(
-        DriveService drive, string recipesFolderId, TombstoneFile tombstones, DateTime sinceUtc,
-        List<SyncConflict> conflicts, SyncResult result, CancellationToken ct)
+        DriveService drive,
+        string recipesFolderId,
+        TombstoneFile tombstones,
+        DateTime sinceUtc,
+        List<SyncConflict> conflicts,
+        SyncResult result,
+        CancellationToken ct)
     {
         bool didPush = false;
         var tombstonedIds = tombstones.Recipes.Select(r => r.RecipeId).ToHashSet();
@@ -327,7 +291,8 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
                 // Same recipe edited on both sides since the last sync — do not guess; keep local
                 // untouched and save the Drive version alongside for the user to compare/choose.
                 string recipeName = TryReadRecipeName(localMdPath) ?? recipeId;
-                string conflictPath = Path.Combine(AppPaths.ConflictsFolder,
+                string conflictPath = Path.Combine(
+                    AppPaths.ConflictsFolder,
                     $"{SanitizeFileName(recipeName)} (Drive conflict copy {DateTime.Now:yyyy-MM-dd HHmm}).md");
 
                 if (remoteMd is not null)
@@ -444,10 +409,13 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     }
 
     // ── Database (whole-file unit) ──────────────────────────────────────────
-
     private static async Task<bool> SyncDatabaseAsync(
-        DriveService drive, string rootFolderId, DateTime sinceUtc,
-        List<SyncConflict> conflicts, SyncResult result, CancellationToken ct)
+        DriveService drive,
+        string rootFolderId,
+        DateTime sinceUtc,
+        List<SyncConflict> conflicts,
+        SyncResult result,
+        CancellationToken ct)
     {
         if (conflicts.Any(c => c.Kind == SyncConflictKind.Database))
         {
@@ -551,7 +519,6 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     }
 
     // ── Tombstones ───────────────────────────────────────────────────────────
-
     private static async Task<bool> SyncTombstonesAsync(
         DriveService drive, string recipesFolderId, TombstoneFile mergedTombstones, CancellationToken ct)
     {
@@ -578,7 +545,6 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     }
 
     // ── Folder bootstrap ─────────────────────────────────────────────────────
-
     private static async Task<string> GetOrCreateFolderIdAsync(
         DriveService drive, SyncState state, bool isRecipesFolder, CancellationToken ct)
     {
@@ -586,6 +552,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         {
             return state.DriveRootFolderId;
         }
+
         if (isRecipesFolder && state.DriveRecipesFolderId is not null)
         {
             return state.DriveRecipesFolderId;
@@ -601,7 +568,6 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     }
 
     // ── Conflict bookkeeping ─────────────────────────────────────────────────
-
     private static void RemoveConflictAndCleanup(SyncConflict conflict)
     {
         List<SyncConflict> conflicts = LoadConflicts();
@@ -613,8 +579,6 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             File.Delete(conflict.ConflictCopyPath);
         }
     }
-
-    private static string ConflictsIndexPath => Path.Combine(AppPaths.ConflictsFolder, "conflicts-index.json");
 
     private static List<SyncConflict> LoadConflicts()
     {
@@ -657,7 +621,6 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         File.WriteAllText(AppPaths.SyncStateFilePath, JsonSerializer.Serialize(state, JsonOptions));
 
     // ── Small JSON/file helpers over Drive ──────────────────────────────────
-
     private static async Task<T?> ReadJsonFromDriveAsync<T>(DriveService drive, string parentId, string fileName, CancellationToken ct)
     {
         Google.Apis.Drive.v3.Data.File? file = await DriveFileHelper.FindChildAsync(drive, fileName, parentId, ct);
@@ -703,6 +666,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         {
             name = name.Replace(invalidChar, '_');
         }
+
         return name;
     }
 }

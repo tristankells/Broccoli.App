@@ -5,13 +5,11 @@ namespace Broccoli.Avalonia.Slices.Planning;
 
 public partial class PlanningPageViewModel : ViewModelBase
 {
-    public MacroTargetsViewModel MacroTargets { get; }
-    public DayPlanViewModel DayPlans { get; }
-    public MealPrepViewModel MealPrep { get; }
+    [ObservableProperty]
+    private int _currentTabIndex;
 
-    [ObservableProperty] private int _currentTabIndex;
-
-    public PlanningPageViewModel() : this(
+    public PlanningPageViewModel()
+        : this(
         new MacroTargetsViewModel(),
         new DayPlanViewModel(),
         new MealPrepViewModel())
@@ -27,4 +25,10 @@ public partial class PlanningPageViewModel : ViewModelBase
         DayPlans = dayPlans;
         MealPrep = mealPrep;
     }
+
+    public MacroTargetsViewModel MacroTargets { get; }
+
+    public DayPlanViewModel DayPlans { get; }
+
+    public MealPrepViewModel MealPrep { get; }
 }

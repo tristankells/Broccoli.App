@@ -42,28 +42,6 @@ internal static class DriveFileHelper
         DriveService drive, string name, string? parentId, CancellationToken ct) =>
         FindChildAsync(drive, name, parentId, mimeType: null, ct);
 
-    private static async Task<DriveFile?> FindChildAsync(
-        DriveService drive, string name, string? parentId, string? mimeType, CancellationToken ct)
-    {
-        string escapedName = name.Replace("'", "\\'");
-        string q = $"name = '{escapedName}' and trashed = false";
-        if (parentId is not null)
-        {
-            q += $" and '{parentId}' in parents";
-        }
-        if (mimeType is not null)
-        {
-            q += $" and mimeType = '{mimeType}'";
-        }
-
-        FilesResource.ListRequest request = drive.Files.List();
-        request.Q = q;
-        request.Fields = "files(id, name, modifiedTime)";
-        request.Spaces = "drive";
-        FileList result = await request.ExecuteAsync(ct);
-        return result.Files.FirstOrDefault();
-    }
-
     public static async Task<List<DriveFile>> ListChildrenAsync(
         DriveService drive, string parentId, CancellationToken ct)
     {
@@ -112,6 +90,29 @@ internal static class DriveFileHelper
     {
         var file = new DriveFile { Trashed = true };
         await drive.Files.Update(file, fileId).ExecuteAsync(ct);
+    }
+
+    private static async Task<DriveFile?> FindChildAsync(
+        DriveService drive, string name, string? parentId, string? mimeType, CancellationToken ct)
+    {
+        string escapedName = name.Replace("'", "\\'");
+        string q = $"name = '{escapedName}' and trashed = false";
+        if (parentId is not null)
+        {
+            q += $" and '{parentId}' in parents";
+        }
+
+        if (mimeType is not null)
+        {
+            q += $" and mimeType = '{mimeType}'";
+        }
+
+        FilesResource.ListRequest request = drive.Files.List();
+        request.Q = q;
+        request.Fields = "files(id, name, modifiedTime)";
+        request.Spaces = "drive";
+        FileList result = await request.ExecuteAsync(ct);
+        return result.Files.FirstOrDefault();
     }
 
     private static void ThrowIfFailed(IUploadProgress progress)

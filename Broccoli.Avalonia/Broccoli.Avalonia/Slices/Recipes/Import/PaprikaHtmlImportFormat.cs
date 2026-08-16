@@ -8,6 +8,7 @@ namespace Broccoli.Avalonia.Slices.Recipes.Import;
 public class PaprikaHtmlImportFormat : IImportFormat
 {
     public string DisplayName => "Paprika — HTML Export";
+
     public string FileExtension => ".html";
 
     public IReadOnlyList<string> ExportInstructions => new[]
@@ -27,7 +28,8 @@ public class PaprikaHtmlImportFormat : IImportFormat
         string name = document.QuerySelector("[itemprop=\"name\"]")?.TextContent.Trim()
             ?? throw new InvalidOperationException("Could not find recipe name.");
 
-        string ingredients = string.Join("\n",
+        string ingredients = string.Join(
+            "\n",
             document.QuerySelectorAll("[itemprop=\"recipeIngredient\"]")
                 .Select(el => el.TextContent.Trim()));
 
@@ -90,6 +92,6 @@ public class PaprikaHtmlImportFormat : IImportFormat
             return "\n";
         }
 
-        return string.Join("", node.ChildNodes.Select(GetPlainText));
+        return string.Join(string.Empty, node.ChildNodes.Select(GetPlainText));
     }
 }

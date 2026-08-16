@@ -9,5 +9,6 @@ namespace Broccoli.Avalonia.Slices.Settings;
 public class GoogleDriveAccountInfo
 {
     public string Email { get; set; } = string.Empty;
+
     public DateTime ConnectedAtUtc { get; set; }
 }

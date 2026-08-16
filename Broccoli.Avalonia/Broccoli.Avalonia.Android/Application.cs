@@ -1,4 +1,4 @@
-﻿using Android.App;
+using Android.App;
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
@@ -8,7 +8,8 @@ namespace Broccoli.Avalonia.Android;
 [Application]
 public class Application : AvaloniaAndroidApplication<App>
 {
-    protected Application(nint javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
+    protected Application(nint javaReference, JniHandleOwnership transfer)
+        : base(javaReference, transfer)
     {
     }
 

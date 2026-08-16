@@ -4,44 +4,43 @@ namespace Broccoli.Avalonia.IngredientParsing;
 
 public class IngredientParserService(IFoodService foodService)
 {
-    const double MinimumMatchThreshold = 0.6;
+    private const double MinimumMatchThreshold = 0.6;
 
     private static readonly Regex s_ingredientPattern = new(
         @"^(?<qty>\d[\d\s]*(?:[./]\d+)?)\s*" +
         @"(?:(?<unit>g|kg|ml|l|cups?|tbsp|tsp|tablespoons?|teaspoons?|oz|lbs?|pounds?|kilograms?|grams?|liters?|litres?|milliliters?|millilitres?|drizzle|pack|pinch|twin\s*pack|medium|large|small|head|can|clove|bunch|stalk|slice|piece|sheet)\b)?\s*" +
         @"(?:of\s+)?" +
         @"(?<food>.+)$",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled
-    );
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static readonly Dictionary<string, string> s_unitNormalizationMap = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "g",            "g"       }, { "gram",         "g"       }, { "grams",        "g"       },
-        { "kg",           "kg"      }, { "kilogram",      "kg"      }, { "kilograms",     "kg"      },
-        { "ml",           "ml"      }, { "milliliter",    "ml"      }, { "milliliters",   "ml"      },
-        { "millilitre",   "ml"      }, { "millilitres",   "ml"      },
-        { "l",            "l"       }, { "liter",         "l"       }, { "liters",        "l"       },
-        { "litre",        "l"       }, { "litres",        "l"       },
-        { "cup",          "cup"     }, { "cups",          "cup"     }, { "c",             "cup"     },
-        { "tbsp",         "tbsp"    }, { "tablespoon",    "tbsp"    }, { "tablespoons",   "tbsp"    }, { "tbl", "tbsp" },
-        { "tsp",          "tsp"     }, { "teaspoon",      "tsp"     }, { "teaspoons",     "tsp"     },
-        { "oz",           "oz"      }, { "ounce",         "oz"      }, { "ounces",        "oz"      },
-        { "lb",           "lb"      }, { "lbs",           "lb"      }, { "pound",         "lb"      }, { "pounds", "lb" },
+        { "g",            "g" }, { "gram",         "g" }, { "grams",        "g" },
+        { "kg",           "kg" }, { "kilogram",      "kg" }, { "kilograms",     "kg" },
+        { "ml",           "ml" }, { "milliliter",    "ml" }, { "milliliters",   "ml" },
+        { "millilitre",   "ml" }, { "millilitres",   "ml" },
+        { "l",            "l" }, { "liter",         "l" }, { "liters",        "l" },
+        { "litre",        "l" }, { "litres",        "l" },
+        { "cup",          "cup" }, { "cups",          "cup" }, { "c",             "cup" },
+        { "tbsp",         "tbsp" }, { "tablespoon",    "tbsp" }, { "tablespoons",   "tbsp" }, { "tbl", "tbsp" },
+        { "tsp",          "tsp" }, { "teaspoon",      "tsp" }, { "teaspoons",     "tsp" },
+        { "oz",           "oz" }, { "ounce",         "oz" }, { "ounces",        "oz" },
+        { "lb",           "lb" }, { "lbs",           "lb" }, { "pound",         "lb" }, { "pounds", "lb" },
         { "drizzle",      "drizzle" },
-        { "pinch",        "pinch"   },
-        { "pack",         "pack"    },
-        { "twin pack",    "pack"    },
-        { "medium",       "medium"  },
-        { "large",        "large"   },
-        { "small",        "small"   },
-        { "head",         "head"    },
-        { "can",          "can"     },
-        { "clove",        "clove"   }, { "cloves",  "clove"  },
-        { "bunch",        "bunch"   }, { "bunches", "bunch"  },
-        { "stalk",        "stalk"   }, { "stalks",  "stalk"  },
-        { "slice",        "slice"   }, { "slices",  "slice"  },
-        { "piece",        "piece"   }, { "pieces",  "piece"  },
-        { "sheet",        "sheet"   }, { "sheets",  "sheet"  },
+        { "pinch",        "pinch" },
+        { "pack",         "pack" },
+        { "twin pack",    "pack" },
+        { "medium",       "medium" },
+        { "large",        "large" },
+        { "small",        "small" },
+        { "head",         "head" },
+        { "can",          "can" },
+        { "clove",        "clove" }, { "cloves",  "clove" },
+        { "bunch",        "bunch" }, { "bunches", "bunch" },
+        { "stalk",        "stalk" }, { "stalks",  "stalk" },
+        { "slice",        "slice" }, { "slices",  "slice" },
+        { "piece",        "piece" }, { "pieces",  "piece" },
+        { "sheet",        "sheet" }, { "sheets",  "sheet" },
     };
 
     public List<ParsedIngredientMatch> ParseAndMatchIngredients(string ingredientLines)
@@ -87,11 +86,11 @@ public class IngredientParserService(IFoodService foodService)
             results.Add(new ParsedIngredientMatch
             {
                 ParsedIngredient = parsed,
-                MatchedFood      = match.Food,
-                MatchScore       = match.IsMatch ? match.Score : 0,
-                MatchDistance    = matchDistance,
-                MatchMethod      = match.Method,
-                IsMatched        = match.Score >= MinimumMatchThreshold,
+                MatchedFood = match.Food,
+                MatchScore = match.IsMatch ? match.Score : 0,
+                MatchDistance = matchDistance,
+                MatchMethod = match.Method,
+                IsMatched = match.Score >= MinimumMatchThreshold,
             });
         }
 
@@ -115,7 +114,7 @@ public class IngredientParserService(IFoodService foodService)
             return null;
         }
 
-        string cleaned = Regex.Replace(line.Trim(), @",\s*.+$", "").Trim();
+        string cleaned = Regex.Replace(line.Trim(), @",\s*.+$", string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(cleaned))
         {
             return null;
@@ -165,10 +164,10 @@ public class IngredientParserService(IFoodService foodService)
 
         return new ParsedIngredient
         {
-            RawLine         = line,
-            Quantity        = quantity,
-            Unit            = canonicalUnit,
-            CanonicalUnit   = canonicalUnit,
+            RawLine = line,
+            Quantity = quantity,
+            Unit = canonicalUnit,
+            CanonicalUnit = canonicalUnit,
             FoodDescription = foodDescription,
         };
     }
@@ -194,6 +193,7 @@ public class IngredientParserService(IFoodService foodService)
                 result += d;
             }
         }
+
         return result == 0 ? 1.0 : result;
     }
 

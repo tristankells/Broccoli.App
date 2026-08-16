@@ -20,7 +20,7 @@ public class FoodFileService : IFoodFileService
             SuggestedFileName = filename,
             FileTypeChoices = new[]
             {
-                new FilePickerFileType("JSON files") { Patterns = new[] { "*.json" } }
+                new FilePickerFileType("JSON files") { Patterns = new[] { "*.json" } },
             },
         });
 
@@ -48,7 +48,7 @@ public class FoodFileService : IFoodFileService
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("JSON files") { Patterns = new[] { "*.json" } }
+                new FilePickerFileType("JSON files") { Patterns = new[] { "*.json" } },
             },
         });
 
@@ -70,6 +70,7 @@ public class FoodFileService : IFoodFileService
         {
             return window.StorageProvider;
         }
+
         return null;
     }
 }

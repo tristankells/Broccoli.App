@@ -8,67 +8,18 @@ using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
-public partial class CartPreviewItem : ObservableObject
-{
-    public string DisplayName { get; init; } = string.Empty;
-    public string FormattedLine { get; init; } = string.Empty;
-    public string OriginalLine { get; init; } = string.Empty;
-    public string FoodName { get; init; } = string.Empty;
-    public bool IsMerge { get; init; }
-
-    [ObservableProperty]
-    private bool _isChecked = true;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowAddToPantry))]
-    [NotifyPropertyChangedFor(nameof(ShowRemoveFromPantry))]
-    [NotifyPropertyChangedFor(nameof(ShowPantryLabel))]
-    private bool _isInPantry;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowAddToPantry))]
-    private bool _addedToPantry;
-
-    [ObservableProperty]
-    private string _pantryCategoryLabel = string.Empty;
-
-    [ObservableProperty]
-    private string _pantryItemId = string.Empty;
-
-    public bool ShowAddToPantry => !IsInPantry && !AddedToPantry;
-    public bool ShowRemoveFromPantry => IsInPantry;
-    public bool ShowPantryLabel => IsInPantry;
-
-    public Action<CartPreviewItem>? AddToPantryRequested { get; set; }
-    public Action<CartPreviewItem>? RemoveFromPantryRequested { get; set; }
-
-    [RelayCommand]
-    private void AddToPantry()
-    {
-        AddToPantryRequested?.Invoke(this);
-    }
-
-    [RelayCommand]
-    private void RemoveFromPantry()
-    {
-        RemoveFromPantryRequested?.Invoke(this);
-    }
-}
-
 public partial class AddToCartDialogViewModel : ViewModelBase
 {
+    private static readonly System.Text.RegularExpressions.Regex s_measurementPattern = new(
+        @"\b(cups?|tablespoons?|tbl|tbsps?|teaspoons?|tsps?|grams?|kilograms?|kgs?|milliliters?|millilitres?|mls?|liters?|litres?|ls?|ounces?|oz|lbs?|pounds?|drizzle|pinch|packs?|twin\s+pack|medium|large|small|heads?|cans?|cloves?|bunches?|stalks?|slices?|pieces?|sheets?|of)\s*",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
     private readonly IngredientCartService _cartService;
     private readonly IPantryService _pantryService;
     private readonly List<string> _ingredientLines;
 
     [ObservableProperty]
     private string _recipeName = string.Empty;
-
-    public ObservableCollection<CartPreviewItem> PreviewItems { get; } = [];
-
-    public Action? RequestClose { get; set; }
-
-    public bool HasItems => PreviewItems.Count > 0;
 
     public AddToCartDialogViewModel(
         IngredientCartService cartService,
@@ -118,6 +69,23 @@ public partial class AddToCartDialogViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(HasItems));
+    }
+
+    public ObservableCollection<CartPreviewItem> PreviewItems { get; } = [];
+
+    public Action? RequestClose { get; set; }
+
+    public bool HasItems => PreviewItems.Count > 0;
+
+    private static string StripMeasurements(string foodName)
+    {
+        string result = s_measurementPattern.Replace(foodName, " ").Trim();
+        while (result.Contains("  "))
+        {
+            result = result.Replace("  ", " ");
+        }
+
+        return string.IsNullOrWhiteSpace(result) ? foodName : result;
     }
 
     private void HandleAddToPantry(CartPreviewItem item)
@@ -170,20 +138,5 @@ public partial class AddToCartDialogViewModel : ViewModelBase
     private void Cancel()
     {
         RequestClose?.Invoke();
-    }
-
-    private static readonly System.Text.RegularExpressions.Regex s_measurementPattern = new(
-        @"\b(cups?|tablespoons?|tbl|tbsps?|teaspoons?|tsps?|grams?|kilograms?|kgs?|milliliters?|millilitres?|mls?|liters?|litres?|ls?|ounces?|oz|lbs?|pounds?|drizzle|pinch|packs?|twin\s+pack|medium|large|small|heads?|cans?|cloves?|bunches?|stalks?|slices?|pieces?|sheets?|of)\s*",
-        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
-
-    private static string StripMeasurements(string foodName)
-    {
-        string result = s_measurementPattern.Replace(foodName, " ").Trim();
-        while (result.Contains("  "))
-        {
-            result = result.Replace("  ", " ");
-        }
-
-        return string.IsNullOrWhiteSpace(result) ? foodName : result;
     }
 }

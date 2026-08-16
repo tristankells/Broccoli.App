@@ -27,15 +27,15 @@ namespace Broccoli.Avalonia.Slices.Settings;
 /// </summary>
 public sealed class MobileSchemeCodeReceiver : ICodeReceiver
 {
-    private readonly string _redirectUri;
-    private readonly Action<Uri> _openBrowser;
-
     // One in-flight login at a time; completed by the platform head via HandleRedirectUri.
     private static TaskCompletionSource<AuthorizationCodeResponseUrl>? _pendingLogin;
 
     // A redirect can arrive before ReceiveCodeAsync runs (e.g. the OS cold-started the app to
     // deliver the deep link). Stash it here and replay it once the flow asks for the code.
     private static AuthorizationCodeResponseUrl? _earlyRedirect;
+
+    private readonly string _redirectUri;
+    private readonly Action<Uri> _openBrowser;
 
     /// <param name="redirectUri">The full redirect URI registered for the OAuth client.</param>
     /// <param name="openBrowser">Opens the system browser for the given authorization URI.</param>
@@ -47,6 +47,26 @@ public sealed class MobileSchemeCodeReceiver : ICodeReceiver
 
     /// <inheritdoc />
     public string RedirectUri => _redirectUri;
+
+    /// <summary>
+    /// Called by the platform head when the OS routes the deep link back into the app, e.g.
+    /// <c>com.googleusercontent.apps.{clientId}:/oauth2redirect?code=...&amp;state=...</c>.
+    /// </summary>
+    public static void HandleRedirectUri(Uri redirectUri)
+    {
+        AuthorizationCodeResponseUrl response =
+            new AuthorizationCodeResponseUrl(redirectUri.Query.TrimStart('?'));
+
+        if (_pendingLogin is null)
+        {
+            // Arrived before ReceiveCodeAsync — keep it for when the flow starts.
+            _earlyRedirect = response;
+            return;
+        }
+
+        _pendingLogin.TrySetResult(response);
+        _pendingLogin = null;
+    }
 
     /// <inheritdoc />
     public Task<AuthorizationCodeResponseUrl> ReceiveCodeAsync(
@@ -67,25 +87,5 @@ public sealed class MobileSchemeCodeReceiver : ICodeReceiver
         _openBrowser(url.Build());
 
         return _pendingLogin.Task;
-    }
-
-    /// <summary>
-    /// Called by the platform head when the OS routes the deep link back into the app, e.g.
-    /// <c>com.googleusercontent.apps.{clientId}:/oauth2redirect?code=...&amp;state=...</c>.
-    /// </summary>
-    public static void HandleRedirectUri(Uri redirectUri)
-    {
-        AuthorizationCodeResponseUrl response =
-            new AuthorizationCodeResponseUrl(redirectUri.Query.TrimStart('?'));
-
-        if (_pendingLogin is null)
-        {
-            // Arrived before ReceiveCodeAsync — keep it for when the flow starts.
-            _earlyRedirect = response;
-            return;
-        }
-
-        _pendingLogin.TrySetResult(response);
-        _pendingLogin = null;
     }
 }

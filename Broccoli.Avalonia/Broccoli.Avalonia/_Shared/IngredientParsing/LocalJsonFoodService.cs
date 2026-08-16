@@ -8,7 +8,9 @@ namespace Broccoli.Avalonia.IngredientParsing;
 
 public class LocalJsonFoodService : IFoodService
 {
-    private readonly Dictionary<string, Food> _foodByName;
+    private const double TokenThreshold = 0.7;
+    private const double FuzzyThreshold = 0.6;
+    private const int FuzzySharpThreshold = 60;
 
     private static readonly HashSet<string> s_stopwords = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -18,9 +20,7 @@ public class LocalJsonFoodService : IFoodService
         "large", "small", "medium", "whole", "halved", "roughly", "finely", "thinly",
     };
 
-    private const double TokenThreshold    = 0.7;
-    private const double FuzzyThreshold    = 0.6;
-    private const int    FuzzySharpThreshold = 60;
+    private readonly Dictionary<string, Food> _foodByName;
 
     public LocalJsonFoodService()
     {
@@ -101,6 +101,7 @@ public class LocalJsonFoodService : IFoodService
         {
             _foodByName.Remove(existing.Name);
         }
+
         _foodByName[food.Name] = food;
     }
 
@@ -150,6 +151,68 @@ public class LocalJsonFoodService : IFoodService
         return best;
     }
 
+    private static HashSet<string> Tokenise(string text) =>
+        new(
+            Regex.Split(text.ToLowerInvariant(), @"\W+").Where(t => t.Length > 1),
+            StringComparer.OrdinalIgnoreCase);
+
+    private static double JaccardSimilarity(HashSet<string> a, HashSet<string> b)
+    {
+        if (a.Count == 0 && b.Count == 0)
+        {
+            return 1.0;
+        }
+
+        if (a.Count == 0 || b.Count == 0)
+        {
+            return 0.0;
+        }
+
+        int intersection = a.Count(t => b.Contains(t));
+        int union = a.Count + b.Count - intersection;
+        return (double)intersection / union;
+    }
+
+    private static int LevenshteinDistance(string source, string target)
+    {
+        if (source == target)
+        {
+            return 0;
+        }
+
+        if (source.Length == 0)
+        {
+            return target.Length;
+        }
+
+        if (target.Length == 0)
+        {
+            return source.Length;
+        }
+
+        int[] prev = new int[target.Length + 1];
+        int[] curr = new int[target.Length + 1];
+
+        for (int j = 0; j <= target.Length; j++)
+        {
+            prev[j] = j;
+        }
+
+        for (int i = 1; i <= source.Length; i++)
+        {
+            curr[0] = i;
+            for (int j = 1; j <= target.Length; j++)
+            {
+                int cost = source[i - 1] == target[j - 1] ? 0 : 1;
+                curr[j] = Math.Min(Math.Min(prev[j] + 1, curr[j - 1] + 1), prev[j - 1] + cost);
+            }
+
+            (prev, curr) = (curr, prev);
+        }
+
+        return prev[target.Length];
+    }
+
     private FoodMatchResult ScoreByTokens(string input)
     {
         HashSet<string> inputTokens = Tokenise(input);
@@ -172,7 +235,7 @@ public class LocalJsonFoodService : IFoodService
             if (score > bestScore)
             {
                 bestScore = score;
-                bestFood  = candidate;
+                bestFood = candidate;
                 if (score >= 1.0)
                 {
                     break;
@@ -195,15 +258,15 @@ public class LocalJsonFoodService : IFoodService
                 continue;
             }
 
-            string target  = candidate.Name.ToLowerInvariant();
-            int distance   = LevenshteinDistance(input, target);
-            int maxLen     = Math.Max(input.Length, target.Length);
-            double score   = maxLen == 0 ? 1.0 : 1.0 - (double)distance / maxLen;
+            string target = candidate.Name.ToLowerInvariant();
+            int distance = LevenshteinDistance(input, target);
+            int maxLen = Math.Max(input.Length, target.Length);
+            double score = maxLen == 0 ? 1.0 : 1.0 - ((double)distance / maxLen);
 
             if (score > bestScore)
             {
                 bestScore = score;
-                bestFood  = candidate;
+                bestFood = candidate;
             }
         }
 
@@ -225,7 +288,7 @@ public class LocalJsonFoodService : IFoodService
             int score = Fuzz.TokenSetRatio(input, candidate.Name.ToLowerInvariant());
             if (score > bestRaw)
             {
-                bestRaw  = score;
+                bestRaw = score;
                 bestFood = candidate;
                 if (score == 100)
                 {
@@ -236,63 +299,5 @@ public class LocalJsonFoodService : IFoodService
 
         double normalised = bestRaw < 0 ? 0 : bestRaw / 100.0;
         return new FoodMatchResult { Food = bestFood, Score = normalised, Method = "FuzzySharp" };
-    }
-
-    private static HashSet<string> Tokenise(string text) =>
-        new(
-            Regex.Split(text.ToLowerInvariant(), @"\W+").Where(t => t.Length > 1),
-            StringComparer.OrdinalIgnoreCase);
-
-    private static double JaccardSimilarity(HashSet<string> a, HashSet<string> b)
-    {
-        if (a.Count == 0 && b.Count == 0)
-        {
-            return 1.0;
-        }
-        if (a.Count == 0 || b.Count == 0)
-        {
-            return 0.0;
-        }
-
-        int intersection = a.Count(t => b.Contains(t));
-        int union        = a.Count + b.Count - intersection;
-        return (double)intersection / union;
-    }
-
-    private static int LevenshteinDistance(string source, string target)
-    {
-        if (source == target)
-        {
-            return 0;
-        }
-        if (source.Length == 0)
-        {
-            return target.Length;
-        }
-        if (target.Length == 0)
-        {
-            return source.Length;
-        }
-
-        int[] prev = new int[target.Length + 1];
-        int[] curr = new int[target.Length + 1];
-
-        for (int j = 0; j <= target.Length; j++)
-        {
-            prev[j] = j;
-        }
-
-        for (int i = 1; i <= source.Length; i++)
-        {
-            curr[0] = i;
-            for (int j = 1; j <= target.Length; j++)
-            {
-                int cost = source[i - 1] == target[j - 1] ? 0 : 1;
-                curr[j]  = Math.Min(Math.Min(prev[j] + 1, curr[j - 1] + 1), prev[j - 1] + cost);
-            }
-            (prev, curr) = (curr, prev);
-        }
-
-        return prev[target.Length];
     }
 }

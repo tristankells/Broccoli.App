@@ -1,4 +1,4 @@
-﻿namespace Broccoli.Avalonia.Models;
+namespace Broccoli.Avalonia.Models;
 
 public enum ImportStatus
 {
@@ -33,4 +33,3 @@ public class ImportRecipeResult
     /// <summary>Error message from a failed save attempt.</summary>
     public string? SaveError { get; set; }
 }
-

@@ -9,20 +9,6 @@ public class GroceriesViewModelTests
 {
     private readonly Mock<IGroceryListService> _serviceMock = new();
 
-    private GroceriesViewModel CreateViewModel(List<GroceryListItem>? existingItems = null)
-    {
-        List<GroceryListItem> items = existingItems ?? new List<GroceryListItem>();
-        _serviceMock.Setup(s => s.GetAll()).Returns(items);
-        return new GroceriesViewModel(_serviceMock.Object);
-    }
-
-    private static GroceryListItem MakeItem(string name, bool isChecked = false) => new()
-    {
-        Id = Guid.NewGuid().ToString(),
-        Name = name,
-        IsChecked = isChecked,
-    };
-
     [TestMethod]
     public void LoadItems_PopulatesFromService()
     {
@@ -39,7 +25,11 @@ public class GroceriesViewModelTests
         GroceryListItem? saved = null;
         _serviceMock.Setup(s => s.Add(It.IsAny<GroceryListItem>()))
             .Callback<GroceryListItem>(item => saved = item)
-            .Returns((GroceryListItem item) => { item.Id = "new"; return item; });
+            .Returns((GroceryListItem item) =>
+            {
+                item.Id = "new";
+                return item;
+            });
 
         GroceriesViewModel vm = CreateViewModel();
         vm.NewItemText = "Bread";
@@ -134,5 +124,19 @@ public class GroceriesViewModelTests
         });
 
         Assert.AreEqual("2 of 3 checked", vm.StatusText);
+    }
+
+    private static GroceryListItem MakeItem(string name, bool isChecked = false) => new()
+    {
+        Id = Guid.NewGuid().ToString(),
+        Name = name,
+        IsChecked = isChecked,
+    };
+
+    private GroceriesViewModel CreateViewModel(List<GroceryListItem>? existingItems = null)
+    {
+        List<GroceryListItem> items = existingItems ?? new List<GroceryListItem>();
+        _serviceMock.Setup(s => s.GetAll()).Returns(items);
+        return new GroceriesViewModel(_serviceMock.Object);
     }
 }

@@ -4,36 +4,6 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Broccoli.Avalonia.Storage;
 
-/// <summary>
-/// Reads/writes <see cref="Recipe"/> as a human-readable Markdown file with a YAML
-/// frontmatter block for structured fields, stored one-folder-per-recipe alongside its
-/// images (see <see cref="AppPaths.RecipeFolder"/>). This keeps recipes easy to read/edit
-/// outside the app and cheap to back up incrementally (only changed files re-sync).
-/// </summary>
-public interface IRecipeMarkdownStore
-{
-    /// <summary>Loads every recipe found under the Recipes folder.</summary>
-    IReadOnlyList<Recipe> LoadAll();
-
-    /// <summary>Loads a single recipe by id, or null if it doesn't exist.</summary>
-    Recipe? Load(string recipeId);
-
-    /// <summary>Writes (creates or overwrites) a recipe's Markdown file.</summary>
-    void Save(Recipe recipe);
-
-    /// <summary>Deletes a recipe's entire folder (Markdown file + images).</summary>
-    void Delete(string recipeId);
-
-    /// <summary>
-    /// Copies an image file into the recipe's folder and returns the stored filename
-    /// to append to <see cref="Recipe.Images"/>.
-    /// </summary>
-    string AddImage(string recipeId, string sourceFilePath);
-
-    /// <summary>Deletes a previously-added image file from the recipe's folder.</summary>
-    void RemoveImage(string recipeId, string fileName);
-}
-
 public class RecipeMarkdownStore : IRecipeMarkdownStore
 {
     private const string FrontmatterDelimiter = "---";
@@ -201,6 +171,7 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
                 case "directions": directions = text; break;
                 case "notes": notes = text; break;
             }
+
             buffer.Clear();
         }
 
@@ -236,16 +207,27 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
     private sealed class RecipeFrontmatter
     {
         public string Id { get; set; } = string.Empty;
+
         public string Name { get; set; } = string.Empty;
+
         public int? Servings { get; set; }
+
         public int? PrepTimeMinutes { get; set; }
+
         public int? CookTimeMinutes { get; set; }
+
         public string? Source { get; set; }
+
         public string? Url { get; set; }
+
         public List<string> Tags { get; set; } = new();
+
         public List<string> Images { get; set; } = new();
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public DateTime? UpdatedAt { get; set; }
+
         public bool IsFavorite { get; set; }
     }
 }

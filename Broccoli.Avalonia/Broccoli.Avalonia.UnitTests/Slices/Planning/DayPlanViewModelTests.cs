@@ -15,7 +15,11 @@ public class DayPlanViewModelTests
         DailyFoodPlan? saved = null;
         _mock.Setup(s => s.GetAll()).Returns(new List<DailyFoodPlan>());
         _mock.Setup(s => s.Add(It.IsAny<DailyFoodPlan>())).Callback<DailyFoodPlan>(p => saved = p)
-            .Returns((DailyFoodPlan p) => { p.Id = "new"; return p; });
+            .Returns((DailyFoodPlan p) =>
+            {
+                p.Id = "new";
+                return p;
+            });
 
         var vm = new DayPlanViewModel(_mock.Object);
         vm.NewPlanCommand.Execute(null);

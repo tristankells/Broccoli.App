@@ -10,9 +10,6 @@ public class LocalJsonSeasonalityService : ISeasonalityService
 {
     private const double MinGrams = 5.0;
 
-    private readonly List<ProduceItem> _allProduce;
-    private readonly Dictionary<string, ProduceItem> _produceByNormalisedName;
-
     private static readonly HashSet<string> s_stopwords = new(StringComparer.OrdinalIgnoreCase)
     {
         "raw", "fresh", "free", "range", "diced", "sliced", "grated", "skinless",
@@ -23,15 +20,32 @@ public class LocalJsonSeasonalityService : ISeasonalityService
 
     private static readonly Dictionary<string, string> s_pluralFixes = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["strawberries"] = "strawberry", ["raspberries"] = "raspberry", ["blackberries"] = "blackberry",
-        ["boysenberries"] = "boysenberry", ["blueberries"] = "blueberry", ["cherries"] = "cherry",
-        ["gooseberries"] = "gooseberry", ["redcurrants"] = "redcurrant", ["blackcurrants"] = "blackcurrant",
-        ["apricots"] = "apricot", ["nectarines"] = "nectarine", ["peaches"] = "peach",
-        ["plums"] = "plum", ["pears"] = "pear", ["lemons"] = "lemon", ["limes"] = "lime",
-        ["mandarins"] = "mandarin", ["mushrooms"] = "mushroom", ["tomatoes"] = "tomato", ["potatoes"] = "potato",
+        ["strawberries"] = "strawberry",
+        ["raspberries"] = "raspberry",
+        ["blackberries"] = "blackberry",
+        ["boysenberries"] = "boysenberry",
+        ["blueberries"] = "blueberry",
+        ["cherries"] = "cherry",
+        ["gooseberries"] = "gooseberry",
+        ["redcurrants"] = "redcurrant",
+        ["blackcurrants"] = "blackcurrant",
+        ["apricots"] = "apricot",
+        ["nectarines"] = "nectarine",
+        ["peaches"] = "peach",
+        ["plums"] = "plum",
+        ["pears"] = "pear",
+        ["lemons"] = "lemon",
+        ["limes"] = "lime",
+        ["mandarins"] = "mandarin",
+        ["mushrooms"] = "mushroom",
+        ["tomatoes"] = "tomato",
+        ["potatoes"] = "potato",
     };
 
     private static readonly JsonSerializerOptions s_jsonOpts = new() { PropertyNameCaseInsensitive = true };
+
+    private readonly List<ProduceItem> _allProduce;
+    private readonly Dictionary<string, ProduceItem> _produceByNormalisedName;
 
     public LocalJsonSeasonalityService()
     {
@@ -46,7 +60,33 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         {
             _allProduce = new List<ProduceItem>();
         }
+
         _produceByNormalisedName = BuildLookup(_allProduce);
+    }
+
+    public static string NormaliseName(string name)
+    {
+        string result = name.ToLowerInvariant();
+        int comma = result.IndexOf(',');
+        if (comma >= 0)
+        {
+            result = result[..comma];
+        }
+
+        var tokens = result.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => !s_stopwords.Contains(t)).ToList();
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            if (s_pluralFixes.TryGetValue(tokens[i], out string? singular))
+            {
+                tokens[i] = singular;
+            }
+            else if (tokens[i].EndsWith('s') && tokens[i].Length >= 4)
+            {
+                tokens[i] = tokens[i][..^1];
+            }
+        }
+
+        return string.Join(" ", tokens).Trim();
     }
 
     public SeasonalityResult Score(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf = null)
@@ -93,7 +133,7 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         return new SeasonalityResult { Score = score, Label = label, Breakdown = breakdown, BestSeasons = bestSeasons };
     }
 
-    private static (List<IngredientSeasonalityDetail> breakdown, double totalWeighted, double totalPossible)
+    private static (List<IngredientSeasonalityDetail> Breakdown, double TotalWeighted, double TotalPossible)
         ComputeForSeason(List<(ProduceItem Produce, double Grams)> matched, string season)
     {
         var breakdown = new List<IngredientSeasonalityDetail>();
@@ -108,7 +148,19 @@ public class LocalJsonSeasonalityService : ISeasonalityService
             totalWeighted += contribution;
             totalPossible += possible;
         }
+
         return (breakdown, totalWeighted, totalPossible);
+    }
+
+    private static Dictionary<string, ProduceItem> BuildLookup(IEnumerable<ProduceItem> items)
+    {
+        var dict = new Dictionary<string, ProduceItem>(StringComparer.OrdinalIgnoreCase);
+        foreach (ProduceItem item in items)
+        {
+            dict.TryAdd(NormaliseName(item.Name), item);
+        }
+
+        return dict;
     }
 
     private string ComputeBestSeasons(List<(ProduceItem Produce, double Grams)> matched)
@@ -119,7 +171,11 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         }
 
         var seasonScores = SeasonHelper.AllSeasons
-            .Select(s => { (List<IngredientSeasonalityDetail> _, double tw, double tp) = ComputeForSeason(matched, s); return (Season: s, Score: tp > 0 ? (tw / tp) * 100.0 : 0.0); })
+            .Select(s =>
+            {
+                (List<IngredientSeasonalityDetail> _, double tw, double tp) = ComputeForSeason(matched, s);
+                return (Season: s, Score: tp > 0 ? (tw / tp) * 100.0 : 0.0);
+            })
             .OrderByDescending(x => x.Score).ToList();
 
         double topScore = seasonScores[0].Score;
@@ -145,44 +201,14 @@ public class LocalJsonSeasonalityService : ISeasonalityService
         foreach ((string? produceKey, ProduceItem? item) in _produceByNormalisedName)
         {
             bool match = key.Contains(produceKey, StringComparison.OrdinalIgnoreCase) || produceKey.Contains(key, StringComparison.OrdinalIgnoreCase);
-            if (match && produceKey.Length < bestLen) { best = item; bestLen = produceKey.Length; }
+            if (match && produceKey.Length < bestLen)
+            {
+                best = item;
+                bestLen = produceKey.Length;
+            }
         }
+
         return best;
-    }
-
-    private static Dictionary<string, ProduceItem> BuildLookup(IEnumerable<ProduceItem> items)
-    {
-        var dict = new Dictionary<string, ProduceItem>(StringComparer.OrdinalIgnoreCase);
-        foreach (ProduceItem item in items)
-        {
-            dict.TryAdd(NormaliseName(item.Name), item);
-        }
-
-        return dict;
-    }
-
-    public static string NormaliseName(string name)
-    {
-        string result = name.ToLowerInvariant();
-        int comma = result.IndexOf(',');
-        if (comma >= 0)
-        {
-            result = result[..comma];
-        }
-
-        var tokens = result.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => !s_stopwords.Contains(t)).ToList();
-        for (int i = 0; i < tokens.Count; i++)
-        {
-            if (s_pluralFixes.TryGetValue(tokens[i], out string? singular))
-            {
-                tokens[i] = singular;
-            }
-            else if (tokens[i].EndsWith('s') && tokens[i].Length >= 4)
-            {
-                tokens[i] = tokens[i][..^1];
-            }
-        }
-        return string.Join(" ", tokens).Trim();
     }
 
     private sealed class ProduceDataset

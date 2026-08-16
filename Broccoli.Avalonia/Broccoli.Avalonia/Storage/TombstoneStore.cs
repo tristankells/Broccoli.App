@@ -2,19 +2,6 @@ using System.Text.Json;
 
 namespace Broccoli.Avalonia.Storage;
 
-/// <summary>A single deleted recipe, so deletions propagate between devices instead of being silently resurrected.</summary>
-public class RecipeTombstone
-{
-    public string RecipeId { get; set; } = string.Empty;
-    public DateTime DeletedAtUtc { get; set; }
-}
-
-/// <summary>The full tombstone list, persisted locally and synced as one small JSON file alongside the manifest.</summary>
-public class TombstoneFile
-{
-    public List<RecipeTombstone> Recipes { get; set; } = new();
-}
-
 /// <summary>
 /// Reads/writes the local tombstone list (<see cref="AppPaths.TombstonesFilePath"/>).
 /// <see cref="RecipeMarkdownStore.Delete"/> records a tombstone here automatically so the

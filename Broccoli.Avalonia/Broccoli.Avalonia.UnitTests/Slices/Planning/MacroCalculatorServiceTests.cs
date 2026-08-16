@@ -8,16 +8,6 @@ public class MacroCalculatorServiceTests
 {
     private readonly MacroCalculatorService _calculator = new();
 
-    private static MacroTargetSettings MetricSettings() => new()
-    {
-        UnitSystem = UnitSystem.Metric,
-        BmrFormula = BmrFormula.MifflinStJeor,
-        ProteinMethod = ProteinMethod.RatioPercent,
-        ProteinPercent = 30,
-        CarbPercent = 40,
-        FatPercent = 30,
-    };
-
     [TestMethod]
     public void Calculate_MifflinStJeor_Male()
     {
@@ -232,4 +222,14 @@ public class MacroCalculatorServiceTests
         double result = MacroCalculatorService.WeightChangeKgPerWeek(0);
         Assert.AreEqual(0, result);
     }
+
+    private static MacroTargetSettings MetricSettings() => new()
+    {
+        UnitSystem = UnitSystem.Metric,
+        BmrFormula = BmrFormula.MifflinStJeor,
+        ProteinMethod = ProteinMethod.RatioPercent,
+        ProteinPercent = 30,
+        CarbPercent = 40,
+        FatPercent = 30,
+    };
 }

@@ -109,6 +109,21 @@ dotnet_diagnostic.SA1633.severity = none # Files should have file header.
 dotnet_diagnostic.SA1101.severity = none # Prefix local calls with this
 dotnet_diagnostic.SA1309.severity = none # Field names should not begin with an underscore
 
+# StyleCop - Naming conflicts with the project's `_`/`s_` field-prefix convention
+dotnet_diagnostic.SA1308.severity = none # Variable names should not be prefixed
+dotnet_diagnostic.SA1311.severity = none # Static readonly fields should begin with upper-case letter
+
+# StyleCop - Documentation rules disabled (internal app; no XML docs required)
+dotnet_diagnostic.SA1600.severity = none # Elements should be documented
+dotnet_diagnostic.SA1601.severity = none # Partial elements should be documented
+dotnet_diagnostic.SA1602.severity = none # Enumeration items should be documented
+dotnet_diagnostic.SA1604.severity = none # Element documentation should have summary
+dotnet_diagnostic.SA1611.severity = none # The documentation for parameter is missing
+dotnet_diagnostic.SA1615.severity = none # Element return value should be documented
+dotnet_diagnostic.SA1623.severity = none # Property summary text should begin with
+dotnet_diagnostic.SA1629.severity = none # Documentation text should end with a period
+dotnet_diagnostic.SA1642.severity = none # Constructor summary text should begin with
+
 
 # MVVM Toolkit diagnostics
 dotnet_diagnostic.MVVMTK0042.severity = none

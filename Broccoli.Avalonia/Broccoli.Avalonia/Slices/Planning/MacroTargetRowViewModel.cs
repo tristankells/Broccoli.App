@@ -7,37 +7,31 @@ namespace Broccoli.Avalonia.Slices.Planning;
 
 public partial class MacroTargetRowViewModel : ViewModelBase
 {
-    public MacroTarget Model { get; }
-
     private bool _suppressChanged;
-    public Action<MacroTargetRowViewModel>? Changed { get; set; }
 
-    [ObservableProperty] private string _name = string.Empty;
-    [ObservableProperty] private GenderType _gender = GenderType.Male;
-    [ObservableProperty] private double _weightDisplay;
-    [ObservableProperty] private double _heightDisplay;
-    [ObservableProperty] private int _age;
-    [ObservableProperty] private ActivityLevel _activityLevel = ActivityLevel.ModeratelyActive;
-    [ObservableProperty] private MacroGoal _goal = MacroGoal.Maintain;
-    [ObservableProperty] private int _goalCalorieDelta;
+    [ObservableProperty]
+    private string _name = string.Empty;
 
-    public int GenderIndex
-    {
-        get => (int)Gender;
-        set => Gender = (GenderType)value;
-    }
+    [ObservableProperty]
+    private GenderType _gender = GenderType.Male;
 
-    public int ActivityIndex
-    {
-        get => (int)ActivityLevel;
-        set => ActivityLevel = (ActivityLevel)value;
-    }
+    [ObservableProperty]
+    private double _weightDisplay;
 
-    public int GoalIndex
-    {
-        get => (int)Goal;
-        set => Goal = (MacroGoal)value;
-    }
+    [ObservableProperty]
+    private double _heightDisplay;
+
+    [ObservableProperty]
+    private int _age;
+
+    [ObservableProperty]
+    private ActivityLevel _activityLevel = ActivityLevel.ModeratelyActive;
+
+    [ObservableProperty]
+    private MacroGoal _goal = MacroGoal.Maintain;
+
+    [ObservableProperty]
+    private int _goalCalorieDelta;
 
     private string _bmrText = "—";
     private string _tdeeText = "—";
@@ -50,18 +44,8 @@ public partial class MacroTargetRowViewModel : ViewModelBase
     private string _mealCarbsText = "—";
     private string _mealFatText = "—";
 
-    public string BmrText { get => _bmrText; set => SetProperty(ref _bmrText, value); }
-    public string TdeeText { get => _tdeeText; set => SetProperty(ref _tdeeText, value); }
-    public string CaloriesText { get => _caloriesText; set => SetProperty(ref _caloriesText, value); }
-    public string ProteinText { get => _proteinText; set => SetProperty(ref _proteinText, value); }
-    public string CarbsText { get => _carbsText; set => SetProperty(ref _carbsText, value); }
-    public string FatText { get => _fatText; set => SetProperty(ref _fatText, value); }
-    public string MealCaloriesText { get => _mealCaloriesText; set => SetProperty(ref _mealCaloriesText, value); }
-    public string MealProteinText { get => _mealProteinText; set => SetProperty(ref _mealProteinText, value); }
-    public string MealCarbsText { get => _mealCarbsText; set => SetProperty(ref _mealCarbsText, value); }
-    public string MealFatText { get => _mealFatText; set => SetProperty(ref _mealFatText, value); }
-
-    public MacroTargetRowViewModel(MacroTarget model) : this(model, null)
+    public MacroTargetRowViewModel(MacroTarget model)
+        : this(model, null)
     {
     }
 
@@ -82,6 +66,48 @@ public partial class MacroTargetRowViewModel : ViewModelBase
 
         _suppressChanged = false;
     }
+
+    public MacroTarget Model { get; }
+
+    public Action<MacroTargetRowViewModel>? Changed { get; set; }
+
+    public int GenderIndex
+    {
+        get => (int)Gender;
+        set => Gender = (GenderType)value;
+    }
+
+    public int ActivityIndex
+    {
+        get => (int)ActivityLevel;
+        set => ActivityLevel = (ActivityLevel)value;
+    }
+
+    public int GoalIndex
+    {
+        get => (int)Goal;
+        set => Goal = (MacroGoal)value;
+    }
+
+    public string BmrText { get => _bmrText; set => SetProperty(ref _bmrText, value); }
+
+    public string TdeeText { get => _tdeeText; set => SetProperty(ref _tdeeText, value); }
+
+    public string CaloriesText { get => _caloriesText; set => SetProperty(ref _caloriesText, value); }
+
+    public string ProteinText { get => _proteinText; set => SetProperty(ref _proteinText, value); }
+
+    public string CarbsText { get => _carbsText; set => SetProperty(ref _carbsText, value); }
+
+    public string FatText { get => _fatText; set => SetProperty(ref _fatText, value); }
+
+    public string MealCaloriesText { get => _mealCaloriesText; set => SetProperty(ref _mealCaloriesText, value); }
+
+    public string MealProteinText { get => _mealProteinText; set => SetProperty(ref _mealProteinText, value); }
+
+    public string MealCarbsText { get => _mealCarbsText; set => SetProperty(ref _mealCarbsText, value); }
+
+    public string MealFatText { get => _mealFatText; set => SetProperty(ref _mealFatText, value); }
 
     public static MacroTargetRowViewModel Create(MacroTarget model, MacroTargetSettings settings, Action<MacroTargetRowViewModel> onChanged)
     {
@@ -154,11 +180,15 @@ public partial class MacroTargetRowViewModel : ViewModelBase
     private static string FormatCalc(double value) =>
         value > 0 ? ((int)Math.Ceiling(value)).ToString("N0", CultureInfo.InvariantCulture) : "—";
 
-    partial void OnNameChanged(string value)            => NotifyChanged();
-    partial void OnWeightDisplayChanged(double value)     => NotifyChanged();
-    partial void OnHeightDisplayChanged(double value)     => NotifyChanged();
-    partial void OnAgeChanged(int value)                 => NotifyChanged();
-    partial void OnGoalCalorieDeltaChanged(int value)    => NotifyChanged();
+    partial void OnNameChanged(string value) => NotifyChanged();
+
+    partial void OnWeightDisplayChanged(double value) => NotifyChanged();
+
+    partial void OnHeightDisplayChanged(double value) => NotifyChanged();
+
+    partial void OnAgeChanged(int value) => NotifyChanged();
+
+    partial void OnGoalCalorieDeltaChanged(int value) => NotifyChanged();
 
     partial void OnGenderChanged(GenderType value)
     {

@@ -52,8 +52,6 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isProgressIndeterminate;
 
-    public ObservableCollection<SyncConflict> Conflicts { get; } = new();
-
     /// <summary>
     /// Explicit bool for the UI to bind visibility to, rather than relying on Avalonia's loose
     /// int-&gt;bool binding conversion on <c>Conflicts.Count</c>.
@@ -61,13 +59,8 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasConflicts;
 
-    /// <summary>
-    /// Exposed so the app shell can trigger the best-effort push-on-close sync directly
-    /// (bypassing the UI-bound <see cref="SyncNowCommand"/>, since the app may be shutting down).
-    /// </summary>
-    public IGoogleDriveSyncService SyncService => _googleDriveSyncService;
-
-    public SettingsViewModel() : this(new GoogleDriveAuthService(new DesktopGoogleDriveOAuthPlatform()))
+    public SettingsViewModel()
+        : this(new GoogleDriveAuthService(new DesktopGoogleDriveOAuthPlatform()))
     {
     }
 
@@ -83,6 +76,14 @@ public partial class SettingsViewModel : ViewModelBase
         _syncProgress = new Progress<SyncProgress>(OnSyncProgress);
         RefreshStatus();
     }
+
+    public ObservableCollection<SyncConflict> Conflicts { get; } = new();
+
+    /// <summary>
+    /// Exposed so the app shell can trigger the best-effort push-on-close sync directly
+    /// (bypassing the UI-bound <see cref="SyncNowCommand"/>, since the app may be shutting down).
+    /// </summary>
+    public IGoogleDriveSyncService SyncService => _googleDriveSyncService;
 
     private void OnSyncProgress(SyncProgress update)
     {
@@ -116,6 +117,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             Conflicts.Add(conflict);
         }
+
         HasConflicts = Conflicts.Count > 0;
     }
 
@@ -211,4 +213,3 @@ public partial class SettingsViewModel : ViewModelBase
         HasConflicts = Conflicts.Count > 0;
     }
 }
-

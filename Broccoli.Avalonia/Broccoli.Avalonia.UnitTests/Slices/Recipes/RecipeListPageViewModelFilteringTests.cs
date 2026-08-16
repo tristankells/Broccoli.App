@@ -11,17 +11,6 @@ namespace Broccoli.Avalonia.Tests.Slices.Recipes;
 [TestClass]
 public class RecipeListPageViewModelFilteringTests
 {
-    private static RecipeListPageViewModel CreateViewModel(params Recipe[] recipes)
-    {
-        var recipeService = new Mock<IRecipeService>();
-        recipeService.Setup(service => service.GetAll()).Returns(recipes);
-        var recipeListPageViewModel = new RecipeListPageViewModel(recipeService.Object);
-        recipeListPageViewModel.Reload();
-        return recipeListPageViewModel;
-    }
-
-    private static Recipe MakeRecipe(string name) => new() { Name = name };
-
     [TestMethod]
     public void SearchText_EmptyByDefault_ShowsAllRecipes()
     {
@@ -170,4 +159,15 @@ public class RecipeListPageViewModelFilteringTests
         viewModel.SearchText = "spinach";
         Assert.IsEmpty(viewModel.FilteredRecipes);
     }
+
+    private static RecipeListPageViewModel CreateViewModel(params Recipe[] recipes)
+    {
+        var recipeService = new Mock<IRecipeService>();
+        recipeService.Setup(service => service.GetAll()).Returns(recipes);
+        var recipeListPageViewModel = new RecipeListPageViewModel(recipeService.Object);
+        recipeListPageViewModel.Reload();
+        return recipeListPageViewModel;
+    }
+
+    private static Recipe MakeRecipe(string name) => new() { Name = name };
 }

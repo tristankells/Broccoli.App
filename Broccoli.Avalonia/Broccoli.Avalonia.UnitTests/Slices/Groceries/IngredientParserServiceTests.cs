@@ -7,29 +7,6 @@ namespace Broccoli.Avalonia.Tests.Slices.Groceries;
 [TestClass]
 public class IngredientParserServiceTests
 {
-    private static IngredientParserService CreateService(Dictionary<string, Food>? foods = null)
-    {
-        var foodService = new Mock<IFoodService>();
-        foodService.Setup(s => s.FindBestMatch(It.IsAny<string>()))
-            .Returns(new FoodMatchResult { Score = 0, Method = "None" });
-        if (foods is not null)
-        {
-            foreach (KeyValuePair<string, Food> kvp in foods)
-            {
-                foodService.Setup(s => s.FindBestMatch(kvp.Key))
-                    .Returns(new FoodMatchResult { Food = kvp.Value, Score = 1.0, Method = "Exact" });
-            }
-        }
-        return new IngredientParserService(foodService.Object);
-    }
-
-    private static Food MakeFood(int id, string name) => new()
-    {
-        Id = id, Name = name,
-        Measure = "cup", GramsPerMeasure = 100,
-        CaloriesPer100g = 50,
-    };
-
     [TestMethod]
     public void Parse_MetricWeight_ExtractsQuantityAndUnit()
     {
@@ -86,7 +63,7 @@ public class IngredientParserServiceTests
     public void Parse_EmptyString_ReturnsEmpty()
     {
         IngredientParserService service = CreateService();
-        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients("");
+        List<ParsedIngredientMatch> results = service.ParseAndMatchIngredients(string.Empty);
 
         Assert.AreEqual(0, results.Count);
     }
@@ -166,4 +143,30 @@ public class IngredientParserServiceTests
         Assert.IsTrue(results[0].IsMatched);
         Assert.IsNull(results[0].GetQuantityHint());
     }
+
+    private static IngredientParserService CreateService(Dictionary<string, Food>? foods = null)
+    {
+        var foodService = new Mock<IFoodService>();
+        foodService.Setup(s => s.FindBestMatch(It.IsAny<string>()))
+            .Returns(new FoodMatchResult { Score = 0, Method = "None" });
+        if (foods is not null)
+        {
+            foreach (KeyValuePair<string, Food> kvp in foods)
+            {
+                foodService.Setup(s => s.FindBestMatch(kvp.Key))
+                    .Returns(new FoodMatchResult { Food = kvp.Value, Score = 1.0, Method = "Exact" });
+            }
+        }
+
+        return new IngredientParserService(foodService.Object);
+    }
+
+    private static Food MakeFood(int id, string name) => new()
+    {
+        Id = id,
+        Name = name,
+        Measure = "cup",
+        GramsPerMeasure = 100,
+        CaloriesPer100g = 50,
+    };
 }

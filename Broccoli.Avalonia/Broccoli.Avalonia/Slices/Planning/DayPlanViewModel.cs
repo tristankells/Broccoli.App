@@ -1,8 +1,8 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
@@ -10,16 +10,17 @@ public partial class DayPlanViewModel : ViewModelBase
 {
     private readonly IDailyFoodPlanService _planService;
 
-    public ObservableCollection<DailyFoodPlan> Plans { get; } = new();
+    [ObservableProperty]
+    private DailyFoodPlan? _selectedPlan;
 
-    [ObservableProperty] private DailyFoodPlan? _selectedPlan;
-    [ObservableProperty] private int _selectedTabIndex;
-    [ObservableProperty] private string? _errorMessage;
+    [ObservableProperty]
+    private int _selectedTabIndex;
 
-    public bool IsListVisible => SelectedPlan is null;
-    public bool IsEditorVisible => SelectedPlan is not null;
+    [ObservableProperty]
+    private string? _errorMessage;
 
-    public DayPlanViewModel() : this(new DailyFoodPlanService())
+    public DayPlanViewModel()
+        : this(new DailyFoodPlanService())
     {
     }
 
@@ -28,6 +29,12 @@ public partial class DayPlanViewModel : ViewModelBase
         _planService = planService;
         Load();
     }
+
+    public ObservableCollection<DailyFoodPlan> Plans { get; } = new();
+
+    public bool IsListVisible => SelectedPlan is null;
+
+    public bool IsEditorVisible => SelectedPlan is not null;
 
     private void Load()
     {
@@ -41,7 +48,10 @@ public partial class DayPlanViewModel : ViewModelBase
                 Plans.Add(p);
             }
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -55,7 +65,10 @@ public partial class DayPlanViewModel : ViewModelBase
             Plans.Add(plan);
             SelectedPlan = plan;
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to create: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to create: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -93,7 +106,10 @@ public partial class DayPlanViewModel : ViewModelBase
                 SelectedPlan = null;
             }
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to delete: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to delete: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -104,8 +120,14 @@ public partial class DayPlanViewModel : ViewModelBase
             return;
         }
 
-        try { _planService.Update(SelectedPlan); }
-        catch (Exception ex) { ErrorMessage = $"Failed to save: {ex.Message}"; }
+        try
+        {
+            _planService.Update(SelectedPlan);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to save: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -181,7 +203,11 @@ public partial class DayPlanViewModel : ViewModelBase
         foreach (DailyFoodPlanTab tab in SelectedPlan.Tabs)
         {
             int idx = tab.Rows.IndexOf(row);
-            if (idx > 0) { tab.Rows.RemoveAt(idx); tab.Rows.Insert(idx - 1, row); }
+            if (idx > 0)
+            {
+                tab.Rows.RemoveAt(idx);
+                tab.Rows.Insert(idx - 1, row);
+            }
         }
     }
 
@@ -197,7 +223,10 @@ public partial class DayPlanViewModel : ViewModelBase
         {
             int idx = tab.Rows.IndexOf(row);
             if (idx >= 0 && idx < tab.Rows.Count - 1)
-            { tab.Rows.RemoveAt(idx); tab.Rows.Insert(idx + 1, row); }
+            {
+                tab.Rows.RemoveAt(idx);
+                tab.Rows.Insert(idx + 1, row);
+            }
         }
     }
 }

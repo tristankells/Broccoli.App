@@ -1,9 +1,9 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Recipes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
@@ -12,11 +12,11 @@ public partial class MealPrepViewModel : ViewModelBase
     private readonly IMealPrepPlanService _planService;
     private readonly IRecipeService _recipeService;
 
-    public ObservableCollection<MealPrepPlan> Plans { get; } = new();
+    [ObservableProperty]
+    private string? _errorMessage;
 
-    [ObservableProperty] private string? _errorMessage;
-
-    public MealPrepViewModel() : this(new MealPrepPlanService(), new RecipeService())
+    public MealPrepViewModel()
+        : this(new MealPrepPlanService(), new RecipeService())
     {
     }
 
@@ -26,6 +26,10 @@ public partial class MealPrepViewModel : ViewModelBase
         _recipeService = recipeService;
         Load();
     }
+
+    public ObservableCollection<MealPrepPlan> Plans { get; } = new();
+
+    public IReadOnlyList<Recipe> AllRecipes => _recipeService.GetAll();
 
     public void Load()
     {
@@ -39,10 +43,11 @@ public partial class MealPrepViewModel : ViewModelBase
                 Plans.Add(p);
             }
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load: {ex.Message}";
+        }
     }
-
-    public IReadOnlyList<Recipe> AllRecipes => _recipeService.GetAll();
 
     public List<Recipe> GetRecipesForPlan(MealPrepPlan plan) =>
         plan.RecipeIds
@@ -60,7 +65,10 @@ public partial class MealPrepViewModel : ViewModelBase
             plan = _planService.Add(plan);
             Plans.Add(plan);
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to create: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to create: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -71,14 +79,23 @@ public partial class MealPrepViewModel : ViewModelBase
             _planService.Delete(plan.Id);
             Plans.Remove(plan);
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to delete: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to delete: {ex.Message}";
+        }
     }
 
     [RelayCommand]
     private void SavePlan(MealPrepPlan plan)
     {
-        try { _planService.Update(plan); }
-        catch (Exception ex) { ErrorMessage = $"Failed to save: {ex.Message}"; }
+        try
+        {
+            _planService.Update(plan);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to save: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -93,11 +110,4 @@ public partial class MealPrepViewModel : ViewModelBase
             arg.Plan.RecipeIds.Remove(arg.Recipe.Id);
         }
     }
-}
-
-public class PlanRecipeArg
-{
-    public MealPrepPlan Plan { get; init; } = null!;
-    public Recipe Recipe { get; init; } = null!;
-    public bool IsSelected { get; set; }
 }

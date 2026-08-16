@@ -5,10 +5,10 @@ using Broccoli.Avalonia.Slices.Settings;
 using Foundation;
 using UIKit;
 
-namespace Broccoli.Avalonia.iOS;
+namespace Broccoli.Avalonia.IOS;
 
-// The UIApplicationDelegate for the application. This class is responsible for launching the 
-// User Interface of the application, as well as listening (and optionally responding) to 
+// The UIApplicationDelegate for the application. This class is responsible for launching the
+// User Interface of the application, as well as listening (and optionally responding) to
 // application events from iOS.
 [Register("AppDelegate")]
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix
@@ -26,7 +26,7 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
         // Supply the iOS-specific Google OAuth client id/code receiver before Avalonia builds the
         // DI container (CustomizeAppBuilder runs before SetupWithLifetime, which triggers
         // App.OnFrameworkInitializationCompleted).
-        App.GoogleDriveOAuthPlatformOverride = new iOSGoogleDriveOAuthPlatform();
+        App.GoogleDriveOAuthPlatformOverride = new IosGoogleDriveOAuthPlatform();
 
         return base.CustomizeAppBuilder(builder)
             .WithInterFont();
@@ -37,7 +37,7 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
         // The OAuth redirect arrives as a deep link on the reverse client-id scheme; forward it to
         // the code receiver that the auth flow is waiting on.
         if (eventArgs is ProtocolActivatedEventArgs protocol &&
-            protocol.Uri.Scheme == iOSGoogleDriveOAuthPlatform.Scheme)
+            protocol.Uri.Scheme == IosGoogleDriveOAuthPlatform.Scheme)
         {
             MobileSchemeCodeReceiver.HandleRedirectUri(protocol.Uri);
         }

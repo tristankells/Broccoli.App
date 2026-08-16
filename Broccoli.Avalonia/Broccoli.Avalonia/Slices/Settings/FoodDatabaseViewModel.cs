@@ -1,10 +1,10 @@
+using System.Collections.ObjectModel;
 using System.Text.Json;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Settings;
 
@@ -14,23 +14,32 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     private readonly IFoodFileService? _fileService;
     private readonly IUsdaFoodSearchService? _usdaService;
 
-    public ObservableCollection<Food> Foods { get; } = new();
+    [ObservableProperty]
+    private string? _errorMessage;
 
-    [ObservableProperty] private string? _errorMessage;
-    [ObservableProperty] private Food? _editingFood;
-    [ObservableProperty] private Food? _newFood;
+    [ObservableProperty]
+    private Food? _editingFood;
 
-    public bool IsAddFormVisible => NewFood is not null;
-    public bool IsEditFormVisible => EditingFood is not null;
-    [ObservableProperty] private string _usdaQuery = string.Empty;
-    [ObservableProperty] private bool _isUsdaSearchOpen;
-    [ObservableProperty] private UsdaSearchResult? _usdaResult;
-    [ObservableProperty] private bool _isUsdaSearching;
-    [ObservableProperty] private int _usdaPage = 1;
+    [ObservableProperty]
+    private Food? _newFood;
 
-    public bool IsUsdaResultVisible => UsdaResult?.Foods.Count > 0;
+    [ObservableProperty]
+    private string _usdaQuery = string.Empty;
 
-    public FoodDatabaseViewModel() : this(
+    [ObservableProperty]
+    private bool _isUsdaSearchOpen;
+
+    [ObservableProperty]
+    private UsdaSearchResult? _usdaResult;
+
+    [ObservableProperty]
+    private bool _isUsdaSearching;
+
+    [ObservableProperty]
+    private int _usdaPage = 1;
+
+    public FoodDatabaseViewModel()
+        : this(
         new LocalJsonFoodService(), null, null)
     {
     }
@@ -46,6 +55,14 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         Load();
     }
 
+    public ObservableCollection<Food> Foods { get; } = new();
+
+    public bool IsAddFormVisible => NewFood is not null;
+
+    public bool IsEditFormVisible => EditingFood is not null;
+
+    public bool IsUsdaResultVisible => UsdaResult?.Foods.Count > 0;
+
     public void Load()
     {
         ErrorMessage = null;
@@ -58,13 +75,16 @@ public partial class FoodDatabaseViewModel : ViewModelBase
                 Foods.Add(f);
             }
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load: {ex.Message}";
+        }
     }
 
     [RelayCommand]
     private void AddFood()
     {
-        NewFood = new Food { Name = "", Measure = "100g", GramsPerMeasure = 100 };
+        NewFood = new Food { Name = string.Empty, Measure = "100g", GramsPerMeasure = 100 };
     }
 
     [RelayCommand]
@@ -81,7 +101,10 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             Foods.Add(added);
             NewFood = null;
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to add: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to add: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -130,7 +153,10 @@ public partial class FoodDatabaseViewModel : ViewModelBase
 
             EditingFood = null;
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to save: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to save: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -147,7 +173,10 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             _foodService.Delete(food.Id);
             Foods.Remove(food);
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to delete: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to delete: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -157,13 +186,17 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             return;
         }
+
         try
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             string json = JsonSerializer.Serialize(Foods.OrderBy(f => f.Id), options);
             await _fileService.ExportFoodsAsync("foods-export.json", json);
         }
-        catch (Exception ex) { ErrorMessage = $"Export failed: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Export failed: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -173,6 +206,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             return;
         }
+
         try
         {
             string? json = await _fileService.ImportFoodsAsync();
@@ -181,7 +215,8 @@ public partial class FoodDatabaseViewModel : ViewModelBase
                 return;
             }
 
-            List<Food>? incoming = JsonSerializer.Deserialize<List<Food>>(json,
+            List<Food>? incoming = JsonSerializer.Deserialize<List<Food>>(
+                json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             if (incoming == null || incoming.Count == 0)
             {
@@ -208,7 +243,10 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             ErrorMessage = $"Imported: {added} added, {updated} updated.";
             Load();
         }
-        catch (Exception ex) { ErrorMessage = $"Import failed: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Import failed: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -232,14 +270,21 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             return;
         }
+
         IsUsdaSearching = true;
         UsdaPage = 1;
         try
         {
             UsdaResult = await _usdaService.SearchAsync(UsdaQuery, 1, 10);
         }
-        catch (Exception ex) { ErrorMessage = $"USDA search failed: {ex.Message}"; }
-        finally { IsUsdaSearching = false; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"USDA search failed: {ex.Message}";
+        }
+        finally
+        {
+            IsUsdaSearching = false;
+        }
     }
 
     [RelayCommand]
@@ -249,19 +294,27 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             return;
         }
+
         int nextPage = UsdaPage + 1;
         if (nextPage > UsdaResult.TotalPages)
         {
             return;
         }
+
         IsUsdaSearching = true;
         try
         {
             UsdaResult = await _usdaService.SearchAsync(UsdaQuery, nextPage, 10);
             UsdaPage = nextPage;
         }
-        catch (Exception ex) { ErrorMessage = $"USDA search failed: {ex.Message}"; }
-        finally { IsUsdaSearching = false; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"USDA search failed: {ex.Message}";
+        }
+        finally
+        {
+            IsUsdaSearching = false;
+        }
     }
 
     [RelayCommand]
@@ -271,19 +324,27 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             return;
         }
+
         int prevPage = UsdaPage - 1;
         if (prevPage < 1)
         {
             return;
         }
+
         IsUsdaSearching = true;
         try
         {
             UsdaResult = await _usdaService.SearchAsync(UsdaQuery, prevPage, 10);
             UsdaPage = prevPage;
         }
-        catch (Exception ex) { ErrorMessage = $"USDA search failed: {ex.Message}"; }
-        finally { IsUsdaSearching = false; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"USDA search failed: {ex.Message}";
+        }
+        finally
+        {
+            IsUsdaSearching = false;
+        }
     }
 
     [RelayCommand]
@@ -311,10 +372,15 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             Food added = _foodService.Add(food);
             Foods.Add(added);
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to import: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to import: {ex.Message}";
+        }
     }
 
     partial void OnNewFoodChanged(Food? value) => OnPropertyChanged(nameof(IsAddFormVisible));
+
     partial void OnEditingFoodChanged(Food? value) => OnPropertyChanged(nameof(IsEditFormVisible));
+
     partial void OnUsdaResultChanged(UsdaSearchResult? value) => OnPropertyChanged(nameof(IsUsdaResultVisible));
 }

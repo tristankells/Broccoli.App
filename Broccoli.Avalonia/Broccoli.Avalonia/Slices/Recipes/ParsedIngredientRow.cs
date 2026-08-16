@@ -6,18 +6,29 @@ namespace Broccoli.Avalonia.Slices.Recipes;
 
 public partial class ParsedIngredientRow : ViewModelBase
 {
-    [ObservableProperty] private bool _isMatched;
-    [ObservableProperty] private string _foodName = string.Empty;
-    [ObservableProperty] private string _quantityDisplay = string.Empty;
-    [ObservableProperty] private string _caloriesText = string.Empty;
-    [ObservableProperty] private string _proteinText = string.Empty;
-    [ObservableProperty] private string _carbsText = string.Empty;
-    [ObservableProperty] private string _fatText = string.Empty;
+    [ObservableProperty]
+    private bool _isMatched;
+    [ObservableProperty]
+    private string _foodName = string.Empty;
+    [ObservableProperty]
+    private string _quantityDisplay = string.Empty;
+    [ObservableProperty]
+    private string _caloriesText = string.Empty;
+    [ObservableProperty]
+    private string _proteinText = string.Empty;
+    [ObservableProperty]
+    private string _carbsText = string.Empty;
+    [ObservableProperty]
+    private string _fatText = string.Empty;
 
-    [ObservableProperty] private bool _isTopCalories;
-    [ObservableProperty] private bool _isTopProtein;
-    [ObservableProperty] private bool _isTopCarbs;
-    [ObservableProperty] private bool _isTopFat;
+    [ObservableProperty]
+    private bool _isTopCalories;
+    [ObservableProperty]
+    private bool _isTopProtein;
+    [ObservableProperty]
+    private bool _isTopCarbs;
+    [ObservableProperty]
+    private bool _isTopFat;
 
     public static ParsedIngredientRow FromMatch(ParsedIngredientMatch match)
     {

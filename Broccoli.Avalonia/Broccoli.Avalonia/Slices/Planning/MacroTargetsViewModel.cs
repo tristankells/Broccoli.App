@@ -1,9 +1,9 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
@@ -12,19 +12,41 @@ public partial class MacroTargetsViewModel : ViewModelBase
     private readonly IMacroTargetService _macroTargetService;
     private readonly MacroCalculatorService _calculator;
 
+    [ObservableProperty]
+    private MacroTargetSettings _settings = new();
+    [ObservableProperty]
+    private string? _errorMessage;
+    [ObservableProperty]
+    private bool _isSettingsOpen;
+
+    [ObservableProperty]
+    private UnitSystem _draftUnitSystem = UnitSystem.Metric;
+    [ObservableProperty]
+    private BmrFormula _draftBmrFormula = BmrFormula.MifflinStJeor;
+    [ObservableProperty]
+    private ProteinMethod _draftProteinMethod = ProteinMethod.RatioPercent;
+    [ObservableProperty]
+    private double _draftProteinPercent = 30;
+    [ObservableProperty]
+    private double _draftCarbPercent = 40;
+    [ObservableProperty]
+    private double _draftFatPercent = 30;
+    [ObservableProperty]
+    private double _draftProteinGramsPerKg = 1.8;
+
+    public MacroTargetsViewModel()
+        : this(new MacroTargetService(), new MacroCalculatorService())
+    {
+    }
+
+    public MacroTargetsViewModel(IMacroTargetService macroTargetService, MacroCalculatorService calculator)
+    {
+        _macroTargetService = macroTargetService;
+        _calculator = calculator;
+        LoadData();
+    }
+
     public ObservableCollection<MacroTargetRowViewModel> Targets { get; } = new();
-
-    [ObservableProperty] private MacroTargetSettings _settings = new();
-    [ObservableProperty] private string? _errorMessage;
-    [ObservableProperty] private bool _isSettingsOpen;
-
-    [ObservableProperty] private UnitSystem _draftUnitSystem = UnitSystem.Metric;
-    [ObservableProperty] private BmrFormula _draftBmrFormula = BmrFormula.MifflinStJeor;
-    [ObservableProperty] private ProteinMethod _draftProteinMethod = ProteinMethod.RatioPercent;
-    [ObservableProperty] private double _draftProteinPercent = 30;
-    [ObservableProperty] private double _draftCarbPercent = 40;
-    [ObservableProperty] private double _draftFatPercent = 30;
-    [ObservableProperty] private double _draftProteinGramsPerKg = 1.8;
 
     public int DraftUnitSystemIndex
     {
@@ -45,7 +67,8 @@ public partial class MacroTargetsViewModel : ViewModelBase
     }
 
     public string WeightUnit => Settings.UnitSystem == UnitSystem.Imperial ? "lbs" : "kg";
-    public string HeightUnit => Settings.UnitSystem == UnitSystem.Imperial ? "in"  : "cm";
+
+    public string HeightUnit => Settings.UnitSystem == UnitSystem.Imperial ? "in" : "cm";
 
     public string ProteinPercentLabel =>
         Settings.ProteinMethod == ProteinMethod.GramsPerKg
@@ -63,22 +86,14 @@ public partial class MacroTargetsViewModel : ViewModelBase
             : $"({Settings.FatPercent:0}%)";
 
     public bool DraftIsRatioPercent => DraftProteinMethod == ProteinMethod.RatioPercent;
+
     public bool DraftIsGramsPerKg => DraftProteinMethod == ProteinMethod.GramsPerKg;
 
     public double DraftMacroSum => DraftProteinPercent + DraftCarbPercent + DraftFatPercent;
+
     public bool DraftMacroSumValid => Math.Abs(DraftMacroSum - 100) < 0.01;
+
     public bool DraftCanSave => DraftProteinMethod == ProteinMethod.GramsPerKg || DraftMacroSumValid;
-
-    public MacroTargetsViewModel() : this(new MacroTargetService(), new MacroCalculatorService())
-    {
-    }
-
-    public MacroTargetsViewModel(IMacroTargetService macroTargetService, MacroCalculatorService calculator)
-    {
-        _macroTargetService = macroTargetService;
-        _calculator = calculator;
-        LoadData();
-    }
 
     public void LoadData()
     {
@@ -246,10 +261,15 @@ public partial class MacroTargetsViewModel : ViewModelBase
     }
 
     partial void OnDraftUnitSystemChanged(UnitSystem value) => OnPropertyChanged(nameof(DraftUnitSystemIndex));
+
     partial void OnDraftBmrFormulaChanged(BmrFormula value) => OnPropertyChanged(nameof(DraftBmrFormulaIndex));
+
     partial void OnDraftProteinMethodChanged(ProteinMethod value) { OnPropertyChanged(nameof(DraftProteinMethodIndex)); RefreshDraftValidation(); }
+
     partial void OnDraftProteinPercentChanged(double value) => RefreshDraftValidation();
+
     partial void OnDraftCarbPercentChanged(double value) => RefreshDraftValidation();
+
     partial void OnDraftFatPercentChanged(double value) => RefreshDraftValidation();
 
     private void RefreshDraftValidation()

@@ -13,6 +13,9 @@ public class MacroCalculatorService
         { ActivityLevel.ExtraActive,      1.900 },
     };
 
+    public static double WeightChangeKgPerWeek(int calorieDelta) =>
+        Math.Round((calorieDelta * 7.0) / 7700.0, 2);
+
     public void Calculate(MacroTarget target, MacroTargetSettings settings)
     {
         double weightKg = settings.UnitSystem == UnitSystem.Imperial
@@ -23,8 +26,8 @@ public class MacroCalculatorService
             ? target.HeightCm * 2.54
             : target.HeightCm;
 
-        target.Bmr   = Math.Ceiling(CalculateBmr(target.Gender, weightKg, heightCm, target.Age, settings.BmrFormula));
-        target.Tdee  = Math.Ceiling(target.Bmr * ActivityMultipliers[target.ActivityLevel]);
+        target.Bmr = Math.Ceiling(CalculateBmr(target.Gender, weightKg, heightCm, target.Age, settings.BmrFormula));
+        target.Tdee = Math.Ceiling(target.Bmr * ActivityMultipliers[target.ActivityLevel]);
 
         target.RecommendedCalories = Math.Ceiling(target.Tdee + target.GoalCalorieDelta);
         if (target.RecommendedCalories < 0)
@@ -46,35 +49,35 @@ public class MacroCalculatorService
         return formula switch
         {
             BmrFormula.HarrisBenedict => CalculateHarrisBenedict(gender, weightKg, heightCm, age),
-            _                          => CalculateMifflinStJeor(gender, weightKg, heightCm, age),
+            _ => CalculateMifflinStJeor(gender, weightKg, heightCm, age),
         };
     }
 
     private static double CalculateMifflinStJeor(
         GenderType gender, double weightKg, double heightCm, int age)
     {
-        double male   = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
+        double male = (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
         double female = (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
 
         return gender switch
         {
-            GenderType.Male   => male,
+            GenderType.Male => male,
             GenderType.Female => female,
-            _                  => (male + female) / 2,
+            _ => (male + female) / 2,
         };
     }
 
     private static double CalculateHarrisBenedict(
         GenderType gender, double weightKg, double heightCm, int age)
     {
-        double male   = 88.362  + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * age);
-        double female = 447.593 + (9.247  * weightKg) + (3.098 * heightCm) - (4.330 * age);
+        double male = 88.362 + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * age);
+        double female = 447.593 + (9.247 * weightKg) + (3.098 * heightCm) - (4.330 * age);
 
         return gender switch
         {
-            GenderType.Male   => male,
+            GenderType.Male => male,
             GenderType.Female => female,
-            _                  => (male + female) / 2,
+            _ => (male + female) / 2,
         };
     }
 
@@ -84,26 +87,23 @@ public class MacroCalculatorService
 
         if (settings.ProteinMethod == ProteinMethod.GramsPerKg && weightKg > 0)
         {
-            double proteinG   = Math.Ceiling(weightKg * settings.ProteinGramsPerKg);
+            double proteinG = Math.Ceiling(weightKg * settings.ProteinGramsPerKg);
             double proteinCal = proteinG * 4;
-            double remaining  = Math.Max(calories - proteinCal, 0);
+            double remaining = Math.Max(calories - proteinCal, 0);
 
             double carbRatioDivisor = settings.CarbPercent + settings.FatPercent;
             double carbRatio = carbRatioDivisor > 0 ? settings.CarbPercent / carbRatioDivisor : 0.5;
-            double fatRatio  = carbRatioDivisor > 0 ? settings.FatPercent  / carbRatioDivisor : 0.5;
+            double fatRatio = carbRatioDivisor > 0 ? settings.FatPercent / carbRatioDivisor : 0.5;
 
             target.RecommendedProteinG = proteinG;
-            target.RecommendedCarbsG   = Math.Ceiling((remaining * carbRatio) / 4);
-            target.RecommendedFatG     = Math.Ceiling((remaining * fatRatio)  / 9);
+            target.RecommendedCarbsG = Math.Ceiling((remaining * carbRatio) / 4);
+            target.RecommendedFatG = Math.Ceiling((remaining * fatRatio) / 9);
         }
         else
         {
             target.RecommendedProteinG = Math.Ceiling((calories * settings.ProteinPercent / 100) / 4);
-            target.RecommendedCarbsG   = Math.Ceiling((calories * settings.CarbPercent    / 100) / 4);
-            target.RecommendedFatG     = Math.Ceiling((calories * settings.FatPercent     / 100) / 9);
+            target.RecommendedCarbsG = Math.Ceiling((calories * settings.CarbPercent / 100) / 4);
+            target.RecommendedFatG = Math.Ceiling((calories * settings.FatPercent / 100) / 9);
         }
     }
-
-    public static double WeightChangeKgPerWeek(int calorieDelta) =>
-        Math.Round((calorieDelta * 7.0) / 7700.0, 2);
 }

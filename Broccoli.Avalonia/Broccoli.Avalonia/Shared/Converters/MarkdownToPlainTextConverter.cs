@@ -1,6 +1,6 @@
+using System.Globalization;
 using Avalonia.Data.Converters;
 using Markdig;
-using System.Globalization;
 
 namespace Broccoli.Avalonia.Shared.Converters;
 

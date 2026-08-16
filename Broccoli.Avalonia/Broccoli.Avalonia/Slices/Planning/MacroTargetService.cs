@@ -75,6 +75,7 @@ public class MacroTargetService : IMacroTargetService
         {
             context.MacroTargetSettings.Add(settings);
         }
+
         context.SaveChanges();
         return settings;
     }

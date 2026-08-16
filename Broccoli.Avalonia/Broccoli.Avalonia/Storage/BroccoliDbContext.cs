@@ -12,16 +12,34 @@ namespace Broccoli.Avalonia.Storage;
 /// </summary>
 public class BroccoliDbContext : DbContext
 {
-    public DbSet<GroceryListItem> GroceryListItems => Set<GroceryListItem>();
-    public DbSet<PantryItem> PantryItems => Set<PantryItem>();
-    public DbSet<MealPrepPlan> MealPrepPlans => Set<MealPrepPlan>();
-    public DbSet<MacroTarget> MacroTargets => Set<MacroTarget>();
-    public DbSet<MacroTargetSettings> MacroTargetSettings => Set<MacroTargetSettings>();
-    public DbSet<DailyFoodPlan> DailyFoodPlans => Set<DailyFoodPlan>();
+    private static readonly JsonSerializerOptions JsonOptions = new();
 
-    public BroccoliDbContext(DbContextOptions<BroccoliDbContext> options) : base(options)
+    private static readonly ValueComparer<List<string>> StringListComparer = new(
+        (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
+        v => v.Aggregate(0, (hash, s) => HashCode.Combine(hash, s.GetHashCode())),
+        v => v.ToList());
+
+    private static readonly ValueComparer<List<DailyFoodPlanTab>> TabsListComparer = new(
+        (a, b) => JsonSerializer.Serialize(a, JsonOptions) == JsonSerializer.Serialize(b, JsonOptions),
+        v => JsonSerializer.Serialize(v, JsonOptions).GetHashCode(),
+        v => JsonSerializer.Deserialize<List<DailyFoodPlanTab>>(JsonSerializer.Serialize(v, JsonOptions), JsonOptions)!);
+
+    public BroccoliDbContext(DbContextOptions<BroccoliDbContext> options)
+        : base(options)
     {
     }
+
+    public DbSet<GroceryListItem> GroceryListItems => Set<GroceryListItem>();
+
+    public DbSet<PantryItem> PantryItems => Set<PantryItem>();
+
+    public DbSet<MealPrepPlan> MealPrepPlans => Set<MealPrepPlan>();
+
+    public DbSet<MacroTarget> MacroTargets => Set<MacroTarget>();
+
+    public DbSet<MacroTargetSettings> MacroTargetSettings => Set<MacroTargetSettings>();
+
+    public DbSet<DailyFoodPlan> DailyFoodPlans => Set<DailyFoodPlan>();
 
     /// <summary>
     /// Convenience factory for runtime (non-design-time) code, pointing at the app's real
@@ -60,16 +78,4 @@ public class BroccoliDbContext : DbContext
 
         base.OnModelCreating(modelBuilder);
     }
-
-    private static readonly JsonSerializerOptions JsonOptions = new();
-
-    private static readonly ValueComparer<List<string>> StringListComparer = new(
-        (a, b) => (a ?? new()).SequenceEqual(b ?? new()),
-        v => v.Aggregate(0, (hash, s) => HashCode.Combine(hash, s.GetHashCode())),
-        v => v.ToList());
-
-    private static readonly ValueComparer<List<DailyFoodPlanTab>> TabsListComparer = new(
-        (a, b) => JsonSerializer.Serialize(a, JsonOptions) == JsonSerializer.Serialize(b, JsonOptions),
-        v => JsonSerializer.Serialize(v, JsonOptions).GetHashCode(),
-        v => JsonSerializer.Deserialize<List<DailyFoodPlanTab>>(JsonSerializer.Serialize(v, JsonOptions), JsonOptions)!);
 }

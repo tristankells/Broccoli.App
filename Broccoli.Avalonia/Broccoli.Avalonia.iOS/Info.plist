@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<!--
-		Google OAuth reverse client-id scheme. Must match iOSGoogleDriveOAuthPlatform.Scheme,
+		Google OAuth reverse client-id scheme. Must match IosGoogleDriveOAuthPlatform.Scheme,
 		i.e. "com.googleusercontent.apps." + the iOS OAuth client id. Update once the client id
 		is set in iOSGoogleDriveOAuthPlatform.cs.
 	-->

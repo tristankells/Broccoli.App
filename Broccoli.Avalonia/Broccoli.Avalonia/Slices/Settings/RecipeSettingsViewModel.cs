@@ -11,36 +11,29 @@ public partial class RecipeSettingsViewModel : ViewModelBase
 {
     private readonly IMacroTargetService _macroService;
 
-    [ObservableProperty] private bool _comparisonEnabled;
-    [ObservableProperty] private string _comparisonPersonId = string.Empty;
-    [ObservableProperty] private string? _statusMessage;
+    [ObservableProperty]
+    private bool _comparisonEnabled;
+    [ObservableProperty]
+    private string _comparisonPersonId = string.Empty;
+    [ObservableProperty]
+    private string? _statusMessage;
 
-    [ObservableProperty] private bool _showCardImage = true;
-    [ObservableProperty] private bool _showCardTags = true;
-    [ObservableProperty] private bool _showCardSeasonality = true;
-    [ObservableProperty] private bool _showCardNutrition = true;
+    [ObservableProperty]
+    private bool _showCardImage = true;
+    [ObservableProperty]
+    private bool _showCardTags = true;
+    [ObservableProperty]
+    private bool _showCardSeasonality = true;
+    [ObservableProperty]
+    private bool _showCardNutrition = true;
 
-    [ObservableProperty] private bool _showCardCalorieMatch;
-    [ObservableProperty] private double _calorieMatchTolerancePercent = 15;
+    [ObservableProperty]
+    private bool _showCardCalorieMatch;
+    [ObservableProperty]
+    private double _calorieMatchTolerancePercent = 15;
 
-    public List<MacroTarget> AvailableTargets { get; } = new();
-    public int SelectedTargetIndex
-    {
-        get
-        {
-            int idx = AvailableTargets.FindIndex(t => t.Id == ComparisonPersonId);
-            return idx >= 0 ? idx : 0;
-        }
-        set
-        {
-            if (value >= 0 && value < AvailableTargets.Count)
-            {
-                ComparisonPersonId = AvailableTargets[value].Id;
-            }
-        }
-    }
-
-    public RecipeSettingsViewModel() : this(new MacroTargetService())
+    public RecipeSettingsViewModel()
+        : this(new MacroTargetService())
     {
     }
 
@@ -49,6 +42,25 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         _macroService = macroService;
         Load();
         WeakReferenceMessenger.Default.Register<MacroTargetsChangedMessage>(this, (_, _) => Load());
+    }
+
+    public List<MacroTarget> AvailableTargets { get; } = new();
+
+    public int SelectedTargetIndex
+    {
+        get
+        {
+            int idx = AvailableTargets.FindIndex(t => t.Id == ComparisonPersonId);
+            return idx >= 0 ? idx : 0;
+        }
+
+        set
+        {
+            if (value >= 0 && value < AvailableTargets.Count)
+            {
+                ComparisonPersonId = AvailableTargets[value].Id;
+            }
+        }
     }
 
     private void Load()

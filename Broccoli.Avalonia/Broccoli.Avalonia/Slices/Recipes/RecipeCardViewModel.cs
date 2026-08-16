@@ -7,7 +7,6 @@ namespace Broccoli.Avalonia.Slices.Recipes;
 
 internal partial class RecipeCardViewModel : ViewModelBase
 {
-    public Action<RecipeCardViewModel>? AddToCartRequested { get; set; }
     [ObservableProperty]
     private Recipe _recipe = null!;
 
@@ -67,6 +66,8 @@ internal partial class RecipeCardViewModel : ViewModelBase
 
     [ObservableProperty]
     private HashSet<SearchWord> _searchWords = [];
+
+    public Action<RecipeCardViewModel>? AddToCartRequested { get; set; }
 
     public static RecipeCardViewModel FromRecipe(
         Recipe recipe,

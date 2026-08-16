@@ -31,11 +31,35 @@ public sealed class AndroidGoogleDriveAuthService : IGoogleDriveAuthService
     private const string DriveFileScope = "https://www.googleapis.com/auth/drive.file";
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
+    // Completes the interactive consent flow started in ConnectAsync.
+    private static TaskCompletionSource<AuthorizationResult>? _pendingConsent;
+
     /// <summary>Set by <see cref="MainActivity"/> so the interactive consent flow has an activity to launch from.</summary>
     public static Activity? CurrentActivity { get; set; }
 
-    // Completes the interactive consent flow started in ConnectAsync.
-    private static TaskCompletionSource<AuthorizationResult>? _pendingConsent;
+    /// <summary>
+    /// Called by <see cref="MainActivity.OnActivityResult"/> to deliver the consent result back to
+    /// whichever <see cref="ConnectAsync"/> is awaiting it.
+    /// </summary>
+    public static void HandleActivityResult(int requestCode, Result resultCode, Intent? data)
+    {
+        if (requestCode != ConsentRequestCode || _pendingConsent is null)
+        {
+            return;
+        }
+
+        if (data is null)
+        {
+            _pendingConsent.TrySetCanceled();
+            _pendingConsent = null;
+            return;
+        }
+
+        IAuthorizationClient client = GetClient();
+        AuthorizationResult result = client.GetAuthorizationResultFromIntent(data);
+        _pendingConsent.TrySetResult(result);
+        _pendingConsent = null;
+    }
 
     public GoogleDriveAccountInfo? GetStoredAccount()
     {
@@ -125,30 +149,6 @@ public sealed class AndroidGoogleDriveAuthService : IGoogleDriveAuthService
         }
 
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Called by <see cref="MainActivity.OnActivityResult"/> to deliver the consent result back to
-    /// whichever <see cref="ConnectAsync"/> is awaiting it.
-    /// </summary>
-    public static void HandleActivityResult(int requestCode, Result resultCode, Intent? data)
-    {
-        if (requestCode != ConsentRequestCode || _pendingConsent is null)
-        {
-            return;
-        }
-
-        if (data is null)
-        {
-            _pendingConsent.TrySetCanceled();
-            _pendingConsent = null;
-            return;
-        }
-
-        IAuthorizationClient client = GetClient();
-        AuthorizationResult result = client.GetAuthorizationResultFromIntent(data);
-        _pendingConsent.TrySetResult(result);
-        _pendingConsent = null;
     }
 
     private static async Task<AuthorizationResult> AuthorizeAsync(CancellationToken cancellationToken)

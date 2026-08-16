@@ -1,9 +1,9 @@
+using System.Collections.ObjectModel;
 using Avalonia.Platform.Storage;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Recipes.Import;
 
@@ -13,28 +13,47 @@ public partial class ImportDialogViewModel : ViewModelBase
     private readonly IRecipeService _recipeService;
     private readonly IReadOnlyList<IImportFormat> _formats;
 
-    [ObservableProperty] private bool _isVisible;
-    [ObservableProperty] private int _selectedFormatIndex;
-    [ObservableProperty] private string _pasteContent = string.Empty;
-    [ObservableProperty] private string? _errorMessage;
-    [ObservableProperty] private bool _isBusy;
-    [ObservableProperty] private bool _showPreview;
+    private IReadOnlySet<string> _existingNames = new HashSet<string>();
 
-    public ObservableCollection<ImportRecipeResult> Results { get; } = new();
-    public IReadOnlyList<IImportFormat> Formats => _formats;
-    public IImportFormat? SelectedFormat => _formats.Count > 0 ? _formats[SelectedFormatIndex] : null;
-    public bool IsPasteBased => SelectedFormat?.IsPasteBased ?? false;
-    public bool IsFileBased => !IsPasteBased;
+    [ObservableProperty]
+    private bool _isVisible;
 
-    public Action? Closed { get; set; }
+    [ObservableProperty]
+    private int _selectedFormatIndex;
 
-    public ImportDialogViewModel(RecipeImportService importService, IRecipeService recipeService,
+    [ObservableProperty]
+    private string _pasteContent = string.Empty;
+
+    [ObservableProperty]
+    private string? _errorMessage;
+
+    [ObservableProperty]
+    private bool _isBusy;
+
+    [ObservableProperty]
+    private bool _showPreview;
+
+    public ImportDialogViewModel(
+        RecipeImportService importService,
+        IRecipeService recipeService,
         IEnumerable<IImportFormat> formats)
     {
         _importService = importService;
         _recipeService = recipeService;
         _formats = formats.ToList();
     }
+
+    public ObservableCollection<ImportRecipeResult> Results { get; } = new();
+
+    public IReadOnlyList<IImportFormat> Formats => _formats;
+
+    public IImportFormat? SelectedFormat => _formats.Count > 0 ? _formats[SelectedFormatIndex] : null;
+
+    public bool IsPasteBased => SelectedFormat?.IsPasteBased ?? false;
+
+    public bool IsFileBased => !IsPasteBased;
+
+    public Action? Closed { get; set; }
 
     public void Open(IReadOnlySet<string> existingNames)
     {
@@ -46,6 +65,17 @@ public partial class ImportDialogViewModel : ViewModelBase
         Results.Clear();
         ErrorMessage = null;
         RefreshProperties();
+    }
+
+    private static global::Avalonia.Platform.Storage.IStorageProvider? GetStorage()
+    {
+        if (global::Avalonia.Application.Current?.ApplicationLifetime is
+            global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            return desktop.MainWindow?.StorageProvider;
+        }
+
+        return null;
     }
 
     [RelayCommand]
@@ -84,7 +114,7 @@ public partial class ImportDialogViewModel : ViewModelBase
                     FileTypeFilter = new[]
                     {
                         new global::Avalonia.Platform.Storage.FilePickerFileType(SelectedFormat.DisplayName)
-                        { Patterns = new[] { $"*{SelectedFormat.FileExtension}" } }
+                        { Patterns = new[] { $"*{SelectedFormat.FileExtension}" } },
                     },
                 });
                 foreach (IStorageFile f in picked)
@@ -94,6 +124,7 @@ public partial class ImportDialogViewModel : ViewModelBase
                     files.Add((f.Name, await reader.ReadToEndAsync()));
                 }
             }
+
             if (files.Count > 0)
             {
                 Results.Clear();
@@ -106,8 +137,14 @@ public partial class ImportDialogViewModel : ViewModelBase
                 ShowPreview = true;
             }
         }
-        catch (Exception ex) { ErrorMessage = ex.Message; }
-        finally { IsBusy = false; }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -117,6 +154,7 @@ public partial class ImportDialogViewModel : ViewModelBase
         {
             return;
         }
+
         IsBusy = true;
         ErrorMessage = null;
         try
@@ -126,8 +164,14 @@ public partial class ImportDialogViewModel : ViewModelBase
             Results.Add(result);
             ShowPreview = true;
         }
-        catch (Exception ex) { ErrorMessage = ex.Message; }
-        finally { IsBusy = false; }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
@@ -139,11 +183,22 @@ public partial class ImportDialogViewModel : ViewModelBase
         {
             foreach (ImportRecipeResult? r in Results.Where(r => r.IsSelected && r.Status == ImportStatus.ReadyToImport && r.Recipe is not null))
             {
-                try { _recipeService.Create(r.Recipe!); r.SaveSuccess = true; }
-                catch (Exception ex) { r.SaveSuccess = false; r.SaveError = ex.Message; }
+                try
+                {
+                    _recipeService.Create(r.Recipe!);
+                    r.SaveSuccess = true;
+                }
+                catch (Exception ex)
+                {
+                    r.SaveSuccess = false;
+                    r.SaveError = ex.Message;
+                }
             }
         }
-        finally { IsBusy = false; }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     partial void OnSelectedFormatIndexChanged(int value) => RefreshProperties();
@@ -153,17 +208,5 @@ public partial class ImportDialogViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedFormat));
         OnPropertyChanged(nameof(IsPasteBased));
         OnPropertyChanged(nameof(IsFileBased));
-    }
-
-    private IReadOnlySet<string> _existingNames = new HashSet<string>();
-
-    private static global::Avalonia.Platform.Storage.IStorageProvider? GetStorage()
-    {
-        if (global::Avalonia.Application.Current?.ApplicationLifetime is
-            global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            return desktop.MainWindow?.StorageProvider;
-        }
-        return null;
     }
 }

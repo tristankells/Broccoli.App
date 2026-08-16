@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Broccoli.Avalonia.Models;
 
@@ -42,4 +42,3 @@ public class MealPrepPlan
     [JsonPropertyName("sortOrder")]
     public int SortOrder { get; set; } = 0;
 }
-

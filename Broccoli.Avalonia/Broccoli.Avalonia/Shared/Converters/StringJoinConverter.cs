@@ -1,6 +1,6 @@
-using Avalonia.Data.Converters;
 using System.Collections;
 using System.Globalization;
+using Avalonia.Data.Converters;
 
 namespace Broccoli.Avalonia.Shared.Converters;
 

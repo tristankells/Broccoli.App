@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Broccoli.Avalonia.Models;
 
@@ -14,7 +14,6 @@ public class MacroTarget
     public string PartitionKey { get; set; } = "macrotarget";
 
     // ── Editable fields ──────────────────────────────────────────────────────
-
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
@@ -46,7 +45,6 @@ public class MacroTarget
     public int GoalCalorieDelta { get; set; } = 0;
 
     // ── Calculated fields (stored for display) ───────────────────────────────
-
     [JsonPropertyName("bmr")]
     public double Bmr { get; set; }
 
@@ -66,11 +64,9 @@ public class MacroTarget
     public double RecommendedFatG { get; set; }
 
     // ── Metadata ─────────────────────────────────────────────────────────────
-
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
-

@@ -53,18 +53,6 @@ public static class AppPaths
         }
     }
 
-    /// <summary>Folder for a specific recipe's markdown file and images.</summary>
-    public static string RecipeFolder(string recipeId)
-    {
-        string folder = Path.Combine(RecipesFolder, recipeId);
-        Directory.CreateDirectory(folder);
-        return folder;
-    }
-
-    /// <summary>Full path to a specific recipe's markdown file.</summary>
-    public static string RecipeMarkdownFilePath(string recipeId) =>
-        Path.Combine(RecipeFolder(recipeId), "recipe.md");
-
     /// <summary>
     /// Folder where the Google OAuth token cache is stored (managed by <c>Google.Apis.Auth</c>'s
     /// <c>FileDataStore</c>). Deleting this folder fully signs the user out.
@@ -111,4 +99,16 @@ public static class AppPaths
             return folder;
         }
     }
+
+    /// <summary>Folder for a specific recipe's markdown file and images.</summary>
+    public static string RecipeFolder(string recipeId)
+    {
+        string folder = Path.Combine(RecipesFolder, recipeId);
+        Directory.CreateDirectory(folder);
+        return folder;
+    }
+
+    /// <summary>Full path to a specific recipe's markdown file.</summary>
+    public static string RecipeMarkdownFilePath(string recipeId) =>
+        Path.Combine(RecipeFolder(recipeId), "recipe.md");
 }

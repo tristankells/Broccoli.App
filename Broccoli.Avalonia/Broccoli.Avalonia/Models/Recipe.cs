@@ -1,9 +1,17 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Broccoli.Avalonia.Models;
 
 public class Recipe
 {
+    // Search
+    internal enum SearchWordType
+    {
+        Title,
+        Tag,
+        Ingredient,
+    }
+
     /// <summary>
     /// Unique identifier of the recipe
     /// </summary>
@@ -100,16 +108,6 @@ public class Recipe
         throw new NotImplementedException();
     }
 
-    // Search
-    internal enum SearchWordType
-    {
-        Title,
-        Tag,
-        Ingredient,
-    }
-
-    internal sealed record SearchWord(string Word, SearchWordType Type);
-
     internal void RecalculateSearchWords()
     {
         // Split tag into single word strings
@@ -117,6 +115,7 @@ public class Recipe
             .SelectMany(tag => tag.Split([",", " ", "/", "\\"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             .Select(tagWord => tagWord.ToLower())
             .ToHashSet();
-
     }
+
+    internal sealed record SearchWord(string Word, SearchWordType Type);
 }

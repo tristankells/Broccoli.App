@@ -5,13 +5,11 @@ namespace Broccoli.Avalonia.Slices.Settings;
 
 public partial class SettingsPageViewModel : ViewModelBase
 {
-    public SettingsViewModel Sync { get; }
-    public FoodDatabaseViewModel FoodDatabase { get; }
-    public RecipeSettingsViewModel RecipeSettings { get; }
+    [ObservableProperty]
+    private int _currentTabIndex;
 
-    [ObservableProperty] private int _currentTabIndex;
-
-    public SettingsPageViewModel() : this(new SettingsViewModel(), new FoodDatabaseViewModel(), new RecipeSettingsViewModel())
+    public SettingsPageViewModel()
+        : this(new SettingsViewModel(), new FoodDatabaseViewModel(), new RecipeSettingsViewModel())
     {
     }
 
@@ -21,4 +19,10 @@ public partial class SettingsPageViewModel : ViewModelBase
         FoodDatabase = foodDatabase;
         RecipeSettings = recipeSettings;
     }
+
+    public SettingsViewModel Sync { get; }
+
+    public FoodDatabaseViewModel FoodDatabase { get; }
+
+    public RecipeSettingsViewModel RecipeSettings { get; }
 }

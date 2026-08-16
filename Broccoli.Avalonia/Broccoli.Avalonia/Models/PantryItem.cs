@@ -1,6 +1,21 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Broccoli.Avalonia.Models;
+
+public enum PantryCategory
+{
+    /// <summary>
+    /// Staples the user always has at home (salt, flour, water, sugar, oil, etc.)
+    /// These are automatically unchecked when adding recipe ingredients to the grocery list.
+    /// </summary>
+    AlwaysHave = 0,
+
+    /// <summary>
+    /// Items the user may or may not have (ketchup, mustard, specific fruits, etc.)
+    /// These are checked by default when adding recipe ingredients to the grocery list.
+    /// </summary>
+    CheckIfHave = 1,
+}
 
 public class PantryItem
 {
@@ -40,19 +55,3 @@ public class PantryItem
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
-
-public enum PantryCategory
-{
-    /// <summary>
-    /// Staples the user always has at home (salt, flour, water, sugar, oil, etc.)
-    /// These are automatically unchecked when adding recipe ingredients to the grocery list.
-    /// </summary>
-    AlwaysHave = 0,
-
-    /// <summary>
-    /// Items the user may or may not have (ketchup, mustard, specific fruits, etc.)
-    /// These are checked by default when adding recipe ingredients to the grocery list.
-    /// </summary>
-    CheckIfHave = 1,
-}
-

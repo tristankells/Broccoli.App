@@ -20,17 +20,22 @@ public partial class RecipesListViewModel : ViewModelBase
     private readonly IngredientCartService? _cartService;
     private readonly IPantryService? _pantryService;
     private readonly ImportDialogViewModel? _importDialog;
+    private readonly RecipeListPageViewModel _listPage;
 
     [ObservableProperty]
     private ObservableObject _currentPage;
 
-    private readonly RecipeListPageViewModel _listPage;
+    public RecipesListViewModel()
+        : this(new RecipeService(), null, null, null, null, null, null, null)
+    {
+    }
 
-    public RecipesListViewModel() : this(new RecipeService(), null, null, null, null, null, null, null) { }
-
-    public RecipesListViewModel(IRecipeService recipeService,
-        IngredientParserService? parser, IFoodService? foodService,
-        ISeasonalityService? seasonalityService, IMacroTargetService? macroService,
+    public RecipesListViewModel(
+        IRecipeService recipeService,
+        IngredientParserService? parser,
+        IFoodService? foodService,
+        ISeasonalityService? seasonalityService,
+        IMacroTargetService? macroService,
         ImportDialogViewModel? importDialog = null,
         IngredientCartService? cartService = null,
         IPantryService? pantryService = null)

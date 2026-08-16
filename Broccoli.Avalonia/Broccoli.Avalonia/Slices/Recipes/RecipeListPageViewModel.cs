@@ -21,37 +21,14 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     private readonly IngredientCartService? _cartService;
     private readonly IPantryService? _pantryService;
 
-    private List<Recipe> _allRecipes = [];
     private readonly List<RecipeCardViewModel> _allCards = [];
 
-    public Action? AddRecipeRequested { get; set; }
-    public Action? ImportRecipeRequested { get; set; }
-    public Action<Recipe>? RecipeSelected { get; set; }
-
-    public ObservableCollection<RecipeCardViewModel> FilteredRecipes { get; set; } = [];
-
-    [ObservableProperty]
-    public partial string SearchText { get; set; } = string.Empty;
-
-    [ObservableProperty]
-    public partial bool IsTitleSearchEnabled { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool IsTagSearchEnabled { get; set; } = true;
-
-    [ObservableProperty]
-    public partial bool IsIngredientSearchEnabled { get; set; } = true;
-
-    public bool ShowImages { get; set; } = true;
-    public bool ShowTags { get; set; } = true;
-    public bool ShowSeasonality { get; set; } = true;
-    public bool ShowNutrition { get; set; } = true;
-    public bool ShowCalorieMatch { get; set; }
-    public double CalorieMatchTolerancePercent { get; set; } = 15;
-    public double? CompareTargetCaloriesPerMeal { get; private set; }
+    private List<Recipe> _allRecipes = [];
 
     public RecipeListPageViewModel(IRecipeService recipeService)
-        : this(recipeService, null, null, null, null, null) { }
+        : this(recipeService, null, null, null, null, null)
+    {
+    }
 
     public RecipeListPageViewModel(
         IRecipeService recipeService,
@@ -71,32 +48,39 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => Reload());
     }
 
-    private void LoadCardSettings()
-    {
-        if (_macroService is null)
-        {
-            return;
-        }
+    public Action? AddRecipeRequested { get; set; }
 
-        MacroTargetSettings settings = _macroService.GetSettings();
-        ShowImages = settings.ShowCardImage;
-        ShowTags = settings.ShowCardTags;
-        ShowSeasonality = settings.ShowCardSeasonality;
-        ShowNutrition = settings.ShowCardNutrition;
-        ShowCalorieMatch = settings.ShowCardCalorieMatch;
-        CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
+    public Action? ImportRecipeRequested { get; set; }
 
-        CompareTargetCaloriesPerMeal = null;
-        if (ShowCalorieMatch && !string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
-        {
-            List<MacroTarget> targets = _macroService.GetAll();
-            MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
-            if (chosen is not null && chosen.RecommendedCalories > 0)
-            {
-                CompareTargetCaloriesPerMeal = chosen.RecommendedCalories / 3.0;
-            }
-        }
-    }
+    public Action<Recipe>? RecipeSelected { get; set; }
+
+    public ObservableCollection<RecipeCardViewModel> FilteredRecipes { get; set; } = [];
+
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool IsTitleSearchEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsTagSearchEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool IsIngredientSearchEnabled { get; set; } = true;
+
+    public bool ShowImages { get; set; } = true;
+
+    public bool ShowTags { get; set; } = true;
+
+    public bool ShowSeasonality { get; set; } = true;
+
+    public bool ShowNutrition { get; set; } = true;
+
+    public bool ShowCalorieMatch { get; set; }
+
+    public double CalorieMatchTolerancePercent { get; set; } = 15;
+
+    public double? CompareTargetCaloriesPerMeal { get; private set; }
 
     public void Reload()
     {
@@ -136,15 +120,52 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             }
 
             double servings = recipe.Servings > 0 ? recipe.Servings.Value : 1;
-            RecipeCardViewModel card = RecipeCardViewModel.FromRecipe(recipe, imagePath,
-                cal / servings, pro / servings, carb / servings, fat / servings, seasonality,
-                CompareTargetCaloriesPerMeal, CalorieMatchTolerancePercent,
-                ShowImages, ShowTags, ShowSeasonality, ShowNutrition);
+            RecipeCardViewModel card = RecipeCardViewModel.FromRecipe(
+                recipe,
+                imagePath,
+                cal / servings,
+                pro / servings,
+                carb / servings,
+                fat / servings,
+                seasonality,
+                CompareTargetCaloriesPerMeal,
+                CalorieMatchTolerancePercent,
+                ShowImages,
+                ShowTags,
+                ShowSeasonality,
+                ShowNutrition);
             card.AddToCartRequested = c => AddToCart(c);
             _allCards.Add(card);
         }
 
         FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
+    }
+
+    private void LoadCardSettings()
+    {
+        if (_macroService is null)
+        {
+            return;
+        }
+
+        MacroTargetSettings settings = _macroService.GetSettings();
+        ShowImages = settings.ShowCardImage;
+        ShowTags = settings.ShowCardTags;
+        ShowSeasonality = settings.ShowCardSeasonality;
+        ShowNutrition = settings.ShowCardNutrition;
+        ShowCalorieMatch = settings.ShowCardCalorieMatch;
+        CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
+
+        CompareTargetCaloriesPerMeal = null;
+        if (ShowCalorieMatch && !string.IsNullOrWhiteSpace(settings.RecipeMealComparisonPersonId))
+        {
+            List<MacroTarget> targets = _macroService.GetAll();
+            MacroTarget? chosen = targets.FirstOrDefault(t => t.Id == settings.RecipeMealComparisonPersonId);
+            if (chosen is not null && chosen.RecommendedCalories > 0)
+            {
+                CompareTargetCaloriesPerMeal = chosen.RecommendedCalories / 3.0;
+            }
+        }
     }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
@@ -175,7 +196,6 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
         SearchWordSource DetermineEnabledSearchSource()
         {
-
             SearchWordSource enabledSources = SearchWordSource.None;
             if (IsTitleSearchEnabled)
             {
@@ -191,12 +211,12 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             {
                 enabledSources |= SearchWordSource.Ingredients;
             }
+
             return enabledSources;
         }
 
         bool IsMatch(string[] searchTokens, HashSet<SearchWord> searchWords)
         {
-
             return searchTokens.All(
                     token => searchWords.Any(
                         searchWord =>

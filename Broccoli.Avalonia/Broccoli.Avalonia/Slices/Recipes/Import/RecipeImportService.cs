@@ -27,11 +27,13 @@ public class RecipeImportService
             result.ErrorMessage = ex.Message;
             result.IsSelected = false;
         }
+
         return result;
     }
 
     public async Task<List<ImportRecipeResult>> ParseFilesAsync(
-        IImportFormat format, IEnumerable<(string fileName, string content)> files,
+        IImportFormat format,
+        IEnumerable<(string FileName, string Content)> files,
         IReadOnlySet<string> existingRecipeNames)
     {
         var results = new List<ImportRecipeResult>();

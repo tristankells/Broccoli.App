@@ -1,10 +1,10 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Collections.ObjectModel;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
@@ -13,24 +13,17 @@ public partial class GroceriesViewModel : ViewModelBase
     private readonly IGroceryListService _groceryListService;
     private readonly IngredientParserService? _parser;
 
-    public Func<string, Task>? SetClipboardTextAsync { get; set; }
+    [ObservableProperty]
+    private string _newItemText = string.Empty;
 
-    public ObservableCollection<GroceryListItem> Items { get; } = new();
+    [ObservableProperty]
+    private string? _errorMessage;
 
-    [ObservableProperty] private string _newItemText = string.Empty;
-    [ObservableProperty] private string? _errorMessage;
-    [ObservableProperty] private bool _isLoading;
+    [ObservableProperty]
+    private bool _isLoading;
 
-    public string StatusText
-    {
-        get
-        {
-            int checkedCount = Items.Count(i => i.IsChecked);
-            return $"{checkedCount} of {Items.Count} checked";
-        }
-    }
-
-    public GroceriesViewModel() : this(new GroceryListService(), null!)
+    public GroceriesViewModel()
+        : this(new GroceryListService(), null!)
     {
     }
 
@@ -40,6 +33,19 @@ public partial class GroceriesViewModel : ViewModelBase
         _parser = parser;
         WeakReferenceMessenger.Default.Register<GroceryListChangedMessage>(this, (_, _) => LoadItems());
         LoadItems();
+    }
+
+    public Func<string, Task>? SetClipboardTextAsync { get; set; }
+
+    public ObservableCollection<GroceryListItem> Items { get; } = new();
+
+    public string StatusText
+    {
+        get
+        {
+            int checkedCount = Items.Count(i => i.IsChecked);
+            return $"{checkedCount} of {Items.Count} checked";
+        }
     }
 
     private void LoadItems()

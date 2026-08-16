@@ -3,15 +3,6 @@ using Broccoli.Avalonia.Models;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
-public sealed class CartPreviewData
-{
-    public string DisplayName { get; init; } = string.Empty;
-    public string FormattedLine { get; init; } = string.Empty;
-    public string FoodName { get; init; } = string.Empty;
-    public string OriginalLine { get; init; } = string.Empty;
-    public bool IsMerge { get; init; }
-}
-
 public class IngredientCartService(
     IngredientParserService parser,
     IGroceryListService groceryListService)
@@ -32,13 +23,26 @@ public class IngredientCartService(
 
     public static string Format(ParsedIngredientMatch match)
     {
-        double qty  = match.ParsedIngredient.Quantity;
+        double qty = match.ParsedIngredient.Quantity;
         string unit = match.ParsedIngredient.CanonicalUnit ?? string.Empty;
         string food = match.IsMatched
             ? match.MatchedFood!.Name
             : match.ParsedIngredient.FoodDescription;
 
         return BuildLine(qty, unit, food);
+    }
+
+    public static string BuildLine(double qty, string unit, string food)
+    {
+        string qtyStr = qty.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+        if (string.IsNullOrEmpty(unit))
+        {
+            return $"{qtyStr} {food}";
+        }
+
+        bool attach = unit is "g" or "kg" or "ml" or "l";
+        return attach ? $"{qtyStr}{unit} {food}" : $"{qtyStr} {unit} {food}";
     }
 
     public void AddToCart(IEnumerable<string> selectedLines)
@@ -92,7 +96,67 @@ public class IngredientCartService(
         return preview;
     }
 
-    private sealed record CartChange(GroceryListItem Item, string OriginalLine, bool IsUpdate);
+    private static List<ParsedIngredientMatch> DeduplicateUnmatched(List<ParsedIngredientMatch> matches)
+    {
+        var result = new List<ParsedIngredientMatch>(matches.Count);
+        var seen = new Dictionary<string, ParsedIngredientMatch>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (ParsedIngredientMatch match in matches)
+        {
+            if (match.IsMatched)
+            {
+                result.Add(match);
+                continue;
+            }
+
+            string key = $"{NormalizeFood(match.ParsedIngredient.FoodDescription)}|{match.ParsedIngredient.CanonicalUnit}";
+            if (seen.TryGetValue(key, out ParsedIngredientMatch? existing))
+            {
+                existing.ParsedIngredient.Quantity += match.ParsedIngredient.Quantity;
+            }
+            else
+            {
+                seen[key] = match;
+                result.Add(match);
+            }
+        }
+
+        return result;
+    }
+
+    private static string? ComputeHint(string formattedLine, IngredientParserService parser)
+    {
+        List<ParsedIngredientMatch> matches = parser.ParseAndMatchIngredients(formattedLine);
+        return matches.FirstOrDefault()?.GetQuantityHint();
+    }
+
+    private static string NormalizeFood(string name)
+    {
+        int comma = name.IndexOf(',');
+        return (comma >= 0 ? name[..comma] : name).Trim().ToLowerInvariant();
+    }
+
+    private static string ExtractFoodName(string line)
+    {
+        if (line.EndsWith(" (merge with existing)", StringComparison.Ordinal))
+        {
+            line = line[..^22];
+        }
+
+        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(
+            line,
+            @"^[\d.]+(?:g|kg|ml|l|cups?|tbsp|tsp|oz|lbs?)?\s*(?:of\s+)?(.+)$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        if (match.Success)
+        {
+            string food = match.Groups[1].Value.Trim();
+            int comma = food.IndexOf(',');
+            return (comma >= 0 ? food[..comma] : food).Trim();
+        }
+
+        return line;
+    }
 
     private List<CartChange> ComputeCartChanges(IEnumerable<string> selectedLines)
     {
@@ -124,10 +188,10 @@ public class IngredientCartService(
             {
                 bool unifiedToGrams = effectiveUnit == "g"
                     && (newMatch.ParsedIngredient.CanonicalUnit ?? string.Empty).ToLowerInvariant() != "g";
-                double newQty  = unifiedToGrams ? newMatch.GetWeightInGrams() : newMatch.ParsedIngredient.Quantity;
-                double merged  = existingQty + newQty;
-                string unit    = effectiveUnit;
-                string food    = newMatch.IsMatched
+                double newQty = unifiedToGrams ? newMatch.GetWeightInGrams() : newMatch.ParsedIngredient.Quantity;
+                double merged = existingQty + newQty;
+                string unit = effectiveUnit;
+                string food = newMatch.IsMatched
                     ? newMatch.MatchedFood!.Name
                     : newMatch.ParsedIngredient.FoodDescription;
 
@@ -140,7 +204,7 @@ public class IngredientCartService(
             {
                 var newItem = new GroceryListItem
                 {
-                    Name      = Format(newMatch),
+                    Name = Format(newMatch),
                     IsChecked = false,
                     QuantityHint = newMatch.GetQuantityHint(),
                 };
@@ -151,35 +215,7 @@ public class IngredientCartService(
         return changes;
     }
 
-    private static List<ParsedIngredientMatch> DeduplicateUnmatched(List<ParsedIngredientMatch> matches)
-    {
-        var result = new List<ParsedIngredientMatch>(matches.Count);
-        var seen = new Dictionary<string, ParsedIngredientMatch>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (ParsedIngredientMatch match in matches)
-        {
-            if (match.IsMatched)
-            {
-                result.Add(match);
-                continue;
-            }
-
-            string key = $"{NormalizeFood(match.ParsedIngredient.FoodDescription)}|{match.ParsedIngredient.CanonicalUnit}";
-            if (seen.TryGetValue(key, out ParsedIngredientMatch? existing))
-            {
-                existing.ParsedIngredient.Quantity += match.ParsedIngredient.Quantity;
-            }
-            else
-            {
-                seen[key] = match;
-                result.Add(match);
-            }
-        }
-
-        return result;
-    }
-
-    private (GroceryListItem? item, double existingQty, string effectiveUnit) FindMatch(
+    private (GroceryListItem? Item, double ExistingQty, string EffectiveUnit) FindMatch(
         ParsedIngredientMatch newMatch,
         IEnumerable<GroceryListItem> existingItems,
         HashSet<string> claimedIds)
@@ -235,7 +271,7 @@ public class IngredientCartService(
             }
 
             double existingGrams = existingMatch.GetWeightInGrams();
-            double newGrams      = newMatch.GetWeightInGrams();
+            double newGrams = newMatch.GetWeightInGrams();
             if (existingGrams > 0 && newGrams > 0)
             {
                 return (item, existingGrams, "g");
@@ -245,50 +281,5 @@ public class IngredientCartService(
         return (null, 0, newUnit);
     }
 
-    public static string BuildLine(double qty, string unit, string food)
-    {
-        string qtyStr = qty.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-
-        if (string.IsNullOrEmpty(unit))
-        {
-            return $"{qtyStr} {food}";
-        }
-
-        bool attach = unit is "g" or "kg" or "ml" or "l";
-        return attach ? $"{qtyStr}{unit} {food}" : $"{qtyStr} {unit} {food}";
-    }
-
-    private static string? ComputeHint(string formattedLine, IngredientParserService parser)
-    {
-        List<ParsedIngredientMatch> matches = parser.ParseAndMatchIngredients(formattedLine);
-        return matches.FirstOrDefault()?.GetQuantityHint();
-    }
-
-    private static string NormalizeFood(string name)
-    {
-        int comma = name.IndexOf(',');
-        return (comma >= 0 ? name[..comma] : name).Trim().ToLowerInvariant();
-    }
-
-    private static string ExtractFoodName(string line)
-    {
-        if (line.EndsWith(" (merge with existing)", StringComparison.Ordinal))
-        {
-            line = line[..^22];
-        }
-
-        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(
-            line,
-            @"^[\d.]+(?:g|kg|ml|l|cups?|tbsp|tsp|oz|lbs?)?\s*(?:of\s+)?(.+)$",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-        if (match.Success)
-        {
-            string food = match.Groups[1].Value.Trim();
-            int comma = food.IndexOf(',');
-            return (comma >= 0 ? food[..comma] : food).Trim();
-        }
-
-        return line;
-    }
+    private sealed record CartChange(GroceryListItem Item, string OriginalLine, bool IsUpdate);
 }

@@ -1,7 +1,7 @@
 using Broccoli.Avalonia.Slices.Settings;
 using Google.Apis.Auth.OAuth2;
 
-namespace Broccoli.Avalonia.iOS;
+namespace Broccoli.Avalonia.IOS;
 
 /// <summary>
 /// iOS implementation: an embedded "iOS" client id plus a custom URI-scheme code receiver using
@@ -10,16 +10,8 @@ namespace Broccoli.Avalonia.iOS;
 /// redirect URI registration needed. The scheme must also be declared in <c>Info.plist</c> under
 /// <c>CFBundleURLTypes</c>.
 /// </summary>
-public sealed class iOSGoogleDriveOAuthPlatform : IGoogleDriveOAuthPlatform
+public sealed class IosGoogleDriveOAuthPlatform : IGoogleDriveOAuthPlatform
 {
-    /// <summary>
-    /// The OAuth client id for the "iOS" client registered in
-    /// <see href="https://console.cloud.google.com/apis/credentials">Google Cloud Console</see>.
-    /// Public value — safe to ship. Paste the iOS client id here once ready. Keep the matching
-    /// scheme in Info.plist (CFBundleURLTypes) in sync.
-    /// </summary>
-    private const string ClientIdValue = "";
-
     /// <summary>The redirect path Google appends after the reverse client-id scheme.</summary>
     public const string RedirectPath = "/oauth2redirect";
 
@@ -28,6 +20,14 @@ public sealed class iOSGoogleDriveOAuthPlatform : IGoogleDriveOAuthPlatform
     /// <c>Info.plist</c> under <c>CFBundleURLTypes</c>.
     /// </summary>
     public const string Scheme = "com.googleusercontent.apps." + ClientIdValue;
+
+    /// <summary>
+    /// The OAuth client id for the "iOS" client registered in
+    /// <see href="https://console.cloud.google.com/apis/credentials">Google Cloud Console</see>.
+    /// Public value — safe to ship. Paste the iOS client id here once ready. Keep the matching
+    /// scheme in Info.plist (CFBundleURLTypes) in sync.
+    /// </summary>
+    private const string ClientIdValue = "";
 
     public string ClientId => ClientIdValue;
 

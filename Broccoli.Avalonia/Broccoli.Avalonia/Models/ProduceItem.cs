@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Broccoli.Avalonia.Models;
 
@@ -41,4 +41,3 @@ public class ProduceItem
     [JsonPropertyName("notes")]
     public string? Notes { get; set; }
 }
-

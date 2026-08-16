@@ -10,29 +10,6 @@ public class MacroTargetsViewModelTests
     private readonly Mock<IMacroTargetService> _serviceMock = new();
     private readonly MacroCalculatorService _calculator = new();
 
-    private static MacroTargetSettings DefaultSettings() => new()
-    {
-        Id = "default",
-        UnitSystem = UnitSystem.Metric,
-        BmrFormula = BmrFormula.MifflinStJeor,
-        ProteinMethod = ProteinMethod.RatioPercent,
-        ProteinPercent = 30,
-        CarbPercent = 40,
-        FatPercent = 30,
-    };
-
-    private MacroTargetsViewModel CreateViewModel(
-        List<MacroTarget>? existingTargets = null)
-    {
-        MacroTargetSettings settings = DefaultSettings();
-        List<MacroTarget> targets = existingTargets ?? new List<MacroTarget>();
-
-        _serviceMock.Setup(s => s.GetSettings()).Returns(settings);
-        _serviceMock.Setup(s => s.GetAll()).Returns(targets);
-
-        return new MacroTargetsViewModel(_serviceMock.Object, _calculator);
-    }
-
     [TestMethod]
     public void LoadData_WithExistingTargets_PopulatesCollection()
     {
@@ -66,7 +43,11 @@ public class MacroTargetsViewModelTests
     {
         MacroTarget? saved = null;
         _serviceMock.Setup(s => s.Add(It.IsAny<MacroTarget>())).Callback<MacroTarget>(t => saved = t)
-            .Returns((MacroTarget t) => { t.Id = "new"; return t; });
+            .Returns((MacroTarget t) =>
+            {
+                t.Id = "new";
+                return t;
+            });
 
         MacroTargetsViewModel vm = CreateViewModel();
         vm.AddPersonCommand.Execute(null);
@@ -205,5 +186,28 @@ public class MacroTargetsViewModelTests
         Assert.IsFalse(vm.DraftIsRatioPercent);
         Assert.IsTrue(vm.DraftIsGramsPerKg);
         Assert.IsTrue(vm.DraftCanSave);
+    }
+
+    private static MacroTargetSettings DefaultSettings() => new()
+    {
+        Id = "default",
+        UnitSystem = UnitSystem.Metric,
+        BmrFormula = BmrFormula.MifflinStJeor,
+        ProteinMethod = ProteinMethod.RatioPercent,
+        ProteinPercent = 30,
+        CarbPercent = 40,
+        FatPercent = 30,
+    };
+
+    private MacroTargetsViewModel CreateViewModel(
+        List<MacroTarget>? existingTargets = null)
+    {
+        MacroTargetSettings settings = DefaultSettings();
+        List<MacroTarget> targets = existingTargets ?? new List<MacroTarget>();
+
+        _serviceMock.Setup(s => s.GetSettings()).Returns(settings);
+        _serviceMock.Setup(s => s.GetAll()).Returns(targets);
+
+        return new MacroTargetsViewModel(_serviceMock.Object, _calculator);
     }
 }

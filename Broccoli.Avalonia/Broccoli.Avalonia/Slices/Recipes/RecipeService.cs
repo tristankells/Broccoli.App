@@ -7,7 +7,8 @@ public class RecipeService : IRecipeService
 {
     private readonly IRecipeMarkdownStore _store;
 
-    public RecipeService() : this(new RecipeMarkdownStore())
+    public RecipeService()
+        : this(new RecipeMarkdownStore())
     {
     }
 

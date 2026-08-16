@@ -11,20 +11,23 @@ public partial class PantryViewModel : ViewModelBase
 {
     private readonly IPantryService _pantryService;
 
-    public ObservableCollection<PantryItem> Items { get; } = new();
+    [ObservableProperty]
+    private string _newItemName = string.Empty;
 
-    [ObservableProperty] private string _newItemName = string.Empty;
-    [ObservableProperty] private PantryCategory _newItemCategory = PantryCategory.CheckIfHave;
-    [ObservableProperty] private string? _errorMessage;
-    [ObservableProperty] private string? _editingItemId;
-    [ObservableProperty] private string _editingName = string.Empty;
+    [ObservableProperty]
+    private PantryCategory _newItemCategory = PantryCategory.CheckIfHave;
 
-    public IEnumerable<PantryItem> AlwaysHaveItems => Items.Where(i => i.Category == PantryCategory.AlwaysHave);
-    public IEnumerable<PantryItem> CheckIfHaveItems => Items.Where(i => i.Category == PantryCategory.CheckIfHave);
-    public bool HasAlwaysHaveItems => AlwaysHaveItems.Any();
-    public bool HasCheckIfHaveItems => CheckIfHaveItems.Any();
+    [ObservableProperty]
+    private string? _errorMessage;
 
-    public PantryViewModel() : this(new PantryService())
+    [ObservableProperty]
+    private string? _editingItemId;
+
+    [ObservableProperty]
+    private string _editingName = string.Empty;
+
+    public PantryViewModel()
+        : this(new PantryService())
     {
     }
 
@@ -34,6 +37,16 @@ public partial class PantryViewModel : ViewModelBase
         WeakReferenceMessenger.Default.Register<PantryListChangedMessage>(this, (_, _) => Load());
         Load();
     }
+
+    public ObservableCollection<PantryItem> Items { get; } = new();
+
+    public IEnumerable<PantryItem> AlwaysHaveItems => Items.Where(i => i.Category == PantryCategory.AlwaysHave);
+
+    public IEnumerable<PantryItem> CheckIfHaveItems => Items.Where(i => i.Category == PantryCategory.CheckIfHave);
+
+    public bool HasAlwaysHaveItems => AlwaysHaveItems.Any();
+
+    public bool HasCheckIfHaveItems => CheckIfHaveItems.Any();
 
     private void Load()
     {
@@ -47,7 +60,11 @@ public partial class PantryViewModel : ViewModelBase
                 Items.Add(i);
             }
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to load: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load: {ex.Message}";
+        }
+
         RefreshCollections();
     }
 
@@ -69,7 +86,10 @@ public partial class PantryViewModel : ViewModelBase
             NewItemName = string.Empty;
             RefreshCollections();
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to add: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to add: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -89,8 +109,14 @@ public partial class PantryViewModel : ViewModelBase
 
         item.Name = EditingName.Trim();
         EditingItemId = null;
-        try { _pantryService.Update(item); }
-        catch (Exception ex) { ErrorMessage = $"Failed to save: {ex.Message}"; }
+        try
+        {
+            _pantryService.Update(item);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to save: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -107,7 +133,10 @@ public partial class PantryViewModel : ViewModelBase
             _pantryService.Update(item);
             RefreshCollections();
         }
-        catch (Exception ex) { ErrorMessage = $"Failed to update: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to update: {ex.Message}";
+        }
     }
 
     [RelayCommand]

@@ -6,7 +6,9 @@ namespace Broccoli.Avalonia.Slices.Recipes.Import;
 public class BargainBoxPasteImportFormat : IImportFormat
 {
     public string DisplayName => "Bargain Box — Paste";
+
     public string FileExtension => ".txt";
+
     public bool IsPasteBased => true;
 
     public IReadOnlyList<string> ExportInstructions => new[]
@@ -74,17 +76,22 @@ public class BargainBoxPasteImportFormat : IImportFormat
                 continue;
             }
 
-            if (line.StartsWith("Serving size", StringComparison.OrdinalIgnoreCase)) { i++; continue; }
+            if (line.StartsWith("Serving size", StringComparison.OrdinalIgnoreCase))
+            {
+                i++;
+                continue;
+            }
+
             if (int.TryParse(line, out _) && i + 1 < lines.Count && lines[i + 1].All(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
             {
                 break;
             }
 
-            line = Regex.Replace(line, @"\s*\(Contains [^)]+\)", "");
-            line = line.Replace("Contains ", "").Replace("May contain ", "");
+            line = Regex.Replace(line, @"\s*\(Contains [^)]+\)", string.Empty);
+            line = line.Replace("Contains ", string.Empty).Replace("May contain ", string.Empty);
             if (line.Contains('^'))
             {
-                line = line.Replace("^", "");
+                line = line.Replace("^", string.Empty);
             }
 
             line = line.Replace("\\s+", " ").Trim();
@@ -105,11 +112,13 @@ public class BargainBoxPasteImportFormat : IImportFormat
                     sectionTitle = lines[++i];
                     continue;
                 }
+
                 if (!string.IsNullOrEmpty(sectionTitle))
                 {
                     directions.Add($"## {sectionTitle}");
                     sectionTitle = null;
                 }
+
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     directions.Add(line);

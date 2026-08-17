@@ -1,4 +1,5 @@
 using Broccoli.Avalonia.Models;
+using Markdig.Helpers;
 
 namespace Broccoli.Avalonia.IngredientParsing;
 
@@ -215,44 +216,46 @@ public class ParsedIngredientMatch
             return string.Empty;
         }
 
-        string lower = measure.ToLowerInvariant().Trim();
+        string measureWithoutDigits = new string([.. measure.Where(character => !character.IsDigit())])
+            .ToLowerInvariant()
+            .Trim();
 
-        if (s_measureNormalizationMap.TryGetValue(lower, out string? exact))
+        if (s_measureNormalizationMap.TryGetValue(measureWithoutDigits, out string? exact))
         {
             return exact;
         }
 
-        if (lower.StartsWith("tablespoon"))
+        if (measureWithoutDigits.StartsWith("tablespoon", StringComparison.CurrentCultureIgnoreCase))
         {
             return "tbsp";
         }
 
-        if (lower.StartsWith("teaspoon"))
+        if (measureWithoutDigits.StartsWith("teaspoon", StringComparison.CurrentCultureIgnoreCase))
         {
             return "tsp";
         }
 
-        if (lower.StartsWith("cup"))
+        if (measureWithoutDigits.StartsWith("cup", StringComparison.CurrentCultureIgnoreCase))
         {
             return "cup";
         }
 
-        if (lower.Contains("medium"))
+        if (measureWithoutDigits.Contains("medium", StringComparison.CurrentCultureIgnoreCase))
         {
             return "medium";
         }
 
-        if (lower.Contains("large"))
+        if (measureWithoutDigits.Contains("large", StringComparison.CurrentCultureIgnoreCase))
         {
             return "large";
         }
 
-        if (lower.Contains("small"))
+        if (measureWithoutDigits.Contains("small", StringComparison.CurrentCultureIgnoreCase))
         {
             return "small";
         }
 
-        return lower;
+        return measureWithoutDigits;
     }
 
     private static double? GetUnitConversionRatio(string parsedUnit, string foodMeasureUnit)

@@ -105,6 +105,13 @@ public class MacroTargetSettings
     [JsonPropertyName("calorieMatchTolerancePercent")]
     public double CalorieMatchTolerancePercent { get; set; } = 15;
 
+    /// <summary>
+    /// Maximum number of ingredient history snapshots to retain per recipe. The oldest
+    /// (first) snapshot is always kept, so this value means "first + (N-1) most recent".
+    /// </summary>
+    [JsonPropertyName("recipeHistoryBackupCount")]
+    public int RecipeHistoryBackupCount { get; set; } = 10;
+
     [JsonPropertyName("updatedAt")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

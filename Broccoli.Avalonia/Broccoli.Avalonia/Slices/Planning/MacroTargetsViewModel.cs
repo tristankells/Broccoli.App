@@ -239,6 +239,7 @@ public partial class MacroTargetsViewModel : ViewModelBase
                 ShowCardNutrition = Settings.ShowCardNutrition,
                 ShowCardCalorieMatch = Settings.ShowCardCalorieMatch,
                 CalorieMatchTolerancePercent = Settings.CalorieMatchTolerancePercent,
+                RecipeHistoryBackupCount = Settings.RecipeHistoryBackupCount,
             };
 
             Settings = _macroTargetService.SaveSettings(updated);

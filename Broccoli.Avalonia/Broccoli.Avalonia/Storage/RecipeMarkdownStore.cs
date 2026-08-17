@@ -42,33 +42,16 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
             return null;
         }
 
-        string content = File.ReadAllText(path);
-        (string? frontmatter, string? body) = SplitFrontmatter(content);
-
-        RecipeFrontmatter meta = YamlDeserializer.Deserialize<RecipeFrontmatter>(frontmatter) ?? new RecipeFrontmatter();
-        (string? ingredients, string? directions, string? notes) = ParseSections(body);
-
-        return new Recipe
-        {
-            Id = string.IsNullOrWhiteSpace(meta.Id) ? recipeId : meta.Id,
-            Name = meta.Name,
-            Ingredients = ingredients,
-            Directions = directions,
-            Notes = string.IsNullOrWhiteSpace(notes) ? null : notes,
-            Servings = meta.Servings,
-            PrepTimeMinutes = meta.PrepTimeMinutes,
-            CookTimeMinutes = meta.CookTimeMinutes,
-            Source = meta.Source,
-            Url = meta.Url,
-            Tags = meta.Tags ?? new List<string>(),
-            Images = meta.Images ?? new List<string>(),
-            CreatedAt = meta.CreatedAt,
-            UpdatedAt = meta.UpdatedAt,
-            IsFavorite = meta.IsFavorite,
-        };
+        return Deserialize(File.ReadAllText(path), recipeId);
     }
 
     public void Save(Recipe recipe)
+    {
+        File.WriteAllText(AppPaths.RecipeMarkdownFilePath(recipe.Id), Serialize(recipe));
+    }
+
+    /// <summary>Serializes a recipe to its Markdown + YAML frontmatter representation.</summary>
+    internal static string Serialize(Recipe recipe)
     {
         var meta = new RecipeFrontmatter
         {
@@ -102,9 +85,35 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
 {(recipe.Notes ?? string.Empty).Trim()}
 """;
 
-        string content = $"{FrontmatterDelimiter}\n{yaml}{FrontmatterDelimiter}\n\n{body}\n";
+        return $"{FrontmatterDelimiter}\n{yaml}{FrontmatterDelimiter}\n\n{body}\n";
+    }
 
-        File.WriteAllText(AppPaths.RecipeMarkdownFilePath(recipe.Id), content);
+    /// <summary>Deserializes a recipe from its Markdown + YAML frontmatter representation.</summary>
+    internal static Recipe Deserialize(string content, string fallbackId)
+    {
+        (string? frontmatter, string? body) = SplitFrontmatter(content);
+
+        RecipeFrontmatter meta = YamlDeserializer.Deserialize<RecipeFrontmatter>(frontmatter) ?? new RecipeFrontmatter();
+        (string? ingredients, string? directions, string? notes) = ParseSections(body);
+
+        return new Recipe
+        {
+            Id = string.IsNullOrWhiteSpace(meta.Id) ? fallbackId : meta.Id,
+            Name = meta.Name,
+            Ingredients = ingredients,
+            Directions = directions,
+            Notes = string.IsNullOrWhiteSpace(notes) ? null : notes,
+            Servings = meta.Servings,
+            PrepTimeMinutes = meta.PrepTimeMinutes,
+            CookTimeMinutes = meta.CookTimeMinutes,
+            Source = meta.Source,
+            Url = meta.Url,
+            Tags = meta.Tags ?? new List<string>(),
+            Images = meta.Images ?? new List<string>(),
+            CreatedAt = meta.CreatedAt,
+            UpdatedAt = meta.UpdatedAt,
+            IsFavorite = meta.IsFavorite,
+        };
     }
 
     public void Delete(string recipeId)

@@ -8,6 +8,7 @@ using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Recipes.Import;
 using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
+using Broccoli.Avalonia.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -24,6 +25,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         // Services
+        services.AddSingleton<IRecipeHistoryStore, RecipeHistoryStore>();
         services.AddSingleton<IRecipeService, RecipeService>();
         services.TryAddSingleton<IGoogleDriveAuthService, GoogleDriveAuthService>();
         services.AddSingleton<IGoogleDriveSyncService, GoogleDriveSyncService>();

@@ -11,6 +11,21 @@ public class RecipeHistoryStore : IRecipeHistoryStore
 {
     private const string SnapshotFileExtension = "*.md";
 
+    private readonly string _recipesFolder;
+
+    public RecipeHistoryStore()
+        : this(AppPaths.RecipesFolder)
+    {
+    }
+
+    /// <summary>
+    /// Initializes the store against a specific recipes folder (used by tests to isolate storage).
+    /// </summary>
+    public RecipeHistoryStore(string recipesFolder)
+    {
+        _recipesFolder = recipesFolder;
+    }
+
     public IReadOnlyList<RecipeSnapshot> List(string recipeId) =>
         LoadEntries(recipeId)
             .Select(entry => entry.Snapshot)
@@ -25,7 +40,7 @@ public class RecipeHistoryStore : IRecipeHistoryStore
 
     public void Save(RecipeSnapshot snapshot, int maxBackups)
     {
-        string folder = AppPaths.RecipeHistoryFolder(snapshot.RecipeId);
+        string folder = HistoryFolder(snapshot.RecipeId);
         Directory.CreateDirectory(folder);
 
         string fileName = $"{snapshot.CapturedAtUtc:yyyyMMddHHmmssfff}-{snapshot.Id}.md";
@@ -37,12 +52,15 @@ public class RecipeHistoryStore : IRecipeHistoryStore
 
     public void DeleteAll(string recipeId)
     {
-        string folder = AppPaths.RecipeHistoryFolder(recipeId);
+        string folder = HistoryFolder(recipeId);
         if (Directory.Exists(folder))
         {
             Directory.Delete(folder, recursive: true);
         }
     }
+
+    private string HistoryFolder(string recipeId) =>
+        Path.Combine(_recipesFolder, recipeId, AppPaths.RecipeHistoryFolderName);
 
     private static Recipe ToRecipe(RecipeSnapshot snapshot) => new()
     {
@@ -79,10 +97,10 @@ public class RecipeHistoryStore : IRecipeHistoryStore
         Tags = new List<string>(recipe.Tags),
     };
 
-    private static List<(RecipeSnapshot Snapshot, string FilePath)> LoadEntries(string recipeId)
+    private List<(RecipeSnapshot Snapshot, string FilePath)> LoadEntries(string recipeId)
     {
         var entries = new List<(RecipeSnapshot Snapshot, string FilePath)>();
-        string folder = AppPaths.RecipeHistoryFolder(recipeId);
+        string folder = HistoryFolder(recipeId);
         if (!Directory.Exists(folder))
         {
             return entries;
@@ -99,7 +117,7 @@ public class RecipeHistoryStore : IRecipeHistoryStore
         return entries;
     }
 
-    private static void Prune(string recipeId, int maxBackups)
+    private void Prune(string recipeId, int maxBackups)
     {
         int keep = Math.Max(1, maxBackups);
         List<(RecipeSnapshot Snapshot, string FilePath)> entries = LoadEntries(recipeId)

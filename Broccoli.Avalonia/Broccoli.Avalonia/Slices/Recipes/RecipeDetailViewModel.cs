@@ -66,6 +66,8 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     public Action<Recipe>? EditRequested { get; set; }
 
+    public Action<Recipe>? HistoryRequested { get; set; }
+
     public Action? RecipeDeleted { get; set; }
 
     public ObservableCollection<string> ImagePaths { get; } = new();
@@ -248,6 +250,9 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     [RelayCommand]
     private void Edit() => EditRequested?.Invoke(Recipe);
+
+    [RelayCommand]
+    private void OpenHistory() => HistoryRequested?.Invoke(Recipe);
 
     [RelayCommand]
     private void RequestDelete() => IsConfirmingDelete = true;

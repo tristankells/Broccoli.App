@@ -17,6 +17,9 @@ public class RecipeSnapshot
     /// <summary>UTC timestamp at which this snapshot was captured.</summary>
     public DateTime CapturedAtUtc { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Local-time display string for when this snapshot was captured.</summary>
+    public string CapturedAtDisplay => CapturedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+
     public string Name { get; set; } = string.Empty;
 
     public string Ingredients { get; set; } = string.Empty;

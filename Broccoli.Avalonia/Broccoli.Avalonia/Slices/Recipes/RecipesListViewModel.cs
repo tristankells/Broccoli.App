@@ -86,9 +86,20 @@ public partial class RecipesListViewModel : ViewModelBase
         {
             BackRequested = ShowList,
             EditRequested = ShowEdit,
+            HistoryRequested = ShowHistory,
             RecipeDeleted = ShowList,
         };
         CurrentPage = detail;
+    }
+
+    private void ShowHistory(Recipe recipe)
+    {
+        var history = new RecipeHistoryViewModel(_recipeService, recipe)
+        {
+            BackRequested = () => ShowDetail(recipe),
+            Restored = () => ShowDetail(_recipeService.Get(recipe.Id) ?? recipe),
+        };
+        CurrentPage = history;
     }
 
     private void ShowEdit(Recipe? existingRecipe)

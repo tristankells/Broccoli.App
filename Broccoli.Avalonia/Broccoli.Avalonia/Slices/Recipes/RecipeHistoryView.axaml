@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+             xmlns:models="using:Broccoli.Avalonia.Models"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeHistoryView"
+             x:DataType="vm:RecipeHistoryViewModel">
+
+    <Grid ColumnDefinitions="*,*" Margin="16">
+        <!-- Left: version list -->
+        <StackPanel Grid.Column="0" Spacing="8" Margin="0,0,16,0">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding BackCommand}" Padding="6" Background="Transparent" BorderThickness="0">
+                    <PathIcon Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                              Width="16" Height="16" />
+                </Button>
+                <TextBlock Text="Recipe History" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="{Binding Recipe.Name}" FontSize="14" Foreground="Gray" />
+            <TextBlock Text="Select a version to preview it. The original version is always kept."
+                       FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+
+            <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedSnapshot}" MinHeight="320">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:RecipeSnapshot">
+                        <StackPanel Spacing="2" Margin="0,2">
+                            <TextBlock Text="{Binding CapturedAtDisplay}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Ingredients}" FontSize="11" Foreground="Gray"
+                                       TextTrimming="CharacterEllipsis" MaxWidth="300" MaxLines="1" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+
+        <!-- Right: selected version preview -->
+        <StackPanel Grid.Column="1" Spacing="8">
+            <TextBlock Text="{Binding CapturedAtText}" FontWeight="SemiBold"
+                       IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+            <Button Content="Restore This Version" Command="{Binding RestoreCommand}" Classes="accent"
+                    HorizontalAlignment="Left"
+                    IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <TextBlock Text="Ingredients" FontWeight="SemiBold" />
+            <TextBox Text="{Binding IngredientsPreview}" IsReadOnly="True" AcceptsReturn="True"
+                     TextWrapping="Wrap" MinHeight="140" />
+
+            <TextBlock Text="Directions" FontWeight="SemiBold" />
+            <TextBox Text="{Binding DirectionsPreview}" IsReadOnly="True" AcceptsReturn="True"
+                     TextWrapping="Wrap" MinHeight="140" />
+        </StackPanel>
+    </Grid>
+</UserControl>

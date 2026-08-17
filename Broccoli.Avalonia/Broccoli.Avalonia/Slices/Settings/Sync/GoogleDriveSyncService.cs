@@ -13,6 +13,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
     private const string DatabaseFileName = "broccoli.db";
     private const string RecipesFolderName = "Recipes";
     private const string RecipeMarkdownFileName = "recipe.md";
+    private const string FolderMimeType = "application/vnd.google-apps.folder";
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
@@ -380,6 +381,27 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             string fileName = Path.GetFileName(filePath);
             await DriveFileHelper.UploadOrUpdateFileAsync(drive, fileName, remoteFolderId, stream, GetMimeType(fileName), ct);
         }
+
+        await PushRecipeHistoryFolderAsync(drive, remoteFolderId, recipeId, ct);
+    }
+
+    private static async Task PushRecipeHistoryFolderAsync(DriveService drive, string remoteRecipeFolderId, string recipeId, CancellationToken ct)
+    {
+        string historyFolder = AppPaths.RecipeHistoryFolder(recipeId);
+        if (!Directory.Exists(historyFolder))
+        {
+            return;
+        }
+
+        string remoteHistoryFolderId = await DriveFileHelper.FindOrCreateFolderAsync(
+            drive, AppPaths.RecipeHistoryFolderName, remoteRecipeFolderId, ct);
+
+        foreach (string filePath in Directory.EnumerateFiles(historyFolder))
+        {
+            await using FileStream stream = File.OpenRead(filePath);
+            string fileName = Path.GetFileName(filePath);
+            await DriveFileHelper.UploadOrUpdateFileAsync(drive, fileName, remoteHistoryFolderId, stream, GetMimeType(fileName), ct);
+        }
     }
 
     private static async Task PullRecipeFolderAsync(DriveService drive, string remoteFolderId, string recipeId, CancellationToken ct)
@@ -389,7 +411,35 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
         foreach (Google.Apis.Drive.v3.Data.File remoteFile in remoteChildren)
         {
+            if (remoteFile.MimeType == FolderMimeType)
+            {
+                if (remoteFile.Name == AppPaths.RecipeHistoryFolderName)
+                {
+                    await PullRecipeHistoryFolderAsync(drive, remoteFile.Id, recipeId, ct);
+                }
+
+                continue;
+            }
+
             string destination = Path.Combine(localFolder, remoteFile.Name);
+            await DownloadFileToPathAsync(drive, remoteFile.Id, destination, ct);
+        }
+    }
+
+    private static async Task PullRecipeHistoryFolderAsync(DriveService drive, string remoteHistoryFolderId, string recipeId, CancellationToken ct)
+    {
+        string localHistoryFolder = AppPaths.RecipeHistoryFolder(recipeId);
+        Directory.CreateDirectory(localHistoryFolder);
+
+        List<Google.Apis.Drive.v3.Data.File> remoteFiles = await DriveFileHelper.ListChildrenAsync(drive, remoteHistoryFolderId, ct);
+        foreach (Google.Apis.Drive.v3.Data.File remoteFile in remoteFiles)
+        {
+            if (remoteFile.MimeType == FolderMimeType)
+            {
+                continue;
+            }
+
+            string destination = Path.Combine(localHistoryFolder, remoteFile.Name);
             await DownloadFileToPathAsync(drive, remoteFile.Id, destination, ct);
         }
     }

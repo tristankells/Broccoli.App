@@ -63,6 +63,14 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SettingsPageViewModel>();
         services.AddSingleton(serviceProvider => new Lazy<SettingsViewModel>(() => serviceProvider.GetRequiredService<SettingsViewModel>()));
 
+        // Non-initial nav pages are wrapped in Lazy<T> so MainViewModel doesn't construct them
+        // (and their database/file work) until the user actually navigates to them, keeping the
+        // window fast to show on startup.
+        services.AddSingleton(serviceProvider => new Lazy<PlanningPageViewModel>(() => serviceProvider.GetRequiredService<PlanningPageViewModel>()));
+        services.AddSingleton(serviceProvider => new Lazy<GroceriesViewModel>(() => serviceProvider.GetRequiredService<GroceriesViewModel>()));
+        services.AddSingleton(serviceProvider => new Lazy<PantryViewModel>(() => serviceProvider.GetRequiredService<PantryViewModel>()));
+        services.AddSingleton(serviceProvider => new Lazy<SettingsPageViewModel>(() => serviceProvider.GetRequiredService<SettingsPageViewModel>()));
+
         services.AddSingleton<MainViewModel>();
 
         return services;

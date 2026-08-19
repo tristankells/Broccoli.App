@@ -45,7 +45,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _cartService = cartService;
         _pantryService = pantryService;
 
-        WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => Reload());
+        WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => _ = ReloadAsync());
     }
 
     public Action? AddRecipeRequested { get; set; }
@@ -84,11 +84,31 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     public void Reload()
     {
-        LoadCardSettings();
-        _allRecipes = [.. _recipeService.GetAll()];
-        _allCards.Clear();
+        (List<Recipe> recipes, List<RecipeCardViewModel> cards) = BuildCards();
+        ApplyResults(recipes, cards);
+    }
 
-        foreach (Recipe recipe in _allRecipes)
+    /// <summary>
+    /// Builds the recipe cards on a background thread so the UI thread stays free to render the
+    /// window, then swaps the results into the bound collections. Used by the startup path.
+    /// </summary>
+    public async Task ReloadAsync()
+    {
+        (List<Recipe> recipes, List<RecipeCardViewModel> cards) = await Task.Run(BuildCards);
+        ApplyResults(recipes, cards);
+    }
+
+    private (List<Recipe> Recipes, List<RecipeCardViewModel> Cards) BuildCards()
+    {
+        LoadCardSettings();
+
+        List<Recipe> recipes = _recipeService.GetAll()
+            .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var cards = new List<RecipeCardViewModel>(recipes.Count);
+
+        foreach (Recipe recipe in recipes)
         {
             double cal = 0, pro = 0, carb = 0, fat = 0;
             SeasonalityResult? seasonality = null;
@@ -134,11 +154,19 @@ internal partial class RecipeListPageViewModel : ViewModelBase
                 ShowTags,
                 ShowSeasonality,
                 ShowNutrition);
-            card.AddToCartRequested = c => AddToCart(c);
-            _allCards.Add(card);
+            card.AddToCartRequested = AddToCart;
+            cards.Add(card);
         }
 
-        FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
+        return (recipes, cards);
+    }
+
+    private void ApplyResults(List<Recipe> recipes, List<RecipeCardViewModel> cards)
+    {
+        _allRecipes = recipes;
+        _allCards.Clear();
+        _allCards.AddRange(cards);
+        ApplyFilter();
     }
 
     private void LoadCardSettings()

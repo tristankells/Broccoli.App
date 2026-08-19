@@ -48,20 +48,34 @@ public partial class RecipesListViewModel : ViewModelBase
         _cartService = cartService;
         _pantryService = pantryService;
         _importDialog = importDialog;
-        _listPage = new RecipeListPageViewModel(_recipeService, _parser, _seasonalityService, _macroService, _cartService, _pantryService)
+        _listPage = new RecipeListPageViewModel(
+            _recipeService,
+            _parser,
+            _seasonalityService,
+            _macroService,
+            _cartService,
+            _pantryService)
         {
             AddRecipeRequested = ShowAdd,
             ImportRecipeRequested = ShowImport,
             RecipeSelected = ShowDetail,
         };
-        _listPage.Reload();
         _currentPage = _listPage;
+    }
+
+    /// <summary>
+    /// Loads the recipe list asynchronously. Called from the shell's startup path after the window
+    /// is shown, so the initial list appears immediately and cards populate as they are built.
+    /// </summary>
+    public async Task LoadAsync()
+    {
+        await _listPage.ReloadAsync();
     }
 
     private void ShowList()
     {
-        _listPage.Reload();
         CurrentPage = _listPage;
+        _ = _listPage.ReloadAsync();
     }
 
     private void ShowAdd() => ShowEdit(null);

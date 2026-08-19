@@ -17,19 +17,9 @@ public class DiffLine
         _ => " ",
     };
 
-    /// <summary>Foreground colour for the line, keyed off its type.</summary>
-    public string Foreground => Type switch
-    {
-        DiffLineType.Added => "#1E7E34",
-        DiffLineType.Removed => "#C0392B",
-        _ => "#2C2C2C",
-    };
+    /// <summary>True when this line would be added by restoring to the older version.</summary>
+    public bool IsAdded => Type == DiffLineType.Added;
 
-    /// <summary>Background tint for the line, keyed off its type.</summary>
-    public string Background => Type switch
-    {
-        DiffLineType.Added => "#E8F8EE",
-        DiffLineType.Removed => "#FDECEA",
-        _ => "Transparent",
-    };
+    /// <summary>True when this line would be removed by restoring to the older version.</summary>
+    public bool IsRemoved => Type == DiffLineType.Removed;
 }

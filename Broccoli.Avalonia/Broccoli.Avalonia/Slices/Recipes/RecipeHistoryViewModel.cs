@@ -50,14 +50,14 @@ public partial class RecipeHistoryViewModel : ViewModelBase
             return;
         }
 
-        CapturedAtText = $"Comparing current version with {value.CapturedAtDisplay}";
+        CapturedAtText = $"Restoring to {value.CapturedAtDisplay} will make these changes";
 
-        foreach (DiffLine line in TextDiff.Diff(value.Ingredients, _recipe.Ingredients))
+        foreach (DiffLine line in TextDiff.Diff(_recipe.Ingredients, value.Ingredients))
         {
             IngredientsDiff.Add(line);
         }
 
-        foreach (DiffLine line in TextDiff.Diff(value.Directions, _recipe.Directions))
+        foreach (DiffLine line in TextDiff.Diff(_recipe.Directions, value.Directions))
         {
             DirectionsDiff.Add(line);
         }

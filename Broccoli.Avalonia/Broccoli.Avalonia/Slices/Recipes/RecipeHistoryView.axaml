@@ -8,6 +8,21 @@
              x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeHistoryView"
              x:DataType="vm:RecipeHistoryViewModel">
 
+    <UserControl.Styles>
+        <Style Selector="TextBlock.diffAdded">
+            <Setter Property="Foreground" Value="#1E7E34" />
+        </Style>
+        <Style Selector="TextBlock.diffRemoved">
+            <Setter Property="Foreground" Value="#C0392B" />
+        </Style>
+        <Style Selector="Border.diffAdded">
+            <Setter Property="Background" Value="#E8F8EE" />
+        </Style>
+        <Style Selector="Border.diffRemoved">
+            <Setter Property="Background" Value="#FDECEA" />
+        </Style>
+    </UserControl.Styles>
+
     <Grid ColumnDefinitions="*,*" Margin="16">
         <!-- Left: version list -->
         <StackPanel Grid.Column="0" Spacing="8" Margin="0,0,16,0">
@@ -19,7 +34,7 @@
                 <TextBlock Text="Recipe History" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
             </StackPanel>
             <TextBlock Text="{Binding Recipe.Name}" FontSize="14" Foreground="Gray" />
-            <TextBlock Text="Select a version to compare it with the current one. The original version is always kept."
+            <TextBlock Text="Select a version to see what restoring it would change. The original version is always kept."
                        FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
 
             <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedSnapshot}" MinHeight="320">
@@ -52,11 +67,11 @@
                             IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="+" FontWeight="Bold" Foreground="#1E7E34" />
-                        <TextBlock Text="added in current" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
+                        <TextBlock Text="will be added on restore" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="-" FontWeight="Bold" Foreground="#C0392B" />
-                        <TextBlock Text="removed in current" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
+                        <TextBlock Text="will be removed on restore" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
                     </StackPanel>
                 </StackPanel>
 
@@ -65,12 +80,12 @@
                     <ItemsControl ItemsSource="{Binding IngredientsDiff}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:DiffLine">
-                                <Border Background="{Binding Background}" Padding="2,0">
+                                <Border Padding="2,0" Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold"
-                                                   Foreground="{Binding Foreground}" Width="12" />
+                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold" Width="12"
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
                                         <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
-                                                   Foreground="{Binding Foreground}" />
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
@@ -83,12 +98,12 @@
                     <ItemsControl ItemsSource="{Binding DirectionsDiff}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:DiffLine">
-                                <Border Background="{Binding Background}" Padding="2,0">
+                                <Border Padding="2,0" Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold"
-                                                   Foreground="{Binding Foreground}" Width="12" />
+                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold" Width="12"
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
                                         <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
-                                                   Foreground="{Binding Foreground}" />
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>

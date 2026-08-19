@@ -19,7 +19,7 @@
                 <TextBlock Text="Recipe History" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
             </StackPanel>
             <TextBlock Text="{Binding Recipe.Name}" FontSize="14" Foreground="Gray" />
-            <TextBlock Text="Select a version to preview it. The original version is always kept."
+            <TextBlock Text="Select a version to compare it with the current one. The original version is always kept."
                        FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
 
             <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedSnapshot}" MinHeight="320">
@@ -35,25 +35,67 @@
             </ListBox>
         </StackPanel>
 
-        <!-- Right: selected version preview -->
-        <StackPanel Grid.Column="1" Spacing="8">
-            <TextBlock Text="{Binding CapturedAtText}" FontWeight="SemiBold"
-                       IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <!-- Right: diff between current and selected version -->
+        <ScrollViewer Grid.Column="1">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding CapturedAtText}" FontWeight="SemiBold"
+                           IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-            <Button Content="Restore This Version" Command="{Binding RestoreCommand}" Classes="accent"
-                    HorizontalAlignment="Left"
-                    IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Button Content="Restore This Version" Command="{Binding RestoreCommand}" Classes="accent"
+                        HorizontalAlignment="Left"
+                        IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
-                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-            <TextBlock Text="Ingredients" FontWeight="SemiBold" />
-            <TextBox Text="{Binding IngredientsPreview}" IsReadOnly="True" AcceptsReturn="True"
-                     TextWrapping="Wrap" MinHeight="140" />
+                <StackPanel Orientation="Horizontal" Spacing="14"
+                            IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="+" FontWeight="Bold" Foreground="#1E7E34" />
+                        <TextBlock Text="added in current" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="-" FontWeight="Bold" Foreground="#C0392B" />
+                        <TextBlock Text="removed in current" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
 
-            <TextBlock Text="Directions" FontWeight="SemiBold" />
-            <TextBox Text="{Binding DirectionsPreview}" IsReadOnly="True" AcceptsReturn="True"
-                     TextWrapping="Wrap" MinHeight="140" />
-        </StackPanel>
+                <TextBlock Text="Ingredients" FontWeight="SemiBold" />
+                <Border Background="{DynamicResource AppSidebarBackgroundBrush}" CornerRadius="4" Padding="6">
+                    <ItemsControl ItemsSource="{Binding IngredientsDiff}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DiffLine">
+                                <Border Background="{Binding Background}" Padding="2,0">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold"
+                                                   Foreground="{Binding Foreground}" Width="12" />
+                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                                   Foreground="{Binding Foreground}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <TextBlock Text="Directions" FontWeight="SemiBold" Margin="0,8,0,0" />
+                <Border Background="{DynamicResource AppSidebarBackgroundBrush}" CornerRadius="4" Padding="6">
+                    <ItemsControl ItemsSource="{Binding DirectionsDiff}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DiffLine">
+                                <Border Background="{Binding Background}" Padding="2,0">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold"
+                                                   Foreground="{Binding Foreground}" Width="12" />
+                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                                   Foreground="{Binding Foreground}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

@@ -15,12 +15,6 @@ public partial class RecipeHistoryViewModel : ViewModelBase
     private RecipeSnapshot? _selectedSnapshot;
 
     [ObservableProperty]
-    private string _ingredientsPreview = string.Empty;
-
-    [ObservableProperty]
-    private string _directionsPreview = string.Empty;
-
-    [ObservableProperty]
     private string? _capturedAtText;
 
     [ObservableProperty]
@@ -37,23 +31,36 @@ public partial class RecipeHistoryViewModel : ViewModelBase
 
     public ObservableCollection<RecipeSnapshot> History { get; }
 
+    public ObservableCollection<DiffLine> IngredientsDiff { get; } = new();
+
+    public ObservableCollection<DiffLine> DirectionsDiff { get; } = new();
+
     public Action? BackRequested { get; set; }
 
     public Action? Restored { get; set; }
 
     partial void OnSelectedSnapshotChanged(RecipeSnapshot? value)
     {
+        IngredientsDiff.Clear();
+        DirectionsDiff.Clear();
+
         if (value is null)
         {
-            IngredientsPreview = string.Empty;
-            DirectionsPreview = string.Empty;
             CapturedAtText = null;
             return;
         }
 
-        IngredientsPreview = value.Ingredients;
-        DirectionsPreview = value.Directions;
-        CapturedAtText = $"Captured {value.CapturedAtDisplay}";
+        CapturedAtText = $"Comparing current version with {value.CapturedAtDisplay}";
+
+        foreach (DiffLine line in TextDiff.Diff(value.Ingredients, _recipe.Ingredients))
+        {
+            IngredientsDiff.Add(line);
+        }
+
+        foreach (DiffLine line in TextDiff.Diff(value.Directions, _recipe.Directions))
+        {
+            DirectionsDiff.Add(line);
+        }
     }
 
     [RelayCommand]

@@ -30,6 +30,9 @@ public interface IRecipeService
     /// <summary>Returns a single history snapshot by id, or null if it doesn't exist.</summary>
     RecipeSnapshot? GetSnapshot(string recipeId, string snapshotId);
 
+    /// <summary>Deletes a single history snapshot for a recipe.</summary>
+    void DeleteSnapshot(string recipeId, string snapshotId);
+
     /// <summary>
     /// Replaces a recipe's current content with an earlier snapshot, preserving the current
     /// version as a snapshot first so the restore can be undone. Returns the restored recipe,

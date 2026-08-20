@@ -59,6 +59,18 @@ public class RecipeHistoryStore : IRecipeHistoryStore
         }
     }
 
+    public void Delete(string recipeId, string snapshotId)
+    {
+        foreach ((RecipeSnapshot snapshot, string filePath) in LoadEntries(recipeId))
+        {
+            if (snapshot.Id == snapshotId)
+            {
+                File.Delete(filePath);
+                return;
+            }
+        }
+    }
+
     private string HistoryFolder(string recipeId) =>
         Path.Combine(_recipesFolder, recipeId, AppPaths.RecipeHistoryFolderName);
 

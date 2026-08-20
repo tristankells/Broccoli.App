@@ -67,6 +67,23 @@ public partial class RecipeHistoryViewModel : ViewModelBase
     private void Back() => BackRequested?.Invoke();
 
     [RelayCommand]
+    private void DeleteSnapshot(RecipeSnapshot? snapshot)
+    {
+        if (snapshot is null)
+        {
+            return;
+        }
+
+        _recipeService.DeleteSnapshot(_recipe.Id, snapshot.Id);
+        History.Remove(snapshot);
+
+        if (SelectedSnapshot?.Id == snapshot.Id)
+        {
+            SelectedSnapshot = null;
+        }
+    }
+
+    [RelayCommand]
     private void Restore()
     {
         if (SelectedSnapshot is null)

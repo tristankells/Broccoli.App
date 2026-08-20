@@ -65,6 +65,8 @@ public class RecipeService : IRecipeService
 
     public RecipeSnapshot? GetSnapshot(string recipeId, string snapshotId) => _historyStore.Get(recipeId, snapshotId);
 
+    public void DeleteSnapshot(string recipeId, string snapshotId) => _historyStore.Delete(recipeId, snapshotId);
+
     public Recipe? Restore(string recipeId, string snapshotId)
     {
         RecipeSnapshot? snapshot = _historyStore.Get(recipeId, snapshotId);

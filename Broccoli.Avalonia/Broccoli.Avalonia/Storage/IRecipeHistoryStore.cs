@@ -23,4 +23,7 @@ public interface IRecipeHistoryStore
 
     /// <summary>Deletes all snapshots for a recipe.</summary>
     void DeleteAll(string recipeId);
+
+    /// <summary>Deletes a single snapshot for a recipe, if it exists.</summary>
+    void Delete(string recipeId, string snapshotId);
 }

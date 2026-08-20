@@ -113,6 +113,20 @@ public class RecipeHistoryStoreTests
         Assert.AreEqual(0, store.List("r1").Count);
     }
 
+    [TestMethod]
+    public void Delete_RemovesSingleSnapshot()
+    {
+        RecipeHistoryStore store = new RecipeHistoryStore(_tempRoot);
+        store.Save(Snapshot("r1", "s1", new DateTime(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc), "v1"), 10);
+        store.Save(Snapshot("r1", "s2", new DateTime(2026, 8, 2, 12, 0, 0, DateTimeKind.Utc), "v2"), 10);
+
+        store.Delete("r1", "s1");
+
+        IReadOnlyList<RecipeSnapshot> result = store.List("r1");
+        Assert.AreEqual(1, result.Count);
+        Assert.AreEqual("s2", result[0].Id);
+    }
+
     private static RecipeSnapshot Snapshot(string recipeId, string id, DateTime capturedAtUtc, string ingredients) => new()
     {
         Id = id,

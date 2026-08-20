@@ -40,11 +40,20 @@
             <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedSnapshot}" MinHeight="320">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="models:RecipeSnapshot">
-                        <StackPanel Spacing="2" Margin="0,2">
-                            <TextBlock Text="{Binding CapturedAtDisplay}" FontWeight="SemiBold" />
-                            <TextBlock Text="{Binding Ingredients}" FontSize="11" Foreground="Gray"
-                                       TextTrimming="CharacterEllipsis" MaxWidth="300" MaxLines="1" />
-                        </StackPanel>
+                        <DockPanel Margin="0,2">
+                            <Button DockPanel.Dock="Right" Padding="4" Background="Transparent" BorderThickness="0"
+                                    VerticalAlignment="Center" Margin="8,0,0,0"
+                                    Command="{Binding $parent[ListBox].((vm:RecipeHistoryViewModel)DataContext).DeleteSnapshotCommand}"
+                                    CommandParameter="{Binding}">
+                                <PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+                                          Width="12" Height="12" Foreground="Gray" />
+                            </Button>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding CapturedAtDisplay}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Ingredients}" FontSize="11" Foreground="Gray"
+                                           TextTrimming="CharacterEllipsis" MaxWidth="300" MaxLines="1" />
+                            </StackPanel>
+                        </DockPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

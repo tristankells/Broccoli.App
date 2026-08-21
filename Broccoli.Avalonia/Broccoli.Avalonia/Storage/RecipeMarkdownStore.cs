@@ -47,7 +47,9 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
 
     public void Save(Recipe recipe)
     {
-        File.WriteAllText(AppPaths.RecipeMarkdownFilePath(recipe.Id), Serialize(recipe));
+        string path = AppPaths.RecipeMarkdownFilePath(recipe.Id);
+        string content = Serialize(recipe);
+        FileSystemRetry.Execute(() => File.WriteAllText(path, content));
     }
 
     /// <summary>Serializes a recipe to its Markdown + YAML frontmatter representation.</summary>
@@ -121,7 +123,7 @@ public class RecipeMarkdownStore : IRecipeMarkdownStore
         string folder = AppPaths.RecipeFolder(recipeId);
         if (Directory.Exists(folder))
         {
-            Directory.Delete(folder, recursive: true);
+            FileSystemRetry.Execute(() => Directory.Delete(folder, recursive: true));
         }
 
         // Record the deletion so Google Drive sync propagates it to other devices instead of

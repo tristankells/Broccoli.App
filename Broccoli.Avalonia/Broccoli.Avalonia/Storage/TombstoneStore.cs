@@ -31,7 +31,7 @@ public static class TombstoneStore
     }
 
     public static void Save(TombstoneFile file) =>
-        File.WriteAllText(AppPaths.TombstonesFilePath, JsonSerializer.Serialize(file, JsonOptions));
+        FileSystemRetry.Execute(() => File.WriteAllText(AppPaths.TombstonesFilePath, JsonSerializer.Serialize(file, JsonOptions)));
 
     /// <summary>Records (or refreshes) a deletion for <paramref name="recipeId"/>.</summary>
     public static void RecordDeletion(string recipeId)

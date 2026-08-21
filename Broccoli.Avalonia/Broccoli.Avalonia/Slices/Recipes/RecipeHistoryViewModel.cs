@@ -74,7 +74,18 @@ public partial class RecipeHistoryViewModel : ViewModelBase
             return;
         }
 
-        _recipeService.DeleteSnapshot(_recipe.Id, snapshot.Id);
+        try
+        {
+            _recipeService.DeleteSnapshot(_recipe.Id, snapshot.Id);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ErrorDialog.Show(
+                "Delete Failed",
+                $"Couldn't delete this version because its file is locked by another application.\n\nPlease close the application using the file and try again.\n\n{ex.Message}");
+            return;
+        }
+
         History.Remove(snapshot);
 
         if (SelectedSnapshot?.Id == snapshot.Id)
@@ -91,13 +102,22 @@ public partial class RecipeHistoryViewModel : ViewModelBase
             return;
         }
 
-        Recipe? restored = _recipeService.Restore(_recipe.Id, SelectedSnapshot.Id);
-        if (restored is null)
+        try
         {
-            ErrorMessage = "Unable to restore this version.";
-            return;
-        }
+            Recipe? restored = _recipeService.Restore(_recipe.Id, SelectedSnapshot.Id);
+            if (restored is null)
+            {
+                ErrorMessage = "Unable to restore this version.";
+                return;
+            }
 
-        Restored?.Invoke();
+            Restored?.Invoke();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ErrorDialog.Show(
+                "Restore Failed",
+                $"Couldn't restore \"{_recipe.Name}\" because one of its files is locked by another application.\n\nPlease close the application using the file and try again.\n\n{ex.Message}");
+        }
     }
 }

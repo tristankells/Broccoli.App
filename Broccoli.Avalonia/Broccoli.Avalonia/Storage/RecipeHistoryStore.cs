@@ -45,7 +45,7 @@ public class RecipeHistoryStore : IRecipeHistoryStore
 
         string fileName = $"{snapshot.CapturedAtUtc:yyyyMMddHHmmssfff}-{snapshot.Id}.md";
         string content = RecipeMarkdownStore.Serialize(ToRecipe(snapshot));
-        File.WriteAllText(Path.Combine(folder, fileName), content);
+        FileSystemRetry.Execute(() => File.WriteAllText(Path.Combine(folder, fileName), content));
 
         Prune(snapshot.RecipeId, maxBackups);
     }
@@ -55,7 +55,7 @@ public class RecipeHistoryStore : IRecipeHistoryStore
         string folder = HistoryFolder(recipeId);
         if (Directory.Exists(folder))
         {
-            Directory.Delete(folder, recursive: true);
+            FileSystemRetry.Execute(() => Directory.Delete(folder, recursive: true));
         }
     }
 
@@ -65,7 +65,7 @@ public class RecipeHistoryStore : IRecipeHistoryStore
         {
             if (snapshot.Id == snapshotId)
             {
-                File.Delete(filePath);
+                FileSystemRetry.Execute(() => File.Delete(filePath));
                 return;
             }
         }
@@ -146,7 +146,8 @@ public class RecipeHistoryStore : IRecipeHistoryStore
         int removeCount = entries.Count - keep;
         for (int i = 1; i <= removeCount; i++)
         {
-            File.Delete(entries[i].FilePath);
+            string filePath = entries[i].FilePath;
+            FileSystemRetry.Execute(() => File.Delete(filePath));
         }
     }
 }

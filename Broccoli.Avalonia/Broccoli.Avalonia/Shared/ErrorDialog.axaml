@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Broccoli.Avalonia.Shared"
+        mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="220"
+        x:Class="Broccoli.Avalonia.Shared.ErrorDialog"
+        x:DataType="vm:ErrorDialogViewModel"
+        Title="{Binding Title}"
+        Width="460" SizeToContent="Height"
+        WindowStartupLocation="CenterScreen">
+
+    <StackPanel Margin="16" Spacing="12">
+        <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold" />
+        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+        <Button Content="OK" Command="{Binding CloseCommand}" Classes="accent"
+                HorizontalAlignment="Right" Padding="20,6" />
+    </StackPanel>
+</Window>

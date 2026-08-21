@@ -134,13 +134,13 @@
                                                               Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
                                                               Width="12" Height="12" Foreground="Red" />
                                                     <TextBlock FontSize="11" FontWeight="SemiBold" Text="{Binding FoodName}" />
+                                                    <TextBlock Text="{Binding QuantityDisplay}" FontSize="10"
+                                                               Foreground="Gray" VerticalAlignment="Center" />
                                                 </StackPanel>
                                                 <TextBlock Text="{Binding OriginalLine}" FontSize="10"
                                                            Foreground="Gray" Margin="16,0,0,0"
                                                            TextTrimming="CharacterEllipsis"
                                                            IsVisible="{Binding ShowOriginalLine}" />
-                                                <TextBlock Text="{Binding QuantityDisplay}" FontSize="10"
-                                                           Foreground="Gray" Margin="16,0,0,0" />
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>

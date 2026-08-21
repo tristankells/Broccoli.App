@@ -80,13 +80,15 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     public double TotalFatG { get; private set; }
 
-    public double PerServingCalories => Recipe.Servings > 0 ? TotalCalories / Recipe.Servings.Value : 0;
+    public double PerServingCalories => TotalCalories / EffectiveServings;
 
-    public double PerServingProteinG => Recipe.Servings > 0 ? TotalProteinG / Recipe.Servings.Value : 0;
+    public double PerServingProteinG => TotalProteinG / EffectiveServings;
 
-    public double PerServingCarbsG => Recipe.Servings > 0 ? TotalCarbsG / Recipe.Servings.Value : 0;
+    public double PerServingCarbsG => TotalCarbsG / EffectiveServings;
 
-    public double PerServingFatG => Recipe.Servings > 0 ? TotalFatG / Recipe.Servings.Value : 0;
+    public double PerServingFatG => TotalFatG / EffectiveServings;
+
+    private int EffectiveServings => Recipe.Servings > 0 ? Recipe.Servings.Value : 1;
 
     public bool IsComparisonEnabled { get; private set; }
 

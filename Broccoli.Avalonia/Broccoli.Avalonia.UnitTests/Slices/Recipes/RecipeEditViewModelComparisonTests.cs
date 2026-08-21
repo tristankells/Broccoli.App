@@ -33,6 +33,47 @@ public class RecipeEditViewModelComparisonTests
         Assert.IsTrue(changed.Contains(nameof(vm.CalDeviationPct)), $"CalDeviationPct not raised. Raised: {string.Join(",", changed)}");
     }
 
+    [TestMethod]
+    public void ChangingIngredients_UpdatesComparisonValues_WhenServingsSet()
+    {
+        IngredientParserService parser = CreateParser();
+        IMacroTargetService macroService = CreateMacroService();
+
+        var recipeService = new Mock<IRecipeService>();
+        var vm = new RecipeEditViewModel(recipeService.Object, null, parser, null, macroService)
+        {
+            Servings = 2,
+        };
+
+        vm.Ingredients = "250g chicken breast";
+        double beforeActual = vm.PerServingCalories;
+        double beforeDeviation = vm.CalDeviationPct;
+
+        vm.Ingredients = "500g chicken breast";
+
+        Assert.IsTrue(vm.PerServingCalories > beforeActual, "PerServingCalories should increase with more ingredients.");
+        Assert.IsTrue(vm.CalDeviationPct != beforeDeviation, "CalDeviationPct should change when ingredients change.");
+    }
+
+    [TestMethod]
+    public void ChangingIngredients_UpdatesComparisonValues_WhenServingsMissing()
+    {
+        IngredientParserService parser = CreateParser();
+        IMacroTargetService macroService = CreateMacroService();
+
+        var recipeService = new Mock<IRecipeService>();
+        var vm = new RecipeEditViewModel(recipeService.Object, null, parser, null, macroService);
+
+        vm.Ingredients = "250g chicken breast";
+        double beforeActual = vm.PerServingCalories;
+        double beforeDeviation = vm.CalDeviationPct;
+
+        vm.Ingredients = "500g chicken breast";
+
+        Assert.IsTrue(vm.PerServingCalories > beforeActual, "PerServingCalories should increase even when servings are missing.");
+        Assert.IsTrue(vm.CalDeviationPct != beforeDeviation, "CalDeviationPct should change when ingredients change, even without servings.");
+    }
+
     private static IngredientParserService CreateParser()
     {
         var foodService = new Mock<IFoodService>();

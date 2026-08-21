@@ -127,13 +127,15 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     public double TotalFatG { get; private set; }
 
-    public double PerServingCalories => Servings > 0 ? TotalCalories / Servings.Value : 0;
+    public double PerServingCalories => TotalCalories / EffectiveServings;
 
-    public double PerServingProteinG => Servings > 0 ? TotalProteinG / Servings.Value : 0;
+    public double PerServingProteinG => TotalProteinG / EffectiveServings;
 
-    public double PerServingCarbsG => Servings > 0 ? TotalCarbsG / Servings.Value : 0;
+    public double PerServingCarbsG => TotalCarbsG / EffectiveServings;
 
-    public double PerServingFatG => Servings > 0 ? TotalFatG / Servings.Value : 0;
+    public double PerServingFatG => TotalFatG / EffectiveServings;
+
+    private int EffectiveServings => Servings > 0 ? Servings.Value : 1;
 
     public bool IsComparisonEnabled { get; private set; }
 

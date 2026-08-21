@@ -31,6 +31,8 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     private bool _showCardCalorieMatch;
     [ObservableProperty]
     private double _calorieMatchTolerancePercent = 15;
+    [ObservableProperty]
+    private int _historyBackupCount = 10;
 
     public RecipeSettingsViewModel()
         : this(new MacroTargetService())
@@ -45,6 +47,16 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     }
 
     public List<MacroTarget> AvailableTargets { get; } = new();
+
+    private const int EstimatedKilobytesPerBackup = 2;
+
+    /// <summary>Approximate on-disk footprint of the current backup count, for the settings hint.</summary>
+    public string BackupStorageHintText =>
+        $"Each backup is roughly {EstimatedKilobytesPerBackup} KB. Keeping {HistoryBackupCount} versions uses about {HistoryBackupCount * EstimatedKilobytesPerBackup} KB per recipe.";
+
+    /// <summary>Reminds the user that the very first backup is always preserved.</summary>
+    public string BackupCountHintText =>
+        "The original (first) version is always kept; this limit applies to additional recent versions.";
 
     public int SelectedTargetIndex
     {
@@ -74,6 +86,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         ShowCardNutrition = settings.ShowCardNutrition;
         ShowCardCalorieMatch = settings.ShowCardCalorieMatch;
         CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
+        HistoryBackupCount = settings.RecipeHistoryBackupCount;
 
         List<MacroTarget> targets = _macroService.GetAll();
         AvailableTargets.Clear();
@@ -86,6 +99,8 @@ public partial class RecipeSettingsViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(SelectedTargetIndex));
     }
+
+    partial void OnHistoryBackupCountChanged(int value) => OnPropertyChanged(nameof(BackupStorageHintText));
 
     [RelayCommand]
     private void Save()
@@ -100,6 +115,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         settings.ShowCardNutrition = ShowCardNutrition;
         settings.ShowCardCalorieMatch = ShowCardCalorieMatch;
         settings.CalorieMatchTolerancePercent = CalorieMatchTolerancePercent;
+        settings.RecipeHistoryBackupCount = HistoryBackupCount;
         _macroService.SaveSettings(settings);
         StatusMessage = "Saved.";
         WeakReferenceMessenger.Default.Send(new CardSettingsChangedMessage());

@@ -60,6 +60,23 @@
                 </StackPanel>
             </Border>
 
+            <!-- Recipe History -->
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Recipe History" FontWeight="SemiBold" />
+                    <TextBlock Text="Automatically keep old versions of each recipe's ingredients as you edit it."
+                               FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Versions to keep" FontSize="12" VerticalAlignment="Center" />
+                        <NumericUpDown Value="{Binding HistoryBackupCount}"
+                                       Minimum="1" Maximum="200" FormatString="0"
+                                       Increment="1" Width="120" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding BackupStorageHintText}" FontSize="10" Foreground="Gray" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding BackupCountHintText}" FontSize="10" Foreground="Gray" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="Gray"
                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 

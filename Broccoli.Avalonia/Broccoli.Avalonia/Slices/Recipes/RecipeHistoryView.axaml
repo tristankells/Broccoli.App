@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+             xmlns:models="using:Broccoli.Avalonia.Models"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeHistoryView"
+             x:DataType="vm:RecipeHistoryViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.diffAdded">
+            <Setter Property="Foreground" Value="#1E7E34" />
+        </Style>
+        <Style Selector="TextBlock.diffRemoved">
+            <Setter Property="Foreground" Value="#C0392B" />
+        </Style>
+        <Style Selector="Border.diffAdded">
+            <Setter Property="Background" Value="#E8F8EE" />
+        </Style>
+        <Style Selector="Border.diffRemoved">
+            <Setter Property="Background" Value="#FDECEA" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="*,*" Margin="16">
+        <!-- Left: version list -->
+        <StackPanel Grid.Column="0" Spacing="8" Margin="0,0,16,0">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Command="{Binding BackCommand}" Padding="6" Background="Transparent" BorderThickness="0">
+                    <PathIcon Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                              Width="16" Height="16" />
+                </Button>
+                <TextBlock Text="Recipe History" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="{Binding Recipe.Name}" FontSize="14" Foreground="Gray" />
+            <TextBlock Text="Select a version to see what restoring it would change. The original version is always kept."
+                       FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+
+            <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedSnapshot}" MinHeight="320">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:RecipeSnapshot">
+                        <DockPanel Margin="0,2">
+                            <Button DockPanel.Dock="Right" Padding="4" Background="Transparent" BorderThickness="0"
+                                    VerticalAlignment="Center" Margin="8,0,0,0"
+                                    Command="{Binding $parent[ListBox].((vm:RecipeHistoryViewModel)DataContext).DeleteSnapshotCommand}"
+                                    CommandParameter="{Binding}">
+                                <PathIcon Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+                                          Width="12" Height="12" Foreground="Gray" />
+                            </Button>
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="{Binding CapturedAtDisplay}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Ingredients}" FontSize="11" Foreground="Gray"
+                                           TextTrimming="CharacterEllipsis" MaxWidth="300" MaxLines="1" />
+                            </StackPanel>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+
+        <!-- Right: diff between current and selected version -->
+        <ScrollViewer Grid.Column="1">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding CapturedAtText}" FontWeight="SemiBold"
+                           IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                <Button Content="Restore This Version" Command="{Binding RestoreCommand}" Classes="accent"
+                        HorizontalAlignment="Left"
+                        IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="14"
+                            IsVisible="{Binding SelectedSnapshot, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="+" FontWeight="Bold" Foreground="#1E7E34" />
+                        <TextBlock Text="will be added on restore" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="-" FontWeight="Bold" Foreground="#C0392B" />
+                        <TextBlock Text="will be removed on restore" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+
+                <TextBlock Text="Ingredients" FontWeight="SemiBold" />
+                <Border Background="{DynamicResource AppSidebarBackgroundBrush}" CornerRadius="4" Padding="6">
+                    <ItemsControl ItemsSource="{Binding IngredientsDiff}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DiffLine">
+                                <Border Padding="2,0" Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold" Width="12"
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
+                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <TextBlock Text="Directions" FontWeight="SemiBold" Margin="0,8,0,0" />
+                <Border Background="{DynamicResource AppSidebarBackgroundBrush}" CornerRadius="4" Padding="6">
+                    <ItemsControl ItemsSource="{Binding DirectionsDiff}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DiffLine">
+                                <Border Padding="2,0" Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding Prefix}" FontWeight="Bold" Width="12"
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
+                                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                                   Classes.diffAdded="{Binding IsAdded}" Classes.diffRemoved="{Binding IsRemoved}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

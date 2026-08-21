@@ -100,9 +100,22 @@ public partial class RecipesListViewModel : ViewModelBase
         {
             BackRequested = ShowList,
             EditRequested = ShowEdit,
+            HistoryRequested = ShowHistory,
             RecipeDeleted = ShowList,
         };
         CurrentPage = detail;
+    }
+
+    private void ShowHistory(Recipe recipe) => ShowHistory(recipe, () => ShowDetail(recipe));
+
+    private void ShowHistory(Recipe recipe, Action backRequested)
+    {
+        var history = new RecipeHistoryViewModel(_recipeService, recipe)
+        {
+            BackRequested = backRequested,
+            Restored = () => ShowDetail(_recipeService.Get(recipe.Id) ?? recipe),
+        };
+        CurrentPage = history;
     }
 
     private void ShowEdit(Recipe? existingRecipe)
@@ -112,6 +125,7 @@ public partial class RecipesListViewModel : ViewModelBase
             Saved = ShowList,
             Cancelled = ShowList,
         };
+        edit.HistoryRequested = recipe => ShowHistory(recipe, () => CurrentPage = edit);
         CurrentPage = edit;
     }
 }

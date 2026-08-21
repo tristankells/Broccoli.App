@@ -66,6 +66,8 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     public Action<Recipe>? EditRequested { get; set; }
 
+    public Action<Recipe>? HistoryRequested { get; set; }
+
     public Action? RecipeDeleted { get; set; }
 
     public ObservableCollection<string> ImagePaths { get; } = new();
@@ -250,6 +252,9 @@ public partial class RecipeDetailViewModel : ViewModelBase
     private void Edit() => EditRequested?.Invoke(Recipe);
 
     [RelayCommand]
+    private void OpenHistory() => HistoryRequested?.Invoke(Recipe);
+
+    [RelayCommand]
     private void RequestDelete() => IsConfirmingDelete = true;
 
     [RelayCommand]
@@ -258,7 +263,19 @@ public partial class RecipeDetailViewModel : ViewModelBase
     [RelayCommand]
     private void ConfirmDelete()
     {
-        _recipeService.Delete(Recipe.Id);
+        try
+        {
+            _recipeService.Delete(Recipe.Id);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            IsConfirmingDelete = false;
+            ErrorDialog.Show(
+                "Delete Failed",
+                $"Couldn't delete \"{Recipe.Name}\" because one of its files is locked by another application.\n\nPlease close the application using the file and try again.\n\n{ex.Message}");
+            return;
+        }
+
         IsConfirmingDelete = false;
         RecipeDeleted?.Invoke();
     }

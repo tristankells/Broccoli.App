@@ -19,6 +19,9 @@ public static class AppPaths
     private const string DatabaseFileName = "broccoli.db";
     private const string RecipesFolderName = "Recipes";
 
+    /// <summary>Sub-folder name inside a recipe's folder that holds its ingredient-history snapshots.</summary>
+    public const string RecipeHistoryFolderName = "history";
+
     /// <summary>
     /// The root app-data folder, e.g. %LocalAppData%\Broccoli on Windows,
     /// ~/Library/Application Support/Broccoli on macOS, ~/.local/share/Broccoli on Linux.
@@ -111,4 +114,11 @@ public static class AppPaths
     /// <summary>Full path to a specific recipe's markdown file.</summary>
     public static string RecipeMarkdownFilePath(string recipeId) =>
         Path.Combine(RecipeFolder(recipeId), "recipe.md");
+
+    /// <summary>
+    /// Folder holding a recipe's ingredient-history snapshots (one Markdown file per captured
+    /// version). Not created eagerly — it only appears once the first snapshot is written.
+    /// </summary>
+    public static string RecipeHistoryFolder(string recipeId) =>
+        Path.Combine(RecipeFolder(recipeId), RecipeHistoryFolderName);
 }

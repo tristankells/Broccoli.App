@@ -24,6 +24,22 @@ public interface IRecipeService
     /// <summary>Permanently deletes a recipe and all its images.</summary>
     void Delete(string recipeId);
 
+    /// <summary>Returns a recipe's ingredient-history snapshots, newest first.</summary>
+    IReadOnlyList<RecipeSnapshot> GetHistory(string recipeId);
+
+    /// <summary>Returns a single history snapshot by id, or null if it doesn't exist.</summary>
+    RecipeSnapshot? GetSnapshot(string recipeId, string snapshotId);
+
+    /// <summary>Deletes a single history snapshot for a recipe.</summary>
+    void DeleteSnapshot(string recipeId, string snapshotId);
+
+    /// <summary>
+    /// Replaces a recipe's current content with an earlier snapshot, preserving the current
+    /// version as a snapshot first so the restore can be undone. Returns the restored recipe,
+    /// or null if the recipe or snapshot no longer exists.
+    /// </summary>
+    Recipe? Restore(string recipeId, string snapshotId);
+
     /// <summary>
     /// Copies an image into the recipe's folder and appends it to <see cref="Recipe.Images"/>,
     /// returning the updated recipe.

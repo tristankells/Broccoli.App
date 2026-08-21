@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Broccoli.Avalonia.Shell"
+             xmlns:views="using:Broccoli.Avalonia.Shell"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Broccoli.Avalonia.Shell.MainView"
              x:DataType="vm:MainViewModel">
@@ -39,7 +40,10 @@
             </ListBox>
         </DrawerPage.Drawer>
         <DrawerPage.Content>
-            <TransitioningContentControl Content="{Binding CurrentPage}" />
+            <Grid RowDefinitions="*,Auto">
+                <TransitioningContentControl Grid.Row="0" Content="{Binding CurrentPage}" />
+                <views:StorageUsageFooterView Grid.Row="1" DataContext="{Binding StorageUsageFooter}" />
+            </Grid>
         </DrawerPage.Content>
     </DrawerPage>
 </UserControl>

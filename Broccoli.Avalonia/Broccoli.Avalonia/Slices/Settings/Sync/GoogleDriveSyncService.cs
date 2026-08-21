@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 using Google.Apis.Drive.v3;
 using Microsoft.Data.Sqlite;
 
@@ -99,6 +101,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
             SyncProgress.Report(progress, "Sync complete.", 1.0);
 
             result.Conflicts = conflicts;
+            WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
             return result;
         }
         catch (Exception ex)
@@ -174,6 +177,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
             SyncProgress.Report(progress, "Sync complete.", 1.0);
 
+            WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
             return result;
         }
         catch (Exception ex)

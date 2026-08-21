@@ -14,6 +14,9 @@ public partial class MainViewModel : ViewModelBase
     private readonly Lazy<SettingsViewModel> _settingsViewModel;
     private readonly RecipesListViewModel _recipesViewModel;
 
+    /// <summary>Right-aligned storage-usage footer shown at the bottom of the shell.</summary>
+    public StorageUsageFooterViewModel StorageUsageFooter { get; }
+
     [ObservableProperty]
     private string _greeting = "Welcome to Avalonia!";
 
@@ -39,7 +42,8 @@ public partial class MainViewModel : ViewModelBase
         new Lazy<GroceriesViewModel>(() => new GroceriesViewModel()),
         new Lazy<PantryViewModel>(() => new PantryViewModel()),
         new Lazy<SettingsPageViewModel>(() => new SettingsPageViewModel()),
-        new Lazy<SettingsViewModel>(() => new SettingsViewModel()))
+        new Lazy<SettingsViewModel>(() => new SettingsViewModel()),
+        new StorageUsageFooterViewModel())
     {
     }
 
@@ -49,10 +53,12 @@ public partial class MainViewModel : ViewModelBase
         Lazy<GroceriesViewModel> groceriesViewModel,
         Lazy<PantryViewModel> pantryViewModel,
         Lazy<SettingsPageViewModel> settingsViewModel,
-        Lazy<SettingsViewModel> lazySettingsViewModel)
+        Lazy<SettingsViewModel> lazySettingsViewModel,
+        StorageUsageFooterViewModel storageUsageFooterViewModel)
     {
         _settingsViewModel = lazySettingsViewModel;
         _recipesViewModel = recipesViewModel;
+        StorageUsageFooter = storageUsageFooterViewModel;
 
         // Each MenuItem wraps an already-constructed (singleton) page view model, so switching
         // between nav items and back preserves whatever state that page was in - e.g. the
@@ -102,7 +108,11 @@ public partial class MainViewModel : ViewModelBase
     /// Loads the initially-visible page's data. Called after the window is shown (and the database
     /// has been migrated) so the UI can appear immediately and fill in as data becomes ready.
     /// </summary>
-    public async Task LoadAsync() => await _recipesViewModel.LoadAsync();
+    public async Task LoadAsync()
+    {
+        await _recipesViewModel.LoadAsync();
+        _ = StorageUsageFooter.RefreshAsync();
+    }
 
     partial void OnSelectedMenuItemChanged(MenuItem? value)
     {

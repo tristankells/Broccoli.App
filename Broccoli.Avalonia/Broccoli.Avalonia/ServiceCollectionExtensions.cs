@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRecipeService, RecipeService>();
         services.TryAddSingleton<IGoogleDriveAuthService, GoogleDriveAuthService>();
         services.AddSingleton<IGoogleDriveSyncService, GoogleDriveSyncService>();
+        services.AddSingleton<IStorageUsageService, StorageUsageService>();
         services.AddSingleton<IMacroTargetService, MacroTargetService>();
         services.AddSingleton<MacroCalculatorService>();
         services.AddIngredientParsing();
@@ -74,6 +75,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(serviceProvider => new Lazy<SettingsPageViewModel>(() => serviceProvider.GetRequiredService<SettingsPageViewModel>()));
 
         services.AddSingleton<MainViewModel>();
+        services.AddSingleton<StorageUsageFooterViewModel>();
 
         return services;
     }

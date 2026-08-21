@@ -35,6 +35,10 @@ public partial class ParsedIngredientRow : ViewModelBase
     public bool ShowOriginalLine => IsMatched && !string.Equals(
         OriginalLine, FoodName, StringComparison.OrdinalIgnoreCase);
 
+    public string DisplayText => IsMatched
+        ? $"{QuantityDisplay} {FoodName}"
+        : FoodName;
+
     public static ParsedIngredientRow FromMatch(ParsedIngredientMatch match)
     {
         return new ParsedIngredientRow

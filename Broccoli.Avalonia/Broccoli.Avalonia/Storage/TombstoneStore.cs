@@ -50,25 +50,59 @@ public static class TombstoneStore
         Save(file);
     }
 
+    /// <summary>Records (or refreshes) a deletion for a single recipe-history snapshot.</summary>
+    public static void RecordSnapshotDeletion(string recipeId, string snapshotId)
+    {
+        TombstoneFile file = Load();
+        SnapshotTombstone? existing = file.Snapshots.FirstOrDefault(s => s.RecipeId == recipeId && s.SnapshotId == snapshotId);
+        if (existing is not null)
+        {
+            existing.DeletedAtUtc = DateTime.UtcNow;
+        }
+        else
+        {
+            file.Snapshots.Add(new SnapshotTombstone { RecipeId = recipeId, SnapshotId = snapshotId, DeletedAtUtc = DateTime.UtcNow });
+        }
+
+        Save(file);
+    }
+
     /// <summary>
     /// Merges a remote tombstone list into the local one (union, keeping the latest
-    /// <see cref="RecipeTombstone.DeletedAtUtc"/> per recipe id), and persists the merged result.
+    /// <see cref="RecipeTombstone.DeletedAtUtc"/> per recipe id and the latest
+    /// <see cref="SnapshotTombstone.DeletedAtUtc"/> per snapshot), and persists the merged result.
     /// </summary>
     public static TombstoneFile MergeWithRemote(TombstoneFile remote)
     {
         TombstoneFile local = Load();
-        var merged = local.Recipes.ToDictionary(r => r.RecipeId);
+        var mergedRecipes = local.Recipes.ToDictionary(r => r.RecipeId);
 
         foreach (RecipeTombstone remoteEntry in remote.Recipes)
         {
-            if (!merged.TryGetValue(remoteEntry.RecipeId, out RecipeTombstone? localEntry) ||
+            if (!mergedRecipes.TryGetValue(remoteEntry.RecipeId, out RecipeTombstone? localEntry) ||
                 remoteEntry.DeletedAtUtc > localEntry.DeletedAtUtc)
             {
-                merged[remoteEntry.RecipeId] = remoteEntry;
+                mergedRecipes[remoteEntry.RecipeId] = remoteEntry;
             }
         }
 
-        var mergedFile = new TombstoneFile { Recipes = merged.Values.ToList() };
+        var mergedSnapshots = local.Snapshots.ToDictionary(s => (s.RecipeId, s.SnapshotId));
+
+        foreach (SnapshotTombstone remoteEntry in remote.Snapshots)
+        {
+            (string RecipeId, string SnapshotId) key = (remoteEntry.RecipeId, remoteEntry.SnapshotId);
+            if (!mergedSnapshots.TryGetValue(key, out SnapshotTombstone? localEntry) ||
+                remoteEntry.DeletedAtUtc > localEntry.DeletedAtUtc)
+            {
+                mergedSnapshots[key] = remoteEntry;
+            }
+        }
+
+        var mergedFile = new TombstoneFile
+        {
+            Recipes = mergedRecipes.Values.ToList(),
+            Snapshots = mergedSnapshots.Values.ToList(),
+        };
         Save(mergedFile);
         return mergedFile;
     }

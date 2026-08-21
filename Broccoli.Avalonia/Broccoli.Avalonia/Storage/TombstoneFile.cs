@@ -4,4 +4,6 @@ namespace Broccoli.Avalonia.Storage;
 public class TombstoneFile
 {
     public List<RecipeTombstone> Recipes { get; set; } = new();
+
+    public List<SnapshotTombstone> Snapshots { get; set; } = new();
 }

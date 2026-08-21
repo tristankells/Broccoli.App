@@ -65,6 +65,7 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
             SyncProgress.Report(progress, "Syncing recipe changes...", 0.35);
             didPushAnything |= await SyncTombstonesAsync(drive, recipesFolderId, mergedTombstones, cancellationToken);
+            await ProcessSnapshotTombstonesAsync(drive, recipesFolderId, mergedTombstones, cancellationToken);
             didPushAnything |= await SyncRecipesAsync(drive, recipesFolderId, mergedTombstones, sinceUtc, conflicts, result, cancellationToken);
 
             SyncProgress.Report(progress, "Syncing app data...", 0.7);
@@ -592,6 +593,64 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
         }
 
         return anyRemoteDeleted;
+    }
+
+    /// <summary>
+    /// Deletes the local and remote snapshot files for any tombstoned recipe-history snapshots,
+    /// so deleting a snapshot on one device propagates to every other device.
+    /// </summary>
+    private static async Task ProcessSnapshotTombstonesAsync(
+        DriveService drive, string recipesFolderId, TombstoneFile mergedTombstones, CancellationToken ct)
+    {
+        foreach (IGrouping<string, SnapshotTombstone> group in mergedTombstones.Snapshots.GroupBy(s => s.RecipeId))
+        {
+            string recipeId = group.Key;
+
+            Google.Apis.Drive.v3.Data.File? recipeFolder = await DriveFileHelper.FindChildAsync(drive, recipeId, recipesFolderId, ct);
+            if (recipeFolder is null)
+            {
+                continue;
+            }
+
+            Google.Apis.Drive.v3.Data.File? historyFolder = await DriveFileHelper.FindChildAsync(drive, AppPaths.RecipeHistoryFolderName, recipeFolder.Id, ct);
+            if (historyFolder is null)
+            {
+                continue;
+            }
+
+            List<Google.Apis.Drive.v3.Data.File> remoteFiles = await DriveFileHelper.ListChildrenAsync(drive, historyFolder.Id, ct);
+
+            foreach (SnapshotTombstone tombstone in group)
+            {
+                string suffix = $"-{tombstone.SnapshotId}.md";
+
+                DeleteLocalSnapshotFile(recipeId, suffix);
+
+                Google.Apis.Drive.v3.Data.File? remoteFile = remoteFiles.FirstOrDefault(f => f.Name.EndsWith(suffix, StringComparison.Ordinal));
+                if (remoteFile is not null)
+                {
+                    await DriveFileHelper.TrashFileAsync(drive, remoteFile.Id, ct);
+                }
+            }
+        }
+    }
+
+    private static void DeleteLocalSnapshotFile(string recipeId, string suffix)
+    {
+        string historyFolder = Path.Combine(AppPaths.RecipesFolder, recipeId, AppPaths.RecipeHistoryFolderName);
+        if (!Directory.Exists(historyFolder))
+        {
+            return;
+        }
+
+        foreach (string filePath in Directory.EnumerateFiles(historyFolder, "*.md"))
+        {
+            if (Path.GetFileName(filePath).EndsWith(suffix, StringComparison.Ordinal))
+            {
+                File.Delete(filePath);
+                return;
+            }
+        }
     }
 
     // ── Folder bootstrap ─────────────────────────────────────────────────────

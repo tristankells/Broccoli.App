@@ -11,6 +11,8 @@ public partial class ParsedIngredientRow : ViewModelBase
     [ObservableProperty]
     private string _foodName = string.Empty;
     [ObservableProperty]
+    private string _originalLine = string.Empty;
+    [ObservableProperty]
     private string _quantityDisplay = string.Empty;
     [ObservableProperty]
     private string _caloriesText = string.Empty;
@@ -30,6 +32,9 @@ public partial class ParsedIngredientRow : ViewModelBase
     [ObservableProperty]
     private bool _isTopFat;
 
+    public bool ShowOriginalLine => IsMatched && !string.Equals(
+        OriginalLine, FoodName, StringComparison.OrdinalIgnoreCase);
+
     public static ParsedIngredientRow FromMatch(ParsedIngredientMatch match)
     {
         return new ParsedIngredientRow
@@ -38,6 +43,7 @@ public partial class ParsedIngredientRow : ViewModelBase
             FoodName = match.IsMatched
                 ? match.MatchedFood!.Name
                 : match.ParsedIngredient.FoodDescription,
+            OriginalLine = match.ParsedIngredient.RawLine,
             QuantityDisplay = match.GetQuantityDisplay(),
             CaloriesText = match.IsMatched ? $"{match.GetCalories():0} kcal" : "—",
             ProteinText = match.IsMatched ? $"P:{match.GetProtein():0.0}g" : "—",

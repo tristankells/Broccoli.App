@@ -96,6 +96,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
                     <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent" />
                     <Button Content="Cancel" Command="{Binding CancelCommand}" />
+                    <Button Content="History" Command="{Binding OpenHistoryCommand}" IsVisible="{Binding !IsNew}" />
                 </StackPanel>
             </StackPanel>
 

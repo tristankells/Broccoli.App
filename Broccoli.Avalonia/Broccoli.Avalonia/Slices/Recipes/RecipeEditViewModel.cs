@@ -109,6 +109,8 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     public Action? Cancelled { get; set; }
 
+    public Action<Recipe>? HistoryRequested { get; set; }
+
     public Func<Task<string?>>? PickImageFileAsync { get; set; }
 
     public ObservableCollection<RecipeImageItem> Images { get; } = new();
@@ -349,6 +351,9 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     [RelayCommand]
     private void Cancel() => Cancelled?.Invoke();
+
+    [RelayCommand]
+    private void OpenHistory() => HistoryRequested?.Invoke(_recipe);
 
     [RelayCommand]
     private async Task AddImage()

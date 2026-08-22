@@ -6,7 +6,8 @@ public static class SeasonalityExtensions
 {
     public static IServiceCollection AddSeasonality(this IServiceCollection services)
     {
-        services.AddSingleton<ISeasonalityService, LocalJsonSeasonalityService>();
+        services.AddSingleton<ISeasonalityDataStore, SeasonalityDataStore>();
+        services.AddSingleton<ISeasonalityService, SeasonalityService>();
         return services;
     }
 }

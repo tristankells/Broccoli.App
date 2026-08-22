@@ -43,6 +43,8 @@ public class BroccoliDbContext : DbContext
 
     public DbSet<Food> Foods => Set<Food>();
 
+    public DbSet<ProduceItem> ProduceItems => Set<ProduceItem>();
+
     /// <summary>
     /// Convenience factory for runtime (non-design-time) code, pointing at the app's real
     /// local database file (<see cref="AppPaths.DatabaseFilePath"/>).
@@ -65,6 +67,26 @@ public class BroccoliDbContext : DbContext
         modelBuilder.Entity<Food>()
             .Property(f => f.Id)
             .ValueGeneratedNever();
+
+        // ProduceItem.Id is seeded from the embedded JSON, so EF must never assign it.
+        modelBuilder.Entity<ProduceItem>()
+            .Property(p => p.Id)
+            .ValueGeneratedNever();
+
+        // ProduceItem.Seasons and PeakSeasons are string lists -> store as JSON-encoded columns.
+        modelBuilder.Entity<ProduceItem>()
+            .Property(p => p.Seasons)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, JsonOptions),
+                v => JsonSerializer.Deserialize<List<string>>(v, JsonOptions) ?? new List<string>())
+            .Metadata.SetValueComparer(StringListComparer);
+
+        modelBuilder.Entity<ProduceItem>()
+            .Property(p => p.PeakSeasons)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, JsonOptions),
+                v => JsonSerializer.Deserialize<List<string>>(v, JsonOptions) ?? new List<string>())
+            .Metadata.SetValueComparer(StringListComparer);
 
         // MealPrepPlan.RecipeIds is a simple string list -> store as a JSON-encoded column.
         modelBuilder.Entity<MealPrepPlan>()

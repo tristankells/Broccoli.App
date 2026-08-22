@@ -28,7 +28,7 @@ Broccoli.Avalonia/
                                   TombstoneStore, Migrations/
     Shared/                     ← ViewModelBase, cross-slice messenger records (e.g. PantryListChangedMessage),
                                   XAML value converters (Shared/Converters/)
-    _Shared/IngredientParsing/  ← IFoodService, IngredientParserService, LocalJsonFoodService, ParsedIngredient, ...
+    _Shared/IngredientParsing/  ← IFoodService, IngredientParserService, FoodService, FoodDatabaseSeeder, ParsedIngredient, ...
     _Shared/Seasonality/        ← ISeasonalityService, LocalJsonSeasonalityService, SeasonHelper
     Slices/
         Groceries/              ← GroceriesView(+VM), AddToCartDialog, IGroceryListService, IngredientCartService
@@ -79,7 +79,7 @@ Each slice owns its views, view models, service interfaces, and implementations 
 
 ## Ingredient Parsing Pipeline
 
-`IngredientParserService.ParseAndMatchIngredientsAsync()` → regex parse → `LocalJsonFoodService.FindBestMatch()` (exact → stopword-stripped → token ratio → `FuzzySharp` WRatio). `FoodDatabase.json` is embedded as an `avares://` resource (`Assets/` is an `AvaloniaResource`) and loaded once at startup. Register via `services.AddIngredientParsing()`.
+`IngredientParserService.ParseAndMatchIngredientsAsync()` → regex parse → `FoodService.FindBestMatch()` (exact → stopword-stripped → token ratio → `FuzzySharp` WRatio). Foods live in SQLite (`Foods` table); `FoodDatabase.json` is embedded as an `avares://` resource and used only as the initial seed (and to reset the database from Settings). Register via `services.AddIngredientParsing()`.
 
 ## Seasonality
 
@@ -115,4 +115,4 @@ dotnet test Broccoli.Avalonia/Broccoli.Avalonia.UnitTests/Broccoli.Avalonia.Unit
 - `Broccoli.Avalonia/Shell/MainViewModel.cs` — nav items + selection state
 - `Broccoli.Avalonia/Storage/BroccoliDbContext.cs` — SQLite schema
 - `Broccoli.Avalonia/Storage/RecipeMarkdownStore.cs` — recipe persistence format
-- `Broccoli.Avalonia/_Shared/IngredientParsing/LocalJsonFoodService.cs` — fuzzy matching thresholds
+- `Broccoli.Avalonia/_Shared/IngredientParsing/FoodService.cs` — SQLite-backed food store + fuzzy matching thresholds

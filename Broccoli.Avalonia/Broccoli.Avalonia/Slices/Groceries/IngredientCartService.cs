@@ -32,18 +32,8 @@ public class IngredientCartService(
         return BuildLine(qty, unit, food);
     }
 
-    public static string BuildLine(double qty, string unit, string food)
-    {
-        string qtyStr = qty.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
-
-        if (string.IsNullOrEmpty(unit))
-        {
-            return $"{qtyStr} {food}";
-        }
-
-        bool attach = unit is "g" or "kg" or "ml" or "l";
-        return attach ? $"{qtyStr}{unit} {food}" : $"{qtyStr} {unit} {food}";
-    }
+    public static string BuildLine(double qty, string unit, string food) =>
+        IngredientLineFormatter.Build(qty, unit, food);
 
     public void AddToCart(IEnumerable<string> selectedLines)
     {

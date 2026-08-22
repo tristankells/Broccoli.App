@@ -12,6 +12,13 @@ public interface IFoodService
 
     FoodMatchResult FindBestMatch(string foodDescription);
 
+    IReadOnlyList<FoodMatchResult> FindMatches(string foodDescription, int maxResults = 10);
+
+    /// <summary>Ranks a single candidate food name against an ingredient description, for live "will this still match?" feedback.</summary>
+    FoodMatchResult ScoreMatch(string ingredientDescription, string candidateName);
+
+    void ResetToSeed();
+
     Food Add(Food food);
 
     void Update(Food food);

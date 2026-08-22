@@ -1,4 +1,5 @@
 using Broccoli.Avalonia.IngredientParsing;
+using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -10,6 +11,16 @@ public partial class ParsedIngredientRow : ViewModelBase
     private bool _isMatched;
     [ObservableProperty]
     private string _foodName = string.Empty;
+    [ObservableProperty]
+    private string _foodDescription = string.Empty;
+    [ObservableProperty]
+    private string _canonicalUnit = string.Empty;
+    [ObservableProperty]
+    private string _matchMethod = string.Empty;
+    [ObservableProperty]
+    private double _matchScore;
+    [ObservableProperty]
+    private MatchConfidence _confidence;
     [ObservableProperty]
     private string _originalLine = string.Empty;
     [ObservableProperty]
@@ -32,8 +43,17 @@ public partial class ParsedIngredientRow : ViewModelBase
     [ObservableProperty]
     private bool _isTopFat;
 
+    public Food? MatchedFood { get; set; }
+
     public bool ShowOriginalLine => IsMatched && !string.Equals(
         OriginalLine, FoodName, StringComparison.OrdinalIgnoreCase);
+
+    public bool ShowReviewIndicator => !IsMatched || !string.Equals(
+        MatchMethod, "Exact", StringComparison.OrdinalIgnoreCase);
+
+    public string MatchQualityLabel => IsMatched && !string.Equals(MatchMethod, "Exact", StringComparison.OrdinalIgnoreCase)
+        ? $"{MatchMethod} {MatchScore * 100:0}%"
+        : string.Empty;
 
     public string DisplayText => IsMatched
         ? $"{QuantityDisplay} {FoodName}"
@@ -47,7 +67,13 @@ public partial class ParsedIngredientRow : ViewModelBase
             FoodName = match.IsMatched
                 ? match.MatchedFood!.Name
                 : match.ParsedIngredient.FoodDescription,
+            FoodDescription = match.ParsedIngredient.FoodDescription,
+            CanonicalUnit = match.ParsedIngredient.CanonicalUnit,
+            MatchMethod = match.MatchMethod,
+            MatchScore = match.MatchScore,
+            Confidence = match.Confidence,
             OriginalLine = match.ParsedIngredient.RawLine,
+            MatchedFood = match.MatchedFood,
             QuantityDisplay = match.GetQuantityDisplay(),
             CaloriesText = match.IsMatched ? $"{match.GetCalories():0} kcal" : "—",
             ProteinText = match.IsMatched ? $"P:{match.GetProtein():0.0}g" : "—",

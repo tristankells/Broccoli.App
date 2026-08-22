@@ -36,5 +36,11 @@
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
     <PackageReference Include="YamlDotNet" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Slices\Recipes\UsdaSearchDialog.axaml.cs">
+      <DependentUpon>UsdaSearchDialog.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
   
 </Project>

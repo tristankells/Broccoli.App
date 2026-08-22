@@ -38,9 +38,12 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [ObservableProperty]
     private int _usdaPage = 1;
 
+    [ObservableProperty]
+    private bool _isConfirmingReset;
+
     public FoodDatabaseViewModel()
         : this(
-        new LocalJsonFoodService(), null, null)
+        new FoodService(), null, null)
     {
     }
 
@@ -122,6 +125,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             Name = food.Name,
             Measure = food.Measure,
             GramsPerMeasure = food.GramsPerMeasure,
+            IsCustom = food.IsCustom,
             CaloriesPer100g = food.CaloriesPer100g,
             FatPer100g = food.FatPer100g,
             ProteinPer100g = food.ProteinPer100g,
@@ -176,6 +180,30 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         catch (Exception ex)
         {
             ErrorMessage = $"Failed to delete: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void RequestReset() => IsConfirmingReset = true;
+
+    [RelayCommand]
+    private void CancelReset() => IsConfirmingReset = false;
+
+    [RelayCommand]
+    private void ConfirmReset()
+    {
+        try
+        {
+            _foodService.ResetToSeed();
+            Load();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Reset failed: {ex.Message}";
+        }
+        finally
+        {
+            IsConfirmingReset = false;
         }
     }
 

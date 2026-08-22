@@ -41,6 +41,8 @@ public class BroccoliDbContext : DbContext
 
     public DbSet<DailyFoodPlan> DailyFoodPlans => Set<DailyFoodPlan>();
 
+    public DbSet<Food> Foods => Set<Food>();
+
     /// <summary>
     /// Convenience factory for runtime (non-design-time) code, pointing at the app's real
     /// local database file (<see cref="AppPaths.DatabaseFilePath"/>).
@@ -58,6 +60,11 @@ public class BroccoliDbContext : DbContext
     {
         modelBuilder.Entity<GroceryListItem>().Ignore(x => x.IsEditing);
         modelBuilder.Entity<GroceryListItem>().Ignore(x => x.EditText);
+
+        // Food.Id is seeded from the embedded JSON, so EF must never assign it.
+        modelBuilder.Entity<Food>()
+            .Property(f => f.Id)
+            .ValueGeneratedNever();
 
         // MealPrepPlan.RecipeIds is a simple string list -> store as a JSON-encoded column.
         modelBuilder.Entity<MealPrepPlan>()

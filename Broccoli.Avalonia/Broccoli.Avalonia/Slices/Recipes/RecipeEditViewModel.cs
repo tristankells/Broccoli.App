@@ -358,6 +358,68 @@ public partial class RecipeEditViewModel : ViewModelBase
     private void OpenHistory() => HistoryRequested?.Invoke(_recipe);
 
     [RelayCommand]
+    private void ResolveIngredient(ParsedIngredientRow row)
+    {
+        if (_foodService is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<FoodMatchResult> matches = _foodService.FindMatches(row.FoodDescription, 10);
+        var dialogViewModel = new IngredientFoodDialogViewModel(
+            _foodService,
+            row.FoodDescription,
+            matches,
+            row.MatchedFood)
+        {
+            FoodSelected = food => ApplyFoodFix(row, food),
+        };
+
+        var dialog = new IngredientFoodDialog { DataContext = dialogViewModel };
+        dialog.Show();
+    }
+
+    private void ApplyFoodFix(ParsedIngredientRow row, Food selectedFood)
+    {
+        bool selectionChanged = row.MatchedFood is null ||
+            selectedFood.Id != row.MatchedFood.Id ||
+            !string.Equals(selectedFood.Name, row.MatchedFood.Name, StringComparison.OrdinalIgnoreCase);
+
+        if (selectionChanged)
+        {
+            ApplyMatchFix(row, selectedFood);
+        }
+        else
+        {
+            ParseIngredients();
+        }
+    }
+
+    private void ApplyMatchFix(ParsedIngredientRow row, Food food)
+    {
+        if (_parser is null)
+        {
+            return;
+        }
+
+        string[] lines = Ingredients.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            ParsedIngredient? parsed = _parser.ParseLine(lines[i].TrimEnd('\r'));
+            if (parsed is null ||
+                !string.Equals(parsed.FoodDescription, row.FoodDescription, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(parsed.CanonicalUnit, row.CanonicalUnit, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            lines[i] = IngredientLineFormatter.Build(parsed.Quantity, parsed.CanonicalUnit, food.Name);
+        }
+
+        Ingredients = string.Join("\n", lines);
+    }
+
+    [RelayCommand]
     private async Task AddImage()
     {
         if (PickImageFileAsync is null)

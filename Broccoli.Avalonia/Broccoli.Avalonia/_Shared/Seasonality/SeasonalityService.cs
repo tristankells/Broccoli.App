@@ -50,11 +50,11 @@ public class SeasonalityService : ISeasonalityService
     private readonly ISeasonalityDataStore _dataStore;
     private readonly object _gate = new();
     private Dictionary<string, ProduceItem> _produceByNormalisedName = new(StringComparer.OrdinalIgnoreCase);
+    private bool _loaded;
 
     public SeasonalityService(ISeasonalityDataStore dataStore)
     {
         _dataStore = dataStore;
-        Reload();
         WeakReferenceMessenger.Default.Register<SeasonalityDataChangedMessage>(this, (_, _) => Reload());
     }
 
@@ -86,11 +86,7 @@ public class SeasonalityService : ISeasonalityService
     public SeasonalityResult Score(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf = null)
     {
         string season = SeasonHelper.GetCurrentSeason(asOf ?? DateTime.Now);
-        Dictionary<string, ProduceItem> lookup;
-        lock (_gate)
-        {
-            lookup = _produceByNormalisedName;
-        }
+        Dictionary<string, ProduceItem> lookup = GetLookup();
 
         var matched = new List<(ProduceItem Produce, double Grams)>();
         foreach (ParsedIngredientMatch m in matches)
@@ -134,10 +130,45 @@ public class SeasonalityService : ISeasonalityService
 
     private void Reload()
     {
-        List<ProduceItem> items = _dataStore.GetAll();
         lock (_gate)
         {
+            _loaded = false;
+            LoadLocked();
+        }
+    }
+
+    /// <summary>
+    /// Returns the current produce lookup, loading it from the store on first use. Loading is
+    /// deferred (rather than done in the constructor) so the singleton can be resolved before the
+    /// database has been migrated at startup without touching the not-yet-created tables. A failed
+    /// load is retried on the next call, so a pre-migration score naturally recovers afterwards.
+    /// </summary>
+    private Dictionary<string, ProduceItem> GetLookup()
+    {
+        lock (_gate)
+        {
+            LoadLocked();
+            return _produceByNormalisedName;
+        }
+    }
+
+    private void LoadLocked()
+    {
+        if (_loaded)
+        {
+            return;
+        }
+
+        try
+        {
+            List<ProduceItem> items = _dataStore.GetAll();
             _produceByNormalisedName = BuildLookup(items);
+            _loaded = true;
+        }
+        catch (Exception)
+        {
+            // Database not ready yet (e.g. first run before migrations apply) - keep the previous
+            // dataset and retry on the next score; nothing to match against yet.
         }
     }
 

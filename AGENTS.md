@@ -29,10 +29,11 @@ Broccoli.Avalonia/
     Shared/                     ← ViewModelBase, cross-slice messenger records (e.g. PantryListChangedMessage),
                                   XAML value converters (Shared/Converters/)
     _Shared/IngredientParsing/  ← IFoodService, IngredientParserService, FoodService, FoodDatabaseSeeder, ParsedIngredient, ...
-    _Shared/Seasonality/        ← ISeasonalityService, LocalJsonSeasonalityService, SeasonHelper
+    _Shared/Seasonality/        ← ISeasonalityService, SeasonalityService, SeasonalityDataStore, ProduceSeeder, SeasonHelper
     Slices/
         Groceries/              ← GroceriesView(+VM), AddToCartDialog, IGroceryListService, IngredientCartService
         Pantry/                 ← PantryView(+VM), IPantryService, PantryService
+        Seasonality/            ← SeasonalityView(+VM), ProduceItemRowViewModel (editable seasonality data tab)
         Planning/               ← PlanningPageView, MacroTargetsView, DayPlanView, MealPrepView + services
         Recipes/                ← RecipeListPageView, RecipeDetailView, RecipeEditView, IRecipeService, RecipeService
             Import/             ← ImportDialog, IImportFormat (PaprikaHtmlImportFormat, BargainBoxPasteImportFormat), RecipeImportService
@@ -83,7 +84,7 @@ Each slice owns its views, view models, service interfaces, and implementations 
 
 ## Seasonality
 
-`LocalJsonSeasonalityService` reads the embedded `Assets/nz-produce.json`; `SeasonHelper` answers "is this in season". Register via `services.AddSeasonality()`.
+Produce data lives in SQLite (`ProduceItems` table), seeded once from the embedded `Assets/nz-produce.json` via `ProduceSeeder` (the JSON is never the live store). `SeasonalityService` scores recipe ingredients against that data and reloads its cache when `SeasonalityDataChangedMessage` is raised. `SeasonHelper` answers "is this in season". The Seasonality nav tab (Slices/Seasonality, hideable from Settings > Seasonality) edits the dataset. Register via `services.AddSeasonality()`.
 
 ## Google Drive Sync (Settings > Sync)
 

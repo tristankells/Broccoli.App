@@ -6,6 +6,7 @@ using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes;
 using Broccoli.Avalonia.Slices.Recipes.Import;
+using Broccoli.Avalonia.Slices.Seasonality;
 using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
 using Broccoli.Avalonia.Storage;
@@ -56,6 +57,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<PlanningPageViewModel>();
         services.AddSingleton<GroceriesViewModel>();
         services.AddSingleton<PantryViewModel>();
+        services.AddSingleton<SeasonalityViewModel>();
 
         // SettingsViewModel is registered normally, but MainViewModel only ever depends on the
         // Lazy<T> wrapper below, so it isn't constructed - and doesn't touch the file system to
@@ -63,6 +65,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<FoodDatabaseViewModel>();
         services.AddSingleton<RecipeSettingsViewModel>();
+        services.AddSingleton<SeasonalitySettingsViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
         services.AddSingleton(serviceProvider => new Lazy<SettingsViewModel>(() => serviceProvider.GetRequiredService<SettingsViewModel>()));
 
@@ -72,6 +75,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(serviceProvider => new Lazy<PlanningPageViewModel>(() => serviceProvider.GetRequiredService<PlanningPageViewModel>()));
         services.AddSingleton(serviceProvider => new Lazy<GroceriesViewModel>(() => serviceProvider.GetRequiredService<GroceriesViewModel>()));
         services.AddSingleton(serviceProvider => new Lazy<PantryViewModel>(() => serviceProvider.GetRequiredService<PantryViewModel>()));
+        services.AddSingleton(serviceProvider => new Lazy<SeasonalityViewModel>(() => serviceProvider.GetRequiredService<SeasonalityViewModel>()));
         services.AddSingleton(serviceProvider => new Lazy<SettingsPageViewModel>(() => serviceProvider.GetRequiredService<SettingsPageViewModel>()));
 
         services.AddSingleton<MainViewModel>();

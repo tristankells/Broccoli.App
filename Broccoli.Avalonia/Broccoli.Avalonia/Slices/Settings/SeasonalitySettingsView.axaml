@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Settings"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+             x:Class="Broccoli.Avalonia.Slices.Settings.SeasonalitySettingsView"
+             x:DataType="vm:SeasonalitySettingsViewModel">
+    <Design.DataContext>
+        <vm:SeasonalitySettingsViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16" MaxWidth="500">
+            <TextBlock Text="Seasonality" FontWeight="Bold" FontSize="16" />
+
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="6">
+                    <CheckBox IsChecked="{Binding ShowSeasonalityNavItem}">
+                        <TextBlock Text="Show Seasonality tab in navigation" TextWrapping="Wrap" />
+                    </CheckBox>
+                    <TextBlock Text="Uncheck to hide the Seasonality page from the sidebar. Edits you have made to the produce data are kept either way."
+                               FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="Gray"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <Button Content="Save Settings" Command="{Binding SaveCommand}" Classes="accent"
+                    HorizontalAlignment="Left" Padding="12,6" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

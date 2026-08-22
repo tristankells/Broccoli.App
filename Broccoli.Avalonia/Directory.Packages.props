@@ -16,6 +16,7 @@
     <PackageVersion Include="Avalonia.Browser" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Android" Version="12.1.1" />
     <PackageVersion Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
+    <PackageVersion Include="Avalonia.Headless" Version="12.1.1" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
     <PackageVersion Include="AngleSharp" Version="1.2.0" />

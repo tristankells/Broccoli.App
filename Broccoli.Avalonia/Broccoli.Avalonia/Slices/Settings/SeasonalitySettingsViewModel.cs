@@ -42,6 +42,6 @@ public partial class SeasonalitySettingsViewModel : ViewModelBase
         settings.ShowSeasonalityNavItem = ShowSeasonalityNavItem;
         _macroService.SaveSettings(settings);
         StatusMessage = "Saved.";
-        WeakReferenceMessenger.Default.Send(new NavVisibilityChangedMessage());
+        WeakReferenceMessenger.Default.Send(new NavVisibilityChangedMessage(ShowSeasonalityNavItem));
     }
 }

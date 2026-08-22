@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Seasonality"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="450"
+             x:Class="Broccoli.Avalonia.Slices.Seasonality.SeasonalityView"
+             x:DataType="vm:SeasonalityViewModel">
+    <Design.DataContext>
+        <vm:SeasonalityViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top" Text="Seasonality" FontSize="22" FontWeight="Bold" Margin="0,0,0,12" />
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,0,0,8" />
+
+        <!-- Month / filter / add controls -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Month" VerticalAlignment="Center" FontSize="12" />
+                <ComboBox ItemsSource="{Binding MonthNames}" SelectedIndex="{Binding SelectedMonthIndex}" MinWidth="120" FontSize="12" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="Type" VerticalAlignment="Center" FontSize="12" />
+                <ComboBox ItemsSource="{Binding TypeFilters}" SelectedIndex="{Binding SelectedTypeFilterIndex}" MinWidth="100" FontSize="12" />
+            </StackPanel>
+            <TextBox Text="{Binding SearchText}" PlaceholderText="Search..." Width="160" VerticalContentAlignment="Center" FontSize="12" />
+            <Button Content="Add" Command="{Binding AddItemCommand}" Padding="16,6" />
+            <Button Content="Reset to defaults" Command="{Binding ResetDataCommand}" Padding="16,6" />
+        </StackPanel>
+
+        <!-- Current season banner -->
+        <Border DockPanel.Dock="Top" Padding="12" CornerRadius="4"
+                Background="{DynamicResource AppSidebarBackgroundBrush}" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="{Binding SeasonBannerText}" FontWeight="SemiBold" FontSize="14" />
+                <TextBlock Text="·" Foreground="Gray" />
+                <TextBlock FontSize="12" Foreground="Gray" VerticalAlignment="Center">
+                    <Run Text="{Binding InSeasonCount, Mode=OneWay}" />
+                    <Run Text="of" />
+                    <Run Text="{Binding TotalCount, Mode=OneWay}" />
+                    <Run Text="items in season" />
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Inline editor -->
+        <Border DockPanel.Dock="Top" Padding="12" CornerRadius="4"
+                Background="{DynamicResource AppSidebarBackgroundBrush}" Margin="0,0,0,12"
+                IsVisible="{Binding IsEditing}">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding EditorTitle}" FontWeight="SemiBold" />
+
+                <Grid ColumnDefinitions="*,140">
+                    <TextBox Grid.Column="0" Text="{Binding EditingRow.Name, Mode=TwoWay}"
+                             PlaceholderText="Name (e.g. Feijoa)" VerticalContentAlignment="Center" />
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding Types}"
+                              SelectedItem="{Binding EditingRow.Type, Mode=TwoWay}"
+                              Margin="8,0" FontSize="12" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <CheckBox IsChecked="{Binding EditingRow.InSpring, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
+                        <TextBlock Text="Spring" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding EditingRow.InSummer, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
+                        <TextBlock Text="Summer" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding EditingRow.InAutumn, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
+                        <TextBlock Text="Autumn" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding EditingRow.InWinter, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
+                        <TextBlock Text="Winter" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding EditingRow.YearRound, Mode=TwoWay}">
+                        <TextBlock Text="Year-round" />
+                    </CheckBox>
+                </StackPanel>
+
+                <TextBox Text="{Binding EditingRow.Notes, Mode=TwoWay}" PlaceholderText="Notes (optional)"
+                         AcceptsReturn="True" MinHeight="50" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Save" Command="{Binding SaveEditCommand}" Classes="accent" Padding="16,6" />
+                    <Button Content="Cancel" Command="{Binding CancelEditCommand}" Padding="16,6" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer>
+            <StackPanel Spacing="4">
+                <ItemsControl ItemsSource="{Binding FilteredItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ProduceItemRowViewModel">
+                            <Border Margin="0,1" Padding="10,6" CornerRadius="2"
+                                    BorderBrush="{Binding SeasonColor}" BorderThickness="3,0,0,0">
+                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                                    <Ellipse Grid.Column="0" Fill="{Binding SeasonColor}" Width="10" Height="10"
+                                             VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding TypeLabel}" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding SeasonSummary}" FontSize="12"
+                                               Foreground="Gray" VerticalAlignment="Center" Margin="12,0" />
+                                    <TextBlock Grid.Column="3" Text="{Binding SeasonStatus}" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{Binding SeasonColor}" VerticalAlignment="Center" Margin="8,0" />
+                                    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                        <Button Content="Edit" Padding="6,2" FontSize="11"
+                                                Command="{Binding $parent[ItemsControl].((vm:SeasonalityViewModel)DataContext).StartEditCommand}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Content="Delete" Padding="6,2" FontSize="11"
+                                                Command="{Binding $parent[ItemsControl].((vm:SeasonalityViewModel)DataContext).DeleteItemCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="No produce items match the current filters."
+                           Foreground="Gray" HorizontalAlignment="Center" FontSize="13"
+                           IsVisible="{Binding !FilteredItems.Count}" Margin="0,24,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

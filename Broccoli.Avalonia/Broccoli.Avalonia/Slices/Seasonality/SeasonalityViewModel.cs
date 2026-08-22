@@ -11,6 +11,7 @@ namespace Broccoli.Avalonia.Slices.Seasonality;
 public partial class SeasonalityViewModel : ViewModelBase
 {
     private readonly ISeasonalityDataStore _store;
+    private bool _suppressReload;
 
     public static IReadOnlyList<string> MonthNames { get; } =
     [
@@ -19,8 +20,6 @@ public partial class SeasonalityViewModel : ViewModelBase
     ];
 
     public static IReadOnlyList<string> TypeFilters { get; } = ["All", "Fruit", "Vegetable"];
-
-    public static IReadOnlyList<string> Types { get; } = ["fruit", "vegetable"];
 
     public ObservableCollection<ProduceItemRowViewModel> Items { get; } = new();
 
@@ -34,12 +33,6 @@ public partial class SeasonalityViewModel : ViewModelBase
 
     [ObservableProperty]
     private int _selectedTypeFilterIndex;
-
-    [ObservableProperty]
-    private bool _isEditing;
-
-    [ObservableProperty]
-    private ProduceItemRowViewModel? _editingRow;
 
     [ObservableProperty]
     private string? _errorMessage;
@@ -60,10 +53,14 @@ public partial class SeasonalityViewModel : ViewModelBase
         _store = store;
         SelectedMonthIndex = DateTime.Today.Month - 1;
         Load();
-        WeakReferenceMessenger.Default.Register<SeasonalityDataChangedMessage>(this, (_, _) => Load());
+        WeakReferenceMessenger.Default.Register<SeasonalityDataChangedMessage>(this, (_, _) =>
+        {
+            if (!_suppressReload)
+            {
+                Load();
+            }
+        });
     }
-
-    public string EditorTitle => EditingRow?.IsNewItem == true ? "Add produce item" : "Edit produce item";
 
     public string CurrentMonthName => MonthNames[SelectedMonthIndex];
 
@@ -87,93 +84,20 @@ public partial class SeasonalityViewModel : ViewModelBase
 
     partial void OnSelectedTypeFilterIndexChanged(int value) => ApplyFilters();
 
-    partial void OnEditingRowChanged(ProduceItemRowViewModel? value) => OnPropertyChanged(nameof(EditorTitle));
-
     [RelayCommand]
     private void AddItem()
     {
-        var item = new ProduceItem { Type = "fruit" };
-        EditingRow = new ProduceItemRowViewModel(item, isNewItem: true);
-        IsEditing = true;
-        ErrorMessage = null;
-    }
-
-    [RelayCommand]
-    private void StartEdit(ProduceItemRowViewModel? row)
-    {
-        if (row is null)
+        var item = new ProduceItem { Id = GenerateId("new-item"), Name = "New item", Type = "fruit" };
+        try
         {
-            return;
+            RunSuppressed(() => _store.Add(item));
+            ErrorMessage = null;
+            Load();
         }
-
-        EditingRow = row;
-        IsEditing = true;
-        ErrorMessage = null;
-    }
-
-    [RelayCommand]
-    private void CancelEdit()
-    {
-        IsEditing = false;
-        EditingRow = null;
-        ErrorMessage = null;
-    }
-
-    [RelayCommand]
-    private void SaveEdit()
-    {
-        if (EditingRow is null)
+        catch (Exception ex)
         {
-            return;
+            ErrorMessage = $"Failed to add: {ex.Message}";
         }
-
-        ProduceItemRowViewModel row = EditingRow;
-        if (string.IsNullOrWhiteSpace(row.Name))
-        {
-            ErrorMessage = "Name is required.";
-            return;
-        }
-
-        ErrorMessage = null;
-
-        row.Item.Name = row.Name.Trim();
-        row.Item.Type = string.Equals(row.Type, "vegetable", StringComparison.OrdinalIgnoreCase) ? "vegetable" : "fruit";
-        row.Item.YearRound = row.YearRound;
-        row.Item.Notes = string.IsNullOrWhiteSpace(row.Notes) ? null : row.Notes.Trim();
-        row.Item.Seasons = new List<string>();
-        if (row.InSpring)
-        {
-            row.Item.Seasons.Add("spring");
-        }
-
-        if (row.InSummer)
-        {
-            row.Item.Seasons.Add("summer");
-        }
-
-        if (row.InAutumn)
-        {
-            row.Item.Seasons.Add("autumn");
-        }
-
-        if (row.InWinter)
-        {
-            row.Item.Seasons.Add("winter");
-        }
-
-        if (row.IsNewItem)
-        {
-            row.Item.Id = GenerateId(row.Item.Name);
-            _store.Add(row.Item);
-        }
-        else
-        {
-            _store.Update(row.Item);
-        }
-
-        IsEditing = false;
-        EditingRow = null;
-        Load();
     }
 
     [RelayCommand]
@@ -184,15 +108,58 @@ public partial class SeasonalityViewModel : ViewModelBase
             return;
         }
 
-        _store.Delete(row.Item.Id);
-        Load();
+        try
+        {
+            RunSuppressed(() => _store.Delete(row.Item.Id));
+            ErrorMessage = null;
+            Load();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to delete: {ex.Message}";
+        }
     }
 
     [RelayCommand]
     private void ResetData()
     {
-        _store.Reset();
-        Load();
+        try
+        {
+            RunSuppressed(() => _store.Reset());
+            ErrorMessage = null;
+            Load();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to reset: {ex.Message}";
+        }
+    }
+
+    private void SaveRow(ProduceItemRowViewModel row)
+    {
+        try
+        {
+            RunSuppressed(() => _store.Update(row.Item));
+            ErrorMessage = null;
+            RefreshSeason();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to save: {ex.Message}";
+        }
+    }
+
+    private void RunSuppressed(Action action)
+    {
+        _suppressReload = true;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            _suppressReload = false;
+        }
     }
 
     private void Load()
@@ -200,7 +167,7 @@ public partial class SeasonalityViewModel : ViewModelBase
         Items.Clear();
         foreach (ProduceItem item in _store.GetAll())
         {
-            Items.Add(new ProduceItemRowViewModel(item, isNewItem: false));
+            Items.Add(new ProduceItemRowViewModel(item, SaveRow));
         }
 
         RefreshSeason();
@@ -237,7 +204,7 @@ public partial class SeasonalityViewModel : ViewModelBase
         if (!string.IsNullOrWhiteSpace(SearchText))
         {
             string search = SearchText.Trim();
-            query = query.Where(r => r.DisplayName.Contains(search, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
         FilteredItems.Clear();

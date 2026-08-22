@@ -47,76 +47,64 @@
             </StackPanel>
         </Border>
 
-        <!-- Inline editor -->
-        <Border DockPanel.Dock="Top" Padding="12" CornerRadius="4"
-                Background="{DynamicResource AppSidebarBackgroundBrush}" Margin="0,0,0,12"
-                IsVisible="{Binding IsEditing}">
-            <StackPanel Spacing="8">
-                <TextBlock Text="{Binding EditorTitle}" FontWeight="SemiBold" />
-
-                <Grid ColumnDefinitions="*,140">
-                    <TextBox Grid.Column="0" Text="{Binding EditingRow.Name, Mode=TwoWay}"
-                             PlaceholderText="Name (e.g. Feijoa)" VerticalContentAlignment="Center" />
-                    <ComboBox Grid.Column="1" ItemsSource="{Binding Types}"
-                              SelectedItem="{Binding EditingRow.Type, Mode=TwoWay}"
-                              Margin="8,0" FontSize="12" />
-                </Grid>
-
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <CheckBox IsChecked="{Binding EditingRow.InSpring, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
-                        <TextBlock Text="Spring" />
-                    </CheckBox>
-                    <CheckBox IsChecked="{Binding EditingRow.InSummer, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
-                        <TextBlock Text="Summer" />
-                    </CheckBox>
-                    <CheckBox IsChecked="{Binding EditingRow.InAutumn, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
-                        <TextBlock Text="Autumn" />
-                    </CheckBox>
-                    <CheckBox IsChecked="{Binding EditingRow.InWinter, Mode=TwoWay}" IsEnabled="{Binding EditingRow.CanEditSeasons}">
-                        <TextBlock Text="Winter" />
-                    </CheckBox>
-                    <CheckBox IsChecked="{Binding EditingRow.YearRound, Mode=TwoWay}">
-                        <TextBlock Text="Year-round" />
-                    </CheckBox>
-                </StackPanel>
-
-                <TextBox Text="{Binding EditingRow.Notes, Mode=TwoWay}" PlaceholderText="Notes (optional)"
-                         AcceptsReturn="True" MinHeight="50" />
-
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="Save" Command="{Binding SaveEditCommand}" Classes="accent" Padding="16,6" />
-                    <Button Content="Cancel" Command="{Binding CancelEditCommand}" Padding="16,6" />
-                </StackPanel>
-            </StackPanel>
-        </Border>
-
         <ScrollViewer>
             <StackPanel Spacing="4">
+                <!-- Column header -->
+                <Grid ColumnDefinitions="Auto,*,110,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" Margin="8,0,8,2">
+                    <TextBlock Grid.Column="0" Width="18" />
+                    <TextBlock Grid.Column="1" Text="Name" FontSize="10" Foreground="Gray" />
+                    <TextBlock Grid.Column="2" Text="Type" FontSize="10" Foreground="Gray" />
+                    <TextBlock Grid.Column="3" Text="Spring" FontSize="10" Foreground="Gray" />
+                    <TextBlock Grid.Column="4" Text="Summer" FontSize="10" Foreground="Gray" />
+                    <TextBlock Grid.Column="5" Text="Autumn" FontSize="10" Foreground="Gray" />
+                    <TextBlock Grid.Column="6" Text="Winter" FontSize="10" Foreground="Gray" />
+                    <TextBlock Grid.Column="7" Text="Year-round" FontSize="10" Foreground="Gray" />
+                </Grid>
+
                 <ItemsControl ItemsSource="{Binding FilteredItems}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:ProduceItemRowViewModel">
-                            <Border Margin="0,1" Padding="10,6" CornerRadius="2"
+                            <Border Margin="0,1" Padding="8,4" CornerRadius="2"
                                     BorderBrush="{Binding SeasonColor}" BorderThickness="3,0,0,0">
-                                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
-                                    <Ellipse Grid.Column="0" Fill="{Binding SeasonColor}" Width="10" Height="10"
-                                             VerticalAlignment="Center" Margin="0,0,8,0" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding TypeLabel}" FontSize="11" Foreground="Gray" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="2" Text="{Binding SeasonSummary}" FontSize="12"
-                                               Foreground="Gray" VerticalAlignment="Center" Margin="12,0" />
-                                    <TextBlock Grid.Column="3" Text="{Binding SeasonStatus}" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{Binding SeasonColor}" VerticalAlignment="Center" Margin="8,0" />
-                                    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-                                        <Button Content="Edit" Padding="6,2" FontSize="11"
-                                                Command="{Binding $parent[ItemsControl].((vm:SeasonalityViewModel)DataContext).StartEditCommand}"
-                                                CommandParameter="{Binding}" />
-                                        <Button Content="Delete" Padding="6,2" FontSize="11"
+                                <StackPanel Spacing="2">
+                                    <Grid ColumnDefinitions="Auto,*,110,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+                                        <Ellipse Grid.Column="0" Fill="{Binding SeasonColor}" Width="10" Height="10"
+                                                 VerticalAlignment="Center" />
+                                        <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
+                                                 VerticalContentAlignment="Center" FontSize="12" />
+                                        <ComboBox Grid.Column="2" ItemsSource="{Binding TypeOptions}"
+                                                  SelectedItem="{Binding Type, Mode=TwoWay}" FontSize="11"
+                                                  VerticalContentAlignment="Center" />
+                                        <CheckBox Grid.Column="3" IsChecked="{Binding InSpring, Mode=TwoWay}"
+                                                  IsEnabled="{Binding CanEditSeasons}" VerticalAlignment="Center">
+                                            <TextBlock Text="Spring" FontSize="11" />
+                                        </CheckBox>
+                                        <CheckBox Grid.Column="4" IsChecked="{Binding InSummer, Mode=TwoWay}"
+                                                  IsEnabled="{Binding CanEditSeasons}" VerticalAlignment="Center">
+                                            <TextBlock Text="Summer" FontSize="11" />
+                                        </CheckBox>
+                                        <CheckBox Grid.Column="5" IsChecked="{Binding InAutumn, Mode=TwoWay}"
+                                                  IsEnabled="{Binding CanEditSeasons}" VerticalAlignment="Center">
+                                            <TextBlock Text="Autumn" FontSize="11" />
+                                        </CheckBox>
+                                        <CheckBox Grid.Column="6" IsChecked="{Binding InWinter, Mode=TwoWay}"
+                                                  IsEnabled="{Binding CanEditSeasons}" VerticalAlignment="Center">
+                                            <TextBlock Text="Winter" FontSize="11" />
+                                        </CheckBox>
+                                        <CheckBox Grid.Column="7" IsChecked="{Binding YearRound, Mode=TwoWay}" VerticalAlignment="Center">
+                                            <TextBlock Text="Year-round" FontSize="11" />
+                                        </CheckBox>
+                                        <Button Grid.Column="8" Padding="4" VerticalAlignment="Center"
                                                 Command="{Binding $parent[ItemsControl].((vm:SeasonalityViewModel)DataContext).DeleteItemCommand}"
-                                                CommandParameter="{Binding}" />
-                                    </StackPanel>
-                                </Grid>
+                                                CommandParameter="{Binding}">
+                                            <PathIcon Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                                      Width="10" Height="10" Foreground="Red" />
+                                        </Button>
+                                    </Grid>
+                                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=LostFocus}"
+                                             PlaceholderText="Notes..." FontSize="11" MinHeight="24"
+                                             Margin="18,0,0,0" />
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

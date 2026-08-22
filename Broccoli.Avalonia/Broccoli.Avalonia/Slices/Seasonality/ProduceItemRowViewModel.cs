@@ -5,11 +5,16 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace Broccoli.Avalonia.Slices.Seasonality;
 
 /// <summary>
-/// A single produce item shown on the Seasonality page. Holds both the read-only display state
-/// (in-season highlight for the selected month) and the editable fields used by the inline editor.
+/// A single produce item shown on the Seasonality page. Every editable field (name, type, seasons,
+/// year-round, notes) is bound directly to the row's controls and persisted to the store via the
+/// save callback as it changes, so no separate edit mode is needed.
 /// </summary>
 public partial class ProduceItemRowViewModel : ViewModelBase
 {
+    private static readonly string[] s_typeOptions = ["fruit", "vegetable"];
+
+    private readonly Action<ProduceItemRowViewModel>? _saveRequested;
+
     [ObservableProperty]
     private string _name;
 
@@ -38,10 +43,10 @@ public partial class ProduceItemRowViewModel : ViewModelBase
     [ObservableProperty]
     private string _season = string.Empty;
 
-    public ProduceItemRowViewModel(ProduceItem item, bool isNewItem)
+    public ProduceItemRowViewModel(ProduceItem item, Action<ProduceItemRowViewModel>? saveRequested)
     {
         Item = item;
-        IsNewItem = isNewItem;
+        _saveRequested = saveRequested;
         _name = item.Name;
         _type = item.Type;
         _yearRound = item.YearRound;
@@ -54,36 +59,12 @@ public partial class ProduceItemRowViewModel : ViewModelBase
 
     public ProduceItem Item { get; }
 
-    /// <summary>True for a not-yet-persisted item being created through the editor.</summary>
-    public bool IsNewItem { get; }
-
-    public string DisplayName => Item.Name;
-
-    public string TypeLabel => string.Equals(Item.Type, "fruit", StringComparison.OrdinalIgnoreCase) ? "Fruit" : "Vegetable";
+    /// <summary>Choices for the type column ("fruit" / "vegetable").</summary>
+    public IReadOnlyList<string> TypeOptions => s_typeOptions;
 
     public bool IsInSeason => Item.YearRound || Item.Seasons.Contains(Season, StringComparer.OrdinalIgnoreCase);
 
     public string SeasonColor => IsInSeason ? "#2ECC71" : "Gray";
-
-    public string SeasonStatus => IsInSeason ? "In season" : "Out of season";
-
-    public string SeasonSummary
-    {
-        get
-        {
-            if (Item.YearRound)
-            {
-                return "Year-round";
-            }
-
-            if (Item.Seasons.Count == 0)
-            {
-                return "No seasons set";
-            }
-
-            return string.Join(", ", Item.Seasons.Select(Capitalise));
-        }
-    }
 
     /// <summary>Season pickers are only meaningful for seasonal (non-year-round) produce.</summary>
     public bool CanEditSeasons => !YearRound;
@@ -92,29 +73,74 @@ public partial class ProduceItemRowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsInSeason));
         OnPropertyChanged(nameof(SeasonColor));
-        OnPropertyChanged(nameof(SeasonStatus));
     }
 
-    partial void OnYearRoundChanged(bool value) => OnPropertyChanged(nameof(CanEditSeasons));
-
-    /// <summary>Refreshes computed display properties after <see cref="Item"/> has been edited and saved.</summary>
-    public void RefreshDisplay()
+    partial void OnNameChanged(string value)
     {
-        OnPropertyChanged(nameof(DisplayName));
-        OnPropertyChanged(nameof(TypeLabel));
-        OnPropertyChanged(nameof(IsInSeason));
-        OnPropertyChanged(nameof(SeasonColor));
-        OnPropertyChanged(nameof(SeasonStatus));
-        OnPropertyChanged(nameof(SeasonSummary));
+        Item.Name = value;
+        RequestSave();
     }
 
-    private static string Capitalise(string value)
+    partial void OnTypeChanged(string value)
     {
-        if (string.IsNullOrEmpty(value))
+        Item.Type = value;
+        RequestSave();
+    }
+
+    partial void OnYearRoundChanged(bool value)
+    {
+        Item.YearRound = value;
+        OnPropertyChanged(nameof(CanEditSeasons));
+        RaiseSeasonDisplayChanged();
+        RequestSave();
+    }
+
+    partial void OnInSpringChanged(bool value) => ApplySeasons();
+
+    partial void OnInSummerChanged(bool value) => ApplySeasons();
+
+    partial void OnInAutumnChanged(bool value) => ApplySeasons();
+
+    partial void OnInWinterChanged(bool value) => ApplySeasons();
+
+    partial void OnNotesChanged(string? value)
+    {
+        Item.Notes = value;
+        RequestSave();
+    }
+
+    private void ApplySeasons()
+    {
+        Item.Seasons = new List<string>();
+        if (InSpring)
         {
-            return value;
+            Item.Seasons.Add("spring");
         }
 
-        return char.ToUpperInvariant(value[0]) + value[1..];
+        if (InSummer)
+        {
+            Item.Seasons.Add("summer");
+        }
+
+        if (InAutumn)
+        {
+            Item.Seasons.Add("autumn");
+        }
+
+        if (InWinter)
+        {
+            Item.Seasons.Add("winter");
+        }
+
+        RaiseSeasonDisplayChanged();
+        RequestSave();
     }
+
+    private void RaiseSeasonDisplayChanged()
+    {
+        OnPropertyChanged(nameof(IsInSeason));
+        OnPropertyChanged(nameof(SeasonColor));
+    }
+
+    private void RequestSave() => _saveRequested?.Invoke(this);
 }

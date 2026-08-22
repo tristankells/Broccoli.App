@@ -24,7 +24,7 @@ public class SeasonalityViewModelTests
 
         Assert.AreEqual(2, vm.Items.Count);
         Assert.AreEqual(2, vm.TotalCount);
-        Assert.AreEqual("Apple", vm.Items[0].DisplayName);
+        Assert.AreEqual("Apple", vm.Items[0].Name);
     }
 
     [TestMethod]
@@ -57,69 +57,62 @@ public class SeasonalityViewModelTests
     }
 
     [TestMethod]
-    public void AddItem_StartsEditingNewItem()
+    public void AddItem_PersistsNewRow()
     {
-        _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem>());
-        SeasonalityViewModel vm = CreateViewModel();
-
-        vm.AddItemCommand.Execute(null);
-
-        Assert.IsTrue(vm.IsEditing);
-        Assert.IsNotNull(vm.EditingRow);
-        Assert.IsTrue(vm.EditingRow!.IsNewItem);
-    }
-
-    [TestMethod]
-    public void SaveEdit_NewItem_AddsToStore()
-    {
-        ProduceItem? added = null;
-        _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem>());
+        var addedItems = new List<ProduceItem>();
+        _storeMock.Setup(s => s.GetAll()).Returns(() => addedItems.ToList());
         _storeMock.Setup(s => s.Add(It.IsAny<ProduceItem>()))
-            .Callback<ProduceItem>(item => added = item)
+            .Callback<ProduceItem>(item => addedItems.Add(item))
             .Returns((ProduceItem item) => item);
 
         SeasonalityViewModel vm = CreateViewModel();
         vm.AddItemCommand.Execute(null);
-        vm.EditingRow!.Name = "Feijoa";
-        vm.EditingRow.InSummer = true;
-        vm.SaveEditCommand.Execute(null);
 
-        Assert.IsNotNull(added);
-        Assert.AreEqual("Feijoa", added!.Name);
-        Assert.IsTrue(added.Seasons.Contains("summer"));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(added.Id));
-        Assert.IsFalse(vm.IsEditing);
-        _storeMock.Verify(s => s.Add(It.IsAny<ProduceItem>()), Times.Once);
+        _storeMock.Verify(s => s.Add(It.Is<ProduceItem>(p => p.Name == "New item")), Times.Once);
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("New item", vm.Items[0].Name);
     }
 
     [TestMethod]
-    public void SaveEdit_ExistingItem_UpdatesStore()
+    public void EditName_UpdatesStore()
     {
-        ProduceItem item = MakeProduce("apple", "fruit", ["summer", "autumn"]);
+        ProduceItem item = MakeProduce("apple", "fruit", ["summer"]);
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem> { item });
 
         SeasonalityViewModel vm = CreateViewModel();
-        vm.StartEditCommand.Execute(vm.Items[0]);
-        vm.EditingRow!.Name = "Apple (edited)";
-        vm.SaveEditCommand.Execute(null);
+        vm.Items[0].Name = "Apple (edited)";
 
         Assert.AreEqual("Apple (edited)", item.Name);
         _storeMock.Verify(s => s.Update(It.Is<ProduceItem>(p => p.Name == "Apple (edited)")), Times.Once);
-        Assert.IsFalse(vm.IsEditing);
     }
 
     [TestMethod]
-    public void SaveEdit_EmptyName_ShowsError()
+    public void EditSeasons_UpdatesStore()
     {
-        _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem>());
+        ProduceItem item = MakeProduce("apple", "fruit", ["summer"]);
+        _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem> { item });
+
         SeasonalityViewModel vm = CreateViewModel();
+        vm.Items[0].InWinter = true;
 
-        vm.AddItemCommand.Execute(null);
-        vm.SaveEditCommand.Execute(null);
+        Assert.IsTrue(item.Seasons.Contains("winter"));
+        _storeMock.Verify(s => s.Update(It.Is<ProduceItem>(p => p.Seasons.Contains("winter"))), Times.Once);
+    }
 
-        Assert.IsNotNull(vm.ErrorMessage);
-        Assert.IsTrue(vm.IsEditing);
-        _storeMock.Verify(s => s.Add(It.IsAny<ProduceItem>()), Times.Never);
+    [TestMethod]
+    public void EditYearRound_UpdatesStoreAndDisablesSeasons()
+    {
+        ProduceItem item = MakeProduce("apple", "fruit", ["summer"]);
+        _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem> { item });
+
+        SeasonalityViewModel vm = CreateViewModel();
+        ProduceItemRowViewModel row = vm.Items[0];
+
+        row.YearRound = true;
+
+        Assert.IsTrue(item.YearRound);
+        Assert.IsFalse(row.CanEditSeasons);
+        _storeMock.Verify(s => s.Update(It.Is<ProduceItem>(p => p.YearRound)), Times.Once);
     }
 
     [TestMethod]
@@ -160,7 +153,7 @@ public class SeasonalityViewModelTests
         vm.SelectedTypeFilterIndex = 1; // Fruit
 
         Assert.AreEqual(1, vm.FilteredItems.Count);
-        Assert.AreEqual("Apple", vm.FilteredItems[0].DisplayName);
+        Assert.AreEqual("Apple", vm.FilteredItems[0].Name);
     }
 
     [TestMethod]
@@ -177,7 +170,7 @@ public class SeasonalityViewModelTests
         vm.SearchText = "broc";
 
         Assert.AreEqual(1, vm.FilteredItems.Count);
-        Assert.AreEqual("Broccoli", vm.FilteredItems[0].DisplayName);
+        Assert.AreEqual("Broccoli", vm.FilteredItems[0].Name);
     }
 
     private SeasonalityViewModel CreateViewModel()

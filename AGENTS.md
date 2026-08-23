@@ -105,6 +105,11 @@ dotnet build Broccoli.Avalonia/Broccoli.Avalonia.Android/Broccoli.Avalonia.Andro
 
 # Unit tests
 dotnet test Broccoli.Avalonia/Broccoli.Avalonia.UnitTests/Broccoli.Avalonia.UnitTests.csproj
+
+# Desktop E2E tests (Appium + WinAppDriver). Requires Appium 2.x + `appium driver install windows`,
+# plus the one-time `node Broccoli.Avalonia/Broccoli.Avalonia.Desktop.E2ETests/patch-windows-driver.js`.
+# The desktop project is a build dependency of the test project. See the E2E project README.
+dotnet test Broccoli.Avalonia/Broccoli.Avalonia.Desktop.E2ETests/Broccoli.Avalonia.Desktop.E2ETests.csproj
 ```
 
 ## Key Files to Read First

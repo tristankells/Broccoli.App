@@ -1,0 +1,82 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Broccoli.Avalonia.Slices.Settings"
+        xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+        x:Class="Broccoli.Avalonia.Slices.Settings.FoodEditDialog"
+        x:DataType="vm:FoodEditDialogViewModel"
+        Title="{Binding Title}" Width="600" SizeToContent="Height"
+        Icon="/Assets/avalonia-logo.ico"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top" FontSize="15" FontWeight="SemiBold" Text="{Binding Title}" />
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,6,0,0" />
+
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,12,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Spacing="2" Width="220">
+                    <TextBlock Text="Name" FontSize="11" />
+                    <TextBox Text="{Binding Food.Name}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="120">
+                    <TextBlock Text="Measure" FontSize="11" />
+                    <TextBox Text="{Binding Food.Measure}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="120">
+                    <TextBlock Text="g / Measure" FontSize="11" />
+                    <TextBox Text="{Binding Food.GramsPerMeasure, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Text="Per 100g" FontSize="11" FontWeight="SemiBold" Margin="0,4,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Spacing="2" Width="130">
+                    <TextBlock Text="Calories (kcal)" FontSize="11" />
+                    <TextBox Text="{Binding CaloriesInput, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="130">
+                    <TextBlock Text="Energy (kJ)" FontSize="11" />
+                    <TextBox Text="{Binding KilojoulesInput, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Fat (g)" FontSize="11" />
+                    <TextBox Text="{Binding Food.FatPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Protein (g)" FontSize="11" />
+                    <TextBox Text="{Binding Food.ProteinPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Carbs (g)" FontSize="11" />
+                    <TextBox Text="{Binding Food.CarbohydratesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Sat. Fat (g)" FontSize="11" />
+                    <TextBox Text="{Binding Food.SaturatedFatPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Fiber (g)" FontSize="11" />
+                    <TextBox Text="{Binding Food.DietaryFiberPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Sugars (g)" FontSize="11" />
+                    <TextBox Text="{Binding Food.SugarsPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Sodium (mg)" FontSize="11" />
+                    <TextBox Text="{Binding Food.SodiumMgPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent" />
+                <Button Content="Cancel" Command="{Binding CancelCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </DockPanel>
+</Window>

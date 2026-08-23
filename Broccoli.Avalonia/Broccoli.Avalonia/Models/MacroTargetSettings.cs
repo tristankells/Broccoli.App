@@ -43,6 +43,16 @@ public enum ActivityLevel
     ExtraActive = 4,
 }
 
+/// <summary>How the recipe auto-balance dialog computes ingredient adjustments.</summary>
+public enum AutoBalanceStrategy
+{
+    /// <summary>Scale the leading contributor of each selected macro to close that macro's gap.</summary>
+    IndependentSinglePass = 0,
+
+    /// <summary>Solve a linear system over the leading contributors to hit all targets exactly.</summary>
+    LinearSolve = 1,
+}
+
 public class MacroTargetSettings
 {
     [JsonPropertyName("id")]
@@ -86,6 +96,10 @@ public class MacroTargetSettings
     /// <summary>The MacroTarget.Id of the profile to compare against on the Recipe Detail page.</summary>
     [JsonPropertyName("recipeMealComparisonPersonId")]
     public string RecipeMealComparisonPersonId { get; set; } = string.Empty;
+
+    /// <summary>Strategy used by the recipe edit page's auto-balance feature.</summary>
+    [JsonPropertyName("autoBalanceStrategy")]
+    public AutoBalanceStrategy AutoBalanceStrategy { get; set; } = AutoBalanceStrategy.IndependentSinglePass;
 
     [JsonPropertyName("showCardImage")]
     public bool ShowCardImage { get; set; } = true;

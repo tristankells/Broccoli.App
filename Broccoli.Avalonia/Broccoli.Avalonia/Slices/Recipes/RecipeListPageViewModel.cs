@@ -20,13 +20,14 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     private readonly IMacroTargetService? _macroService;
     private readonly IngredientCartService? _cartService;
     private readonly IPantryService? _pantryService;
+    private readonly IRecipeIngredientSearchService? _ingredientSearchService;
 
     private readonly List<RecipeCardViewModel> _allCards = [];
 
     private List<Recipe> _allRecipes = [];
 
     public RecipeListPageViewModel(IRecipeService recipeService)
-        : this(recipeService, null, null, null, null, null)
+        : this(recipeService, null, null, null, null, null, null)
     {
     }
 
@@ -36,7 +37,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         ISeasonalityService? seasonalityService,
         IMacroTargetService? macroService = null,
         IngredientCartService? cartService = null,
-        IPantryService? pantryService = null)
+        IPantryService? pantryService = null,
+        IRecipeIngredientSearchService? ingredientSearchService = null)
     {
         _recipeService = recipeService;
         _parser = parser;
@@ -44,6 +46,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _macroService = macroService;
         _cartService = cartService;
         _pantryService = pantryService;
+        _ingredientSearchService = ingredientSearchService;
 
         WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => _ = ReloadAsync());
     }
@@ -51,6 +54,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     public Action? AddRecipeRequested { get; set; }
 
     public Action? ImportRecipeRequested { get; set; }
+
+    public Action? UseUpIngredientsRequested { get; set; }
 
     public Action<Recipe>? RecipeSelected { get; set; }
 
@@ -258,6 +263,9 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     [RelayCommand]
     private void ImportRecipe() => ImportRecipeRequested?.Invoke();
+
+    [RelayCommand]
+    private void UseUpIngredients() => UseUpIngredientsRequested?.Invoke();
 
     [RelayCommand]
     private void SelectRecipe(RecipeCardViewModel card) => RecipeSelected?.Invoke(card.Recipe);

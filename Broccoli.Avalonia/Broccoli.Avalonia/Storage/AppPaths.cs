@@ -22,6 +22,16 @@ public static class AppPaths
     /// <summary>Sub-folder name inside a recipe's folder that holds its ingredient-history snapshots.</summary>
     public const string RecipeHistoryFolderName = "history";
 
+    private static string? _rootOverride;
+
+    /// <summary>
+    /// Redirects the app to an alternative data folder (e.g. a throwaway directory used by
+    /// end-to-end tests so they never touch the real user data). Must be called before any
+    /// path is first resolved. The desktop host wires this up from the <c>--appdata</c>
+    /// command-line argument.
+    /// </summary>
+    public static void OverrideRootFolder(string rootFolder) => _rootOverride = rootFolder;
+
     /// <summary>
     /// The root app-data folder, e.g. %LocalAppData%\Broccoli on Windows,
     /// ~/Library/Application Support/Broccoli on macOS, ~/.local/share/Broccoli on Linux.
@@ -31,7 +41,7 @@ public static class AppPaths
     {
         get
         {
-            string root = Path.Combine(
+            string root = _rootOverride ?? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 AppFolderName);
             Directory.CreateDirectory(root);

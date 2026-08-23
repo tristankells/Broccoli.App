@@ -39,9 +39,11 @@ public class IngredientCartService(
     {
         List<CartChange> changes = ComputeCartChanges(selectedLines);
 
-        foreach (GroceryListItem item in changes.Where(c => c.IsUpdate).Select(c => c.Item))
+        foreach (CartChange change in changes.Where(c => c.IsUpdate))
         {
-            groceryListService.Update(item);
+            change.Item.Name = change.ResultName;
+            change.Item.QuantityHint = change.ResultQuantityHint;
+            groceryListService.Update(change.Item);
         }
 
         List<GroceryListItem> toAdd = changes.Where(c => !c.IsUpdate).Select(c => c.Item).ToList();
@@ -59,28 +61,15 @@ public class IngredientCartService(
 
         foreach (CartChange change in changes)
         {
-            if (change.IsUpdate)
+            preview.Add(new CartPreviewData
             {
-                preview.Add(new CartPreviewData
-                {
-                    DisplayName = $"{change.Item.Name} (merge with existing)",
-                    FormattedLine = change.Item.Name,
-                    FoodName = ExtractFoodName(change.Item.Name),
-                    OriginalLine = change.OriginalLine,
-                    IsMerge = true,
-                });
-            }
-            else
-            {
-                preview.Add(new CartPreviewData
-                {
-                    DisplayName = change.Item.Name,
-                    FormattedLine = change.Item.Name,
-                    FoodName = ExtractFoodName(change.Item.Name),
-                    OriginalLine = change.OriginalLine,
-                    IsMerge = false,
-                });
-            }
+                DisplayName = change.OriginalLine,
+                FormattedLine = change.ResultName,
+                FoodName = ExtractFoodName(change.ResultName),
+                FoodMatchHint = change.FoodMatchHint,
+                OriginalLine = change.OriginalLine,
+                IsMerge = change.IsUpdate,
+            });
         }
 
         return preview;
@@ -185,10 +174,15 @@ public class IngredientCartService(
                     ? newMatch.MatchedFood!.Name
                     : newMatch.ParsedIngredient.FoodDescription;
 
-                existingItem.Name = BuildLine(merged, unit, food);
-                existingItem.QuantityHint = ComputeHint(existingItem.Name, parser);
+                string resultName = BuildLine(merged, unit, food);
                 claimedIds.Add(existingItem.Id);
-                changes.Add(new CartChange(existingItem, originalLine, true));
+                changes.Add(new CartChange(
+                    existingItem,
+                    resultName,
+                    ComputeHint(resultName, parser),
+                    BuildFoodMatchHint(newMatch),
+                    originalLine,
+                    true));
             }
             else
             {
@@ -198,11 +192,34 @@ public class IngredientCartService(
                     IsChecked = false,
                     QuantityHint = newMatch.GetQuantityHint(),
                 };
-                changes.Add(new CartChange(newItem, originalLine, false));
+                changes.Add(new CartChange(
+                    newItem,
+                    newItem.Name,
+                    newItem.QuantityHint,
+                    BuildFoodMatchHint(newMatch),
+                    originalLine,
+                    false));
             }
         }
 
         return changes;
+    }
+
+    private static string? BuildFoodMatchHint(ParsedIngredientMatch match)
+    {
+        if (!match.IsMatched || match.MatchedFood is null)
+        {
+            return null;
+        }
+
+        string? quantityHint = match.GetQuantityHint();
+        if (string.IsNullOrEmpty(quantityHint))
+        {
+            return $"({match.MatchedFood.Name})";
+        }
+
+        // "(~122g)" → "(~122g Carrot)"
+        return $"{quantityHint[..^1]} {match.MatchedFood.Name})";
     }
 
     private (GroceryListItem? Item, double ExistingQty, string EffectiveUnit) FindMatch(
@@ -271,5 +288,11 @@ public class IngredientCartService(
         return (null, 0, newUnit);
     }
 
-    private sealed record CartChange(GroceryListItem Item, string OriginalLine, bool IsUpdate);
+    private sealed record CartChange(
+        GroceryListItem Item,
+        string ResultName,
+        string? ResultQuantityHint,
+        string? FoodMatchHint,
+        string OriginalLine,
+        bool IsUpdate);
 }

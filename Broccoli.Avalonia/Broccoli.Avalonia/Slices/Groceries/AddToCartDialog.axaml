@@ -35,10 +35,20 @@
                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked}"
                                           VerticalAlignment="Center" Margin="0,0,8,0" />
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" />
-                                    <TextBlock Text="{Binding PantryCategoryLabel}"
-                                               FontSize="9" Foreground="Gray"
-                                               IsVisible="{Binding ShowPantryLabel}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="12" />
+                                        <TextBlock Text="{Binding FoodMatchHint}"
+                                                   FontSize="10" Foreground="Gray"
+                                                   IsVisible="{Binding FoodMatchHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding PantryCategoryLabel}"
+                                                   FontSize="9" Foreground="Gray"
+                                                   IsVisible="{Binding ShowPantryLabel}" />
+                                        <TextBlock Text="(merge with existing)"
+                                                   FontSize="9" Foreground="Gray"
+                                                   IsVisible="{Binding IsMerge}" />
+                                    </StackPanel>
                                 </StackPanel>
                                 <Button Grid.Column="2" Content="Add to Pantry"
                                         Command="{Binding AddToPantryCommand}"

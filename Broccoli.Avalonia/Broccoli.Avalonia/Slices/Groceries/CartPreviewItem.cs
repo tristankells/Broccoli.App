@@ -32,6 +32,8 @@ public partial class CartPreviewItem : ObservableObject
 
     public string FoodName { get; init; } = string.Empty;
 
+    public string? FoodMatchHint { get; init; }
+
     public bool IsMerge { get; init; }
 
     public bool ShowAddToPantry => !IsInPantry && !AddedToPantry;

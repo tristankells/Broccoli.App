@@ -52,6 +52,7 @@ public partial class AddToCartDialogViewModel : ViewModelBase
                 FormattedLine = data.FormattedLine,
                 OriginalLine = data.OriginalLine,
                 FoodName = data.FoodName,
+                FoodMatchHint = data.FoodMatchHint,
                 IsMerge = data.IsMerge,
                 IsChecked = !inPantry,
                 IsInPantry = inPantry,

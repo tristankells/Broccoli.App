@@ -10,5 +10,11 @@ public sealed class CartPreviewData
 
     public string OriginalLine { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Food-match hint shown in brackets for ingredients that matched a food database entry,
+    /// e.g. "(~122g Carrot)". Null when the ingredient did not match a food.
+    /// </summary>
+    public string? FoodMatchHint { get; init; }
+
     public bool IsMerge { get; init; }
 }

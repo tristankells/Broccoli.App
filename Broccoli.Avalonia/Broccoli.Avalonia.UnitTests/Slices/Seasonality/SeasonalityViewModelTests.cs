@@ -15,8 +15,8 @@ public class SeasonalityViewModelTests
     {
         var items = new List<ProduceItem>
         {
-            MakeProduce("apple", "fruit", ["summer", "autumn"]),
-            MakeProduce("broccoli", "vegetable", ["winter"]),
+            MakeProduce("apple", "fruit", (1, SeasonalityState.InSeason)),
+            MakeProduce("broccoli", "vegetable", (7, SeasonalityState.InSeason)),
         };
         _storeMock.Setup(s => s.GetAll()).Returns(items);
 
@@ -32,17 +32,35 @@ public class SeasonalityViewModelTests
     {
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem>
         {
-            MakeProduce("apricot", "fruit", ["summer"]),
+            MakeProduce("apricot", "fruit", (1, SeasonalityState.InSeason)),
         });
 
         SeasonalityViewModel vm = CreateViewModel();
         ProduceItemRowViewModel row = vm.Items[0];
 
-        vm.SelectedMonthIndex = 0; // January -> summer
-        Assert.IsTrue(row.IsInSeason);
+        vm.SelectedMonthIndex = 0; // January
+        Assert.AreEqual(SeasonalityState.InSeason, row.CurrentState);
 
-        vm.SelectedMonthIndex = 6; // July -> winter
-        Assert.IsFalse(row.IsInSeason);
+        vm.SelectedMonthIndex = 6; // July
+        Assert.AreEqual(SeasonalityState.OutOfSeason, row.CurrentState);
+    }
+
+    [TestMethod]
+    public void MonthChange_UpdatesCounts()
+    {
+        _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem>
+        {
+            MakeProduce("apple", "fruit", (1, SeasonalityState.InSeason)),
+            MakeProduce("apricot", "fruit", (1, SeasonalityState.PartiallyInSeason)),
+            MakeProduce("broccoli", "vegetable", (7, SeasonalityState.InSeason)),
+        });
+
+        SeasonalityViewModel vm = CreateViewModel();
+        vm.SelectedMonthIndex = 0; // January
+
+        Assert.AreEqual(1, vm.InSeasonCount);
+        Assert.AreEqual(1, vm.PartiallyInSeasonCount);
+        Assert.AreEqual(3, vm.TotalCount);
     }
 
     [TestMethod]
@@ -76,7 +94,7 @@ public class SeasonalityViewModelTests
     [TestMethod]
     public void EditName_UpdatesStore()
     {
-        ProduceItem item = MakeProduce("apple", "fruit", ["summer"]);
+        ProduceItem item = MakeProduce("apple", "fruit", (1, SeasonalityState.InSeason));
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem> { item });
 
         SeasonalityViewModel vm = CreateViewModel();
@@ -87,38 +105,39 @@ public class SeasonalityViewModelTests
     }
 
     [TestMethod]
-    public void EditSeasons_UpdatesStore()
+    public void EditMonth_UpdatesStore()
     {
-        ProduceItem item = MakeProduce("apple", "fruit", ["summer"]);
+        ProduceItem item = MakeProduce("apple", "fruit", (1, SeasonalityState.InSeason));
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem> { item });
 
         SeasonalityViewModel vm = CreateViewModel();
-        vm.Items[0].InWinter = true;
+        vm.Items[0].DecemberState = SeasonalityState.InSeason;
 
-        Assert.IsTrue(item.Seasons.Contains("winter"));
-        _storeMock.Verify(s => s.Update(It.Is<ProduceItem>(p => p.Seasons.Contains("winter"))), Times.Once);
+        Assert.AreEqual(SeasonalityState.InSeason, item.Months[12]);
+        _storeMock.Verify(s => s.Update(It.Is<ProduceItem>(p => p.GetStateForMonth(12) == SeasonalityState.InSeason)), Times.Once);
     }
 
     [TestMethod]
-    public void EditYearRound_UpdatesStoreAndDisablesSeasons()
+    public void EditCurrentMonth_UpdatesAccentColor()
     {
-        ProduceItem item = MakeProduce("apple", "fruit", ["summer"]);
+        ProduceItem item = MakeProduce("apple", "fruit", (1, SeasonalityState.OutOfSeason));
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem> { item });
 
         SeasonalityViewModel vm = CreateViewModel();
+        vm.SelectedMonthIndex = 0; // January
         ProduceItemRowViewModel row = vm.Items[0];
 
-        row.YearRound = true;
+        Assert.AreEqual(SeasonalityState.OutOfSeason, row.CurrentState);
+        row.JanuaryState = SeasonalityState.InSeason;
 
-        Assert.IsTrue(item.YearRound);
-        Assert.IsFalse(row.CanEditSeasons);
-        _storeMock.Verify(s => s.Update(It.Is<ProduceItem>(p => p.YearRound)), Times.Once);
+        Assert.AreEqual(SeasonalityState.InSeason, row.CurrentState);
+        Assert.AreEqual("#2ECC71", row.SeasonColor);
     }
 
     [TestMethod]
     public void DeleteItem_CallsStore()
     {
-        ProduceItem item = MakeProduce("apple", "fruit", ["summer"]);
+        ProduceItem item = MakeProduce("apple", "fruit", (1, SeasonalityState.InSeason));
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem> { item });
 
         SeasonalityViewModel vm = CreateViewModel();
@@ -143,8 +162,8 @@ public class SeasonalityViewModelTests
     {
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem>
         {
-            MakeProduce("apple", "fruit", ["summer"]),
-            MakeProduce("broccoli", "vegetable", ["winter"]),
+            MakeProduce("apple", "fruit", (1, SeasonalityState.InSeason)),
+            MakeProduce("broccoli", "vegetable", (7, SeasonalityState.InSeason)),
         });
 
         SeasonalityViewModel vm = CreateViewModel();
@@ -161,8 +180,8 @@ public class SeasonalityViewModelTests
     {
         _storeMock.Setup(s => s.GetAll()).Returns(new List<ProduceItem>
         {
-            MakeProduce("apple", "fruit", ["summer"]),
-            MakeProduce("broccoli", "vegetable", ["winter"]),
+            MakeProduce("apple", "fruit", (1, SeasonalityState.InSeason)),
+            MakeProduce("broccoli", "vegetable", (7, SeasonalityState.InSeason)),
         });
 
         SeasonalityViewModel vm = CreateViewModel();
@@ -178,14 +197,20 @@ public class SeasonalityViewModelTests
         return new SeasonalityViewModel(_storeMock.Object);
     }
 
-    private static ProduceItem MakeProduce(string id, string type, string[] seasons)
+    private static ProduceItem MakeProduce(string id, string type, params (int Month, SeasonalityState State)[] months)
     {
-        return new ProduceItem
+        ProduceItem item = new()
         {
             Id = id,
             Name = char.ToUpperInvariant(id[0]) + id[1..],
             Type = type,
-            Seasons = seasons.ToList(),
         };
+
+        foreach ((int month, SeasonalityState state) in months)
+        {
+            item.SetStateForMonth(month, state);
+        }
+
+        return item;
     }
 }

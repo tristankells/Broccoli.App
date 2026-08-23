@@ -84,7 +84,7 @@ Each slice owns its views, view models, service interfaces, and implementations 
 
 ## Seasonality
 
-Produce data lives in SQLite (`ProduceItems` table), seeded once from the embedded `Assets/nz-produce.json` via `ProduceSeeder` (the JSON is never the live store). `SeasonalityService` scores recipe ingredients against that data and reloads its cache when `SeasonalityDataChangedMessage` is raised. `SeasonHelper` answers "is this in season". The Seasonality nav tab (Slices/Seasonality, hideable from Settings > Seasonality) edits the dataset. Register via `services.AddSeasonality()`.
+Produce data lives in SQLite (`ProduceItems` table) with **per-month availability** (`SeasonalityState` = InSeason / PartiallyInSeason / OutOfSeason for months 1–12), seeded once from the embedded `Assets/nz-produce.json` via `ProduceSeeder` (the JSON is never the live store). `SeasonalityService` scores recipe ingredients against that data (partial counts at half weight) and reloads its cache when `SeasonalityDataChangedMessage` is raised. `SeasonHelper` maps months→seasons for the banner and derives the scarcity weight from the in-season month count. The Seasonality nav tab (Slices/Seasonality, hideable from Settings > Seasonality) edits the dataset month by month. Register via `services.AddSeasonality()`.
 
 ## Google Drive Sync (Settings > Sync)
 

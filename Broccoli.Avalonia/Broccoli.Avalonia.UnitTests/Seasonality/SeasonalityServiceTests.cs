@@ -21,7 +21,7 @@ public class SeasonalityServiceTests
         Assert.AreEqual(100, result.Score!.Value);
         Assert.AreEqual(SeasonalityLabel.PeakSeason, result.Label);
         Assert.AreEqual(1, result.Breakdown.Count);
-        Assert.IsTrue(result.Breakdown[0].IsInSeason);
+        Assert.AreEqual(SeasonalityState.InSeason, result.Breakdown[0].State);
     }
 
     [TestMethod]
@@ -34,7 +34,20 @@ public class SeasonalityServiceTests
 
         Assert.AreEqual(0, result.Score);
         Assert.AreEqual(SeasonalityLabel.OffSeason, result.Label);
-        Assert.IsFalse(result.Breakdown[0].IsInSeason);
+        Assert.AreEqual(SeasonalityState.OutOfSeason, result.Breakdown[0].State);
+    }
+
+    [TestMethod]
+    public void Score_PartiallyInSeason_HalfWeight()
+    {
+        Mock<ISeasonalityDataStore> store = CreateStoreWithFeijoa();
+        SeasonalityService service = new(store.Object);
+
+        SeasonalityResult result = service.Score([MakeFeijoaMatch()], new DateTime(2000, 4, 15));
+
+        Assert.AreEqual(50, result.Score);
+        Assert.AreEqual(SeasonalityLabel.PartiallyInSeason, result.Label);
+        Assert.AreEqual(SeasonalityState.PartiallyInSeason, result.Breakdown[0].State);
     }
 
     [TestMethod]
@@ -69,7 +82,13 @@ public class SeasonalityServiceTests
 
         store.Setup(s => s.GetAll()).Returns(new List<ProduceItem>
         {
-            new() { Id = "kiwifruit", Name = "Kiwifruit", Type = "fruit", Seasons = ["summer"] },
+            new()
+            {
+                Id = "kiwifruit",
+                Name = "Kiwifruit",
+                Type = "fruit",
+                Months = new Dictionary<int, SeasonalityState> { [1] = SeasonalityState.InSeason },
+            },
         });
         WeakReferenceMessenger.Default.Send(new Broccoli.Avalonia.Shared.SeasonalityDataChangedMessage());
 
@@ -92,7 +111,19 @@ public class SeasonalityServiceTests
         var store = new Mock<ISeasonalityDataStore>();
         store.Setup(s => s.GetAll()).Returns(new List<ProduceItem>
         {
-            new() { Id = "feijoa", Name = "Feijoa", Type = "fruit", Seasons = ["summer"] },
+            new()
+            {
+                Id = "feijoa",
+                Name = "Feijoa",
+                Type = "fruit",
+                Months = new Dictionary<int, SeasonalityState>
+                {
+                    [1] = SeasonalityState.InSeason,
+                    [2] = SeasonalityState.InSeason,
+                    [4] = SeasonalityState.PartiallyInSeason,
+                    [12] = SeasonalityState.InSeason,
+                },
+            },
         });
         return store;
     }

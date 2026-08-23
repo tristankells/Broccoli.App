@@ -54,26 +54,25 @@
                 <!-- Per-serving target table -->
                 <StackPanel Spacing="4">
                     <TextBlock Text="Per serving vs target" FontWeight="SemiBold" FontSize="12" />
-                    <Grid ColumnDefinitions="*,80,80,80,90">
+                    <Grid ColumnDefinitions="*,80,80,80,90" Margin="0,4,0,0">
                         <TextBlock Grid.Column="1" Text="Target" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,8,0" />
                         <TextBlock Grid.Column="2" Text="Before" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,8,0" />
                         <TextBlock Grid.Column="3" Text="After" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,8,0" />
                         <TextBlock Grid.Column="4" Text="Δ (total)" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" />
-
-                        <ItemsControl Grid.Row="1" Grid.ColumnSpan="5" ItemsSource="{Binding TargetRows}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:AutoBalanceTargetRow">
-                                    <Grid ColumnDefinitions="*,80,80,80,90">
-                                        <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="1" Text="{Binding TargetText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" />
-                                        <TextBlock Grid.Column="2" Text="{Binding BeforeText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" />
-                                        <TextBlock Grid.Column="3" Text="{Binding AfterText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" FontWeight="SemiBold" />
-                                        <TextBlock Grid.Column="4" Text="{Binding DeltaText}" FontSize="11" HorizontalAlignment="Right" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
                     </Grid>
+                    <ItemsControl ItemsSource="{Binding TargetRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AutoBalanceTargetRow">
+                                <Grid ColumnDefinitions="*,80,80,80,90">
+                                    <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding TargetText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" />
+                                    <TextBlock Grid.Column="2" Text="{Binding BeforeText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" />
+                                    <TextBlock Grid.Column="3" Text="{Binding AfterText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Column="4" Text="{Binding DeltaText}" FontSize="11" HorizontalAlignment="Right" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
 
                 <!-- Contributor adjustments -->
@@ -85,27 +84,26 @@
                                FontSize="10" Foreground="Gray"
                                IsVisible="{Binding !HasAdjustments}" />
 
-                    <Grid ColumnDefinitions="*,90,90,90">
+                    <Grid ColumnDefinitions="*,90,90,90" Margin="0,4,0,0">
                         <TextBlock Grid.Column="1" Text="Before" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,8,0" />
                         <TextBlock Grid.Column="2" Text="After" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" Margin="0,0,8,0" />
                         <TextBlock Grid.Column="3" Text="Δ" FontWeight="SemiBold" FontSize="10" HorizontalAlignment="Right" />
-
-                        <ItemsControl Grid.Row="1" Grid.ColumnSpan="4" ItemsSource="{Binding Adjustments}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:AutoBalanceAdjustmentRow">
-                                    <Border Margin="0,1" Padding="6,3" CornerRadius="2"
-                                            Background="{DynamicResource AppSidebarBackgroundBrush}">
-                                        <Grid ColumnDefinitions="*,90,90,90">
-                                            <TextBlock Text="{Binding FoodName}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                            <TextBlock Grid.Column="1" Text="{Binding BeforeText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="Gray" />
-                                            <TextBlock Grid.Column="2" Text="{Binding AfterText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" FontWeight="SemiBold" />
-                                            <TextBlock Grid.Column="3" Text="{Binding DeltaText}" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
                     </Grid>
+                    <ItemsControl ItemsSource="{Binding Adjustments}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AutoBalanceAdjustmentRow">
+                                <Border Margin="0,1" Padding="6,3" CornerRadius="2"
+                                        Background="{DynamicResource AppSidebarBackgroundBrush}">
+                                    <Grid ColumnDefinitions="*,90,90,90">
+                                        <TextBlock Text="{Binding FoodName}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding BeforeText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="Gray" />
+                                        <TextBlock Grid.Column="2" Text="{Binding AfterText}" FontSize="11" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="3" Text="{Binding DeltaText}" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>

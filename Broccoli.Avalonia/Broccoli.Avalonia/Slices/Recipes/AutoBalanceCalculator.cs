@@ -83,6 +83,7 @@ public static class AutoBalanceCalculator
         double tolerancePercent)
     {
         var adjustments = new List<AutoBalanceAdjustment>();
+        var adjustmentsByIngredient = new Dictionary<AutoBalanceIngredient, AutoBalanceAdjustment>();
         AutoBalanceTotals totals = TotalsFor(working);
 
         foreach (AutoBalanceNutrient nutrient in s_precedence.Where(selected.Contains))
@@ -117,7 +118,20 @@ public static class AutoBalanceCalculator
 
             pivot.Grams = afterGrams;
             totals = TotalsFor(working);
-            adjustments.Add(new AutoBalanceAdjustment { Ingredient = originals[pivotIndex], AfterGrams = afterGrams });
+
+            // The same ingredient can be the leading contributor for several macros (e.g. mince is
+            // both the top protein and top fat source), so collapse multiple passes into one row.
+            AutoBalanceIngredient original = originals[pivotIndex];
+            if (adjustmentsByIngredient.TryGetValue(original, out AutoBalanceAdjustment? existing))
+            {
+                existing.AfterGrams = afterGrams;
+            }
+            else
+            {
+                var adjustment = new AutoBalanceAdjustment { Ingredient = original, AfterGrams = afterGrams };
+                adjustmentsByIngredient.Add(original, adjustment);
+                adjustments.Add(adjustment);
+            }
         }
 
         return adjustments;

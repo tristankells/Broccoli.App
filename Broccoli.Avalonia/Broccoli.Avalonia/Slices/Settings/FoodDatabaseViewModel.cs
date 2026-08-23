@@ -18,12 +18,6 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     private string? _errorMessage;
 
     [ObservableProperty]
-    private Food? _editingFood;
-
-    [ObservableProperty]
-    private Food? _newFood;
-
-    [ObservableProperty]
     private string _usdaQuery = string.Empty;
 
     [ObservableProperty]
@@ -60,10 +54,6 @@ public partial class FoodDatabaseViewModel : ViewModelBase
 
     public ObservableCollection<Food> Foods { get; } = new();
 
-    public bool IsAddFormVisible => NewFood is not null;
-
-    public bool IsEditFormVisible => EditingFood is not null;
-
     public bool IsUsdaResultVisible => UsdaResult?.Foods.Count > 0;
 
     public void Load()
@@ -87,87 +77,66 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     [RelayCommand]
     private void AddFood()
     {
-        NewFood = new Food { Name = string.Empty, Measure = "100g", GramsPerMeasure = 100 };
-    }
-
-    [RelayCommand]
-    private void SaveNewFood()
-    {
-        if (NewFood is null || string.IsNullOrWhiteSpace(NewFood.Name))
-        {
-            return;
-        }
-
-        try
-        {
-            Food added = _foodService.Add(NewFood);
-            Foods.Add(added);
-            NewFood = null;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to add: {ex.Message}";
-        }
-    }
-
-    [RelayCommand]
-    private void CancelNewFood()
-    {
-        NewFood = null;
+        OpenEditDialog(new Food { Name = string.Empty, Measure = "100g", GramsPerMeasure = 100 }, isNew: true);
     }
 
     [RelayCommand]
     private void StartEdit(Food food)
     {
-        EditingFood = new Food
-        {
-            Id = food.Id,
-            Name = food.Name,
-            Measure = food.Measure,
-            GramsPerMeasure = food.GramsPerMeasure,
-            IsCustom = food.IsCustom,
-            CaloriesPer100g = food.CaloriesPer100g,
-            FatPer100g = food.FatPer100g,
-            ProteinPer100g = food.ProteinPer100g,
-            CarbohydratesPer100g = food.CarbohydratesPer100g,
-            SaturatedFatPer100g = food.SaturatedFatPer100g,
-            DietaryFiberPer100g = food.DietaryFiberPer100g,
-            SugarsPer100g = food.SugarsPer100g,
-            SodiumMgPer100g = food.SodiumMgPer100g,
-            Notes = food.Notes,
-        };
+        OpenEditDialog(CloneForEdit(food), isNew: false);
     }
 
-    [RelayCommand]
-    private void SaveEdit()
+    private void OpenEditDialog(Food food, bool isNew)
     {
-        if (EditingFood is null || string.IsNullOrWhiteSpace(EditingFood.Name))
+        var dialogViewModel = new FoodEditDialogViewModel();
+        dialogViewModel.Open(food, isNew, saved =>
         {
-            return;
-        }
-
-        try
-        {
-            _foodService.Update(EditingFood);
-            int idx = Foods.IndexOf(Foods.First(f => f.Id == EditingFood.Id));
-            if (idx >= 0)
+            try
             {
-                Foods[idx] = EditingFood;
+                if (isNew)
+                {
+                    Food added = _foodService.Add(saved);
+                    Foods.Add(added);
+                }
+                else
+                {
+                    _foodService.Update(saved);
+                    int idx = Foods.IndexOf(Foods.First(f => f.Id == saved.Id));
+                    if (idx >= 0)
+                    {
+                        Foods[idx] = saved;
+                    }
+                }
+
+                ErrorMessage = null;
             }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Failed to save: {ex.Message}";
+            }
+        });
 
-            EditingFood = null;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to save: {ex.Message}";
-        }
+        var dialog = new FoodEditDialog { DataContext = dialogViewModel };
+        dialog.Show();
     }
 
-    [RelayCommand]
-    private void CancelEdit()
+    private static Food CloneForEdit(Food food) => new()
     {
-        EditingFood = null;
-    }
+        Id = food.Id,
+        Name = food.Name,
+        Measure = food.Measure,
+        GramsPerMeasure = food.GramsPerMeasure,
+        IsCustom = food.IsCustom,
+        CaloriesPer100g = food.CaloriesPer100g,
+        FatPer100g = food.FatPer100g,
+        ProteinPer100g = food.ProteinPer100g,
+        CarbohydratesPer100g = food.CarbohydratesPer100g,
+        SaturatedFatPer100g = food.SaturatedFatPer100g,
+        DietaryFiberPer100g = food.DietaryFiberPer100g,
+        SugarsPer100g = food.SugarsPer100g,
+        SodiumMgPer100g = food.SodiumMgPer100g,
+        Notes = food.Notes,
+    };
 
     [RelayCommand]
     private void DeleteFood(Food food)
@@ -405,10 +374,6 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             ErrorMessage = $"Failed to import: {ex.Message}";
         }
     }
-
-    partial void OnNewFoodChanged(Food? value) => OnPropertyChanged(nameof(IsAddFormVisible));
-
-    partial void OnEditingFoodChanged(Food? value) => OnPropertyChanged(nameof(IsEditFormVisible));
 
     partial void OnUsdaResultChanged(UsdaSearchResult? value) => OnPropertyChanged(nameof(IsUsdaResultVisible));
 }

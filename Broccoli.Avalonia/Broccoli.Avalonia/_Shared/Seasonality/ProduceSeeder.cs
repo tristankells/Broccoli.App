@@ -17,13 +17,46 @@ public static class ProduceSeeder
 
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
+    private static readonly Dictionary<string, int> MonthNumbers = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["jan"] = 1, ["feb"] = 2, ["mar"] = 3, ["apr"] = 4, ["may"] = 5, ["jun"] = 6,
+        ["jul"] = 7, ["aug"] = 8, ["sep"] = 9, ["oct"] = 10, ["nov"] = 11, ["dec"] = 12,
+    };
+
     public static List<ProduceItem> ReadSeedProduce()
     {
         try
         {
             using Stream stream = AssetLoader.Open(SeedUri);
             ProduceDataset? dataset = JsonSerializer.Deserialize<ProduceDataset>(stream, JsonOptions);
-            return dataset?.Produce ?? [];
+            if (dataset is null)
+            {
+                return [];
+            }
+
+            List<ProduceItem> items = new(dataset.Produce.Count);
+            foreach (ProduceItemDto dto in dataset.Produce)
+            {
+                ProduceItem item = new()
+                {
+                    Id = dto.Id,
+                    Name = dto.Name,
+                    Type = dto.Type,
+                    Notes = dto.Notes,
+                };
+
+                foreach ((string? monthKey, string? state) in dto.Months)
+                {
+                    if (MonthNumbers.TryGetValue(monthKey, out int month))
+                    {
+                        item.SetStateForMonth(month, ParseState(state));
+                    }
+                }
+
+                items.Add(item);
+            }
+
+            return items;
         }
         catch (Exception)
         {
@@ -50,9 +83,34 @@ public static class ProduceSeeder
         context.SaveChanges();
     }
 
+    private static SeasonalityState ParseState(string? value) => value?.ToLowerInvariant() switch
+    {
+        "in" or "in_season" => SeasonalityState.InSeason,
+        "partial" or "partially_in_season" => SeasonalityState.PartiallyInSeason,
+        _ => SeasonalityState.OutOfSeason,
+    };
+
     private sealed class ProduceDataset
     {
         [JsonPropertyName("produce")]
-        public List<ProduceItem> Produce { get; set; } = new();
+        public List<ProduceItemDto> Produce { get; set; } = new();
+    }
+
+    private sealed class ProduceItemDto
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = string.Empty;
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = string.Empty;
+
+        [JsonPropertyName("months")]
+        public Dictionary<string, string> Months { get; set; } = new();
+
+        [JsonPropertyName("notes")]
+        public string? Notes { get; set; }
     }
 }

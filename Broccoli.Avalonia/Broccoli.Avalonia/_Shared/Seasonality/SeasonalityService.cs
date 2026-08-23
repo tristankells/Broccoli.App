@@ -85,7 +85,7 @@ public class SeasonalityService : ISeasonalityService
 
     public SeasonalityResult Score(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf = null)
     {
-        string season = SeasonHelper.GetCurrentSeason(asOf ?? DateTime.Now);
+        int month = (asOf ?? DateTime.Now).Month;
         Dictionary<string, ProduceItem> lookup = GetLookup();
 
         var matched = new List<(ProduceItem Produce, double Grams)>();
@@ -116,7 +116,7 @@ public class SeasonalityService : ISeasonalityService
             return new SeasonalityResult { Score = null, Label = SeasonalityLabel.Unavailable, Breakdown = new List<IngredientSeasonalityDetail>(), BestSeasons = string.Empty };
         }
 
-        (List<IngredientSeasonalityDetail>? breakdown, double totalWeighted, double totalPossible) = ComputeForSeason(matched, season);
+        (List<IngredientSeasonalityDetail>? breakdown, double totalWeighted, double totalPossible) = ComputeForMonth(matched, month);
 
         double score = totalPossible > 0 ? (totalWeighted / totalPossible) * 100.0 : 0;
         SeasonalityLabel label = score >= 75 ? SeasonalityLabel.PeakSeason
@@ -173,23 +173,32 @@ public class SeasonalityService : ISeasonalityService
     }
 
     private static (List<IngredientSeasonalityDetail> Breakdown, double TotalWeighted, double TotalPossible)
-        ComputeForSeason(List<(ProduceItem Produce, double Grams)> matched, string season)
+        ComputeForMonth(List<(ProduceItem Produce, double Grams)> matched, int month)
     {
         var breakdown = new List<IngredientSeasonalityDetail>();
         double totalWeighted = 0, totalPossible = 0;
         foreach ((ProduceItem? produce, double grams) in matched)
         {
-            bool inSeason = produce.YearRound || produce.Seasons.Contains(season, StringComparer.OrdinalIgnoreCase);
+            SeasonalityState state = produce.GetStateForMonth(month);
+            double factor = StateFactor(state);
             double scarcity = SeasonHelper.GetScarcityWeight(produce);
             double possible = scarcity * grams;
-            double contribution = (inSeason ? 1.0 : 0.0) * possible;
-            breakdown.Add(new IngredientSeasonalityDetail { Name = produce.Name, IsInSeason = inSeason, ScarcityWeight = scarcity, WeightInGrams = grams });
+            double contribution = factor * possible;
+            breakdown.Add(new IngredientSeasonalityDetail { Name = produce.Name, State = state, ScarcityWeight = scarcity, WeightInGrams = grams });
             totalWeighted += contribution;
             totalPossible += possible;
         }
 
         return (breakdown, totalWeighted, totalPossible);
     }
+
+    /// <summary>How much a state contributes toward the seasonality score.</summary>
+    private static double StateFactor(SeasonalityState state) => state switch
+    {
+        SeasonalityState.InSeason => 1.0,
+        SeasonalityState.PartiallyInSeason => 0.5,
+        _ => 0.0,
+    };
 
     private static Dictionary<string, ProduceItem> BuildLookup(IEnumerable<ProduceItem> items)
     {
@@ -212,7 +221,7 @@ public class SeasonalityService : ISeasonalityService
         var seasonScores = SeasonHelper.AllSeasons
             .Select(s =>
             {
-                (List<IngredientSeasonalityDetail> _, double tw, double tp) = ComputeForSeason(matched, s);
+                (double tw, double tp) = ComputeSeasonTotals(matched, s);
                 return (Season: s, Score: tp > 0 ? (tw / tp) * 100.0 : 0.0);
             })
             .OrderByDescending(x => x.Score).ToList();
@@ -225,6 +234,27 @@ public class SeasonalityService : ISeasonalityService
 
         var best = seasonScores.Where(x => x.Score >= topScore - 10.0).Select(x => x.Season).ToList();
         return best.Count == 1 ? $"Best in {best[0]}" : $"Best in {string.Join(", ", best.Take(best.Count - 1))} and {best.Last()}";
+    }
+
+    /// <summary>
+    /// Aggregates an ingredient set's contribution across the three months of a season, so the
+    /// existing "Best in summer" style summary keeps working on top of monthly data.
+    /// </summary>
+    private static (double TotalWeighted, double TotalPossible) ComputeSeasonTotals(List<(ProduceItem Produce, double Grams)> matched, string season)
+    {
+        double totalWeighted = 0, totalPossible = 0;
+        foreach (int month in SeasonHelper.GetSeasonMonths(season))
+        {
+            foreach ((ProduceItem? produce, double grams) in matched)
+            {
+                double factor = StateFactor(produce.GetStateForMonth(month));
+                double possible = SeasonHelper.GetScarcityWeight(produce) * grams;
+                totalWeighted += factor * possible;
+                totalPossible += possible;
+            }
+        }
+
+        return (totalWeighted, totalPossible);
     }
 
     private static ProduceItem? LookupProduce(string foodName, Dictionary<string, ProduceItem> lookup)

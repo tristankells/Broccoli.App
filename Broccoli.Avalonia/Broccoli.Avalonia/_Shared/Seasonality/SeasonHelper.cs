@@ -15,18 +15,39 @@ public static class SeasonHelper
         _ => "summer",
     };
 
+    /// <summary>Month numbers (1..12) belonging to each Southern-Hemisphere season.</summary>
+    public static IReadOnlyList<int> GetSeasonMonths(string season) => season switch
+    {
+        "spring" => [9, 10, 11],
+        "summer" => [12, 1, 2],
+        "autumn" => [3, 4, 5],
+        "winter" => [6, 7, 8],
+        _ => [12, 1, 2],
+    };
+
+    /// <summary>
+    /// Scarcity weight derived from how many effective in-season months the item has across the
+    /// year (a partially-in-season month counts as half). Items available for most of the year are
+    /// common (low weight); short-season items are scarce (high weight).
+    /// </summary>
     public static double GetScarcityWeight(ProduceItem item)
     {
-        if (item.YearRound)
+        double effectiveMonths = 0;
+        for (int month = 1; month <= 12; month++)
         {
-            return 0.25;
+            effectiveMonths += item.GetStateForMonth(month) switch
+            {
+                SeasonalityState.InSeason => 1.0,
+                SeasonalityState.PartiallyInSeason => 0.5,
+                _ => 0.0,
+            };
         }
 
-        return item.Seasons.Count switch
+        return effectiveMonths switch
         {
-            1 => 1.00,
-            2 => 0.75,
-            3 => 0.50,
+            < 4 => 1.00,
+            < 7 => 0.75,
+            < 10 => 0.50,
             _ => 0.25,
         };
     }

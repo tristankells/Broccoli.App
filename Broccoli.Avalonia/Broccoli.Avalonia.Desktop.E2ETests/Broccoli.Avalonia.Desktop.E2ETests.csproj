@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <IsTestProject>true</IsTestProject>
+        <RootNamespace>Broccoli.Avalonia.Desktop.E2ETests</RootNamespace>
+        <NoWarn>$(NoWarn);CA2201;CA1510;CA1511;CA1512;CA1513</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Appium.WebDriver" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="MSTest.TestAdapter" />
+        <PackageReference Include="MSTest.TestFramework" />
+    </ItemGroup>
+
+    <!-- Ensures the desktop app is built before the tests run, and locates its output folder
+         from the test's own build output (see DesktopAppPaths). -->
+    <ItemGroup>
+        <ProjectReference Include="../Broccoli.Avalonia.Desktop/Broccoli.Avalonia.Desktop.csproj" />
+    </ItemGroup>
+
+</Project>

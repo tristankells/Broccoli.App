@@ -27,7 +27,9 @@
             </Button>
             <Button Grid.Column="3" Content="Import" Command="{Binding ImportRecipeCommand}" Margin="0,0,8,0" />
             <Button Grid.Column="4" Content="Use up" Command="{Binding UseUpIngredientsCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="5" Command="{Binding AddRecipeCommand}">
+            <Button Grid.Column="5" Command="{Binding AddRecipeCommand}"
+                    AutomationProperties.Name="Add Recipe"
+                    AutomationProperties.AutomationId="addRecipeButton">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="14" Height="14" />
                     <TextBlock Text="Add Recipe" />
@@ -50,6 +52,8 @@
                         <Button Background="Transparent" BorderThickness="0" Padding="0"
                                 Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
                                 CommandParameter="{Binding}"
+                                AutomationProperties.Name="{Binding Name}"
+                                AutomationProperties.AutomationId="recipeCard"
                                 ContextRequested="OnCardContextRequested">
                             <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
                                     CornerRadius="6" Padding="0" ClipToBounds="True">

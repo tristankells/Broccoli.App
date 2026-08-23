@@ -20,48 +20,68 @@
                            IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
                 <TextBlock Text="Name" FontWeight="SemiBold" />
-                <TextBox Text="{Binding Name}" PlaceholderText="Recipe name" />
+                <TextBox Text="{Binding Name}" PlaceholderText="Recipe name"
+                         AutomationProperties.Name="Recipe name"
+                         AutomationProperties.AutomationId="recipeName" />
 
                 <CheckBox Content="Mark as favourite" IsChecked="{Binding IsFavorite}" />
 
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <StackPanel Spacing="4" Width="120">
                         <TextBlock Text="Servings" FontWeight="SemiBold" />
-                        <NumericUpDown Value="{Binding Servings}" Minimum="0" FormatString="0" />
+                        <NumericUpDown Value="{Binding Servings}" Minimum="0" FormatString="0"
+                                       AutomationProperties.Name="Servings"
+                                       AutomationProperties.AutomationId="servingsInput" />
                     </StackPanel>
                     <StackPanel Spacing="4" Width="130">
                         <TextBlock Text="Prep (min)" FontWeight="SemiBold" />
-                        <NumericUpDown Value="{Binding PrepTimeMinutes}" Minimum="0" FormatString="0" />
+                        <NumericUpDown Value="{Binding PrepTimeMinutes}" Minimum="0" FormatString="0"
+                                       AutomationProperties.Name="Prep (min)"
+                                       AutomationProperties.AutomationId="prepTimeInput" />
                     </StackPanel>
                     <StackPanel Spacing="4" Width="130">
                         <TextBlock Text="Cook (min)" FontWeight="SemiBold" />
-                        <NumericUpDown Value="{Binding CookTimeMinutes}" Minimum="0" FormatString="0" />
+                        <NumericUpDown Value="{Binding CookTimeMinutes}" Minimum="0" FormatString="0"
+                                       AutomationProperties.Name="Cook (min)"
+                                       AutomationProperties.AutomationId="cookTimeInput" />
                     </StackPanel>
                 </StackPanel>
 
                 <TextBlock Text="Ingredients" FontWeight="SemiBold" />
                 <TextBox Text="{Binding Ingredients}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140"
-                         PlaceholderText="One ingredient per line, e.g. 250g chicken breast" />
+                         PlaceholderText="One ingredient per line, e.g. 250g chicken breast"
+                         AutomationProperties.Name="Ingredients"
+                         AutomationProperties.AutomationId="ingredientsInput" />
 
                 <TextBlock Text="Directions" FontWeight="SemiBold" />
                 <TextBox Text="{Binding Directions}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="140"
-                         PlaceholderText="Step-by-step directions" />
+                         PlaceholderText="Step-by-step directions"
+                         AutomationProperties.Name="Directions"
+                         AutomationProperties.AutomationId="directionsInput" />
 
                 <TextBlock Text="Notes" FontWeight="SemiBold" />
                 <TextBox Text="{Binding Notes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
-                         PlaceholderText="Tips, substitutions, etc. (optional)" />
+                         PlaceholderText="Tips, substitutions, etc. (optional)"
+                         AutomationProperties.Name="Notes"
+                         AutomationProperties.AutomationId="notesInput" />
 
                 <TextBlock Text="Tags (comma-separated)" FontWeight="SemiBold" />
-                <TextBox Text="{Binding TagsText}" PlaceholderText="e.g. Chicken, Freezable, Quick" />
+                <TextBox Text="{Binding TagsText}" PlaceholderText="e.g. Chicken, Freezable, Quick"
+                         AutomationProperties.Name="Tags"
+                         AutomationProperties.AutomationId="tagsInput" />
 
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <StackPanel Spacing="4" Width="280">
                         <TextBlock Text="Source" FontWeight="SemiBold" />
-                        <TextBox Text="{Binding Source}" PlaceholderText="e.g. Grandma's cookbook" />
+                        <TextBox Text="{Binding Source}" PlaceholderText="e.g. Grandma's cookbook"
+                                 AutomationProperties.Name="Source"
+                                 AutomationProperties.AutomationId="sourceInput" />
                     </StackPanel>
                     <StackPanel Spacing="4" Width="280">
                         <TextBlock Text="URL" FontWeight="SemiBold" />
-                        <TextBox Text="{Binding Url}" PlaceholderText="Link to recipe online" />
+                        <TextBox Text="{Binding Url}" PlaceholderText="Link to recipe online"
+                                 AutomationProperties.Name="URL"
+                                 AutomationProperties.AutomationId="urlInput" />
                     </StackPanel>
                 </StackPanel>
 
@@ -94,8 +114,12 @@
                 </Button>
 
                 <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
-                    <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent" />
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" />
+                    <Button Content="Save" Command="{Binding SaveCommand}" Classes="accent"
+                            AutomationProperties.Name="Save"
+                            AutomationProperties.AutomationId="saveRecipeButton" />
+                    <Button Content="Cancel" Command="{Binding CancelCommand}"
+                            AutomationProperties.Name="Cancel"
+                            AutomationProperties.AutomationId="cancelRecipeButton" />
                     <Button Content="History" Command="{Binding OpenHistoryCommand}" IsVisible="{Binding !IsNew}" />
                 </StackPanel>
             </StackPanel>

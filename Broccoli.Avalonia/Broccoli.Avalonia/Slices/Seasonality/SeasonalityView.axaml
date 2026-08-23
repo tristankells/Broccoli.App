@@ -60,7 +60,7 @@
         <!-- Horizontally scrollable grid: the column header stays fixed while the virtualized
              (vertically scrolling) row list scrolls under it. -->
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-            <Grid RowDefinitions="Auto,*" Width="1164">
+            <Grid RowDefinitions="Auto,*" MinWidth="1164">
                 <!-- Column header (12,*,80 then 12 month columns then delete) -->
                 <Grid Grid.Row="0" ColumnDefinitions="12,*,80,76,76,76,76,76,76,76,76,76,76,76,76,32"
                       ColumnSpacing="6" Margin="9,0,8,4">

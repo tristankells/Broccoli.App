@@ -19,6 +19,7 @@ public partial class RecipesListViewModel : ViewModelBase
     private readonly IMacroTargetService? _macroService;
     private readonly IngredientCartService? _cartService;
     private readonly IPantryService? _pantryService;
+    private readonly IRecipeIngredientSearchService? _ingredientSearchService;
     private readonly ImportDialogViewModel? _importDialog;
     private readonly RecipeListPageViewModel _listPage;
 
@@ -26,7 +27,7 @@ public partial class RecipesListViewModel : ViewModelBase
     private ObservableObject _currentPage;
 
     public RecipesListViewModel()
-        : this(new RecipeService(), null, null, null, null, null, null, null)
+        : this(new RecipeService(), null, null, null, null, null, null, null, null)
     {
     }
 
@@ -38,7 +39,8 @@ public partial class RecipesListViewModel : ViewModelBase
         IMacroTargetService? macroService,
         ImportDialogViewModel? importDialog = null,
         IngredientCartService? cartService = null,
-        IPantryService? pantryService = null)
+        IPantryService? pantryService = null,
+        IRecipeIngredientSearchService? ingredientSearchService = null)
     {
         _recipeService = recipeService;
         _parser = parser;
@@ -47,6 +49,7 @@ public partial class RecipesListViewModel : ViewModelBase
         _macroService = macroService;
         _cartService = cartService;
         _pantryService = pantryService;
+        _ingredientSearchService = ingredientSearchService;
         _importDialog = importDialog;
         _listPage = new RecipeListPageViewModel(
             _recipeService,
@@ -54,10 +57,12 @@ public partial class RecipesListViewModel : ViewModelBase
             _seasonalityService,
             _macroService,
             _cartService,
-            _pantryService)
+            _pantryService,
+            _ingredientSearchService)
         {
             AddRecipeRequested = ShowAdd,
             ImportRecipeRequested = ShowImport,
+            UseUpIngredientsRequested = ShowUseUpIngredients,
             RecipeSelected = ShowDetail,
         };
         _currentPage = _listPage;
@@ -92,6 +97,21 @@ public partial class RecipesListViewModel : ViewModelBase
         _importDialog.Open(existingNames);
         var window = new ImportDialog { DataContext = _importDialog };
         window.Show();
+    }
+
+    private void ShowUseUpIngredients()
+    {
+        if (_ingredientSearchService is null)
+        {
+            return;
+        }
+
+        var dialogViewModel = new IngredientSearchDialogViewModel(_ingredientSearchService)
+        {
+            RecipeSelected = ShowDetail,
+        };
+        var dialog = new IngredientSearchDialog { DataContext = dialogViewModel };
+        dialog.Show();
     }
 
     private void ShowDetail(Recipe recipe)

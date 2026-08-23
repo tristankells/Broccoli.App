@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
         // Services
         services.AddSingleton<IRecipeHistoryStore, RecipeHistoryStore>();
         services.AddSingleton<IRecipeService, RecipeService>();
+        services.AddSingleton<IRecipeIngredientSearchService, RecipeIngredientSearchService>();
         services.TryAddSingleton<IGoogleDriveAuthService, GoogleDriveAuthService>();
         services.AddSingleton<IGoogleDriveSyncService, GoogleDriveSyncService>();
         services.AddSingleton<IStorageUsageService, StorageUsageService>();

@@ -1,0 +1,89 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+        x:Class="Broccoli.Avalonia.Slices.Recipes.IngredientSearchDialog"
+        x:DataType="vm:IngredientSearchDialogViewModel"
+        Title="Use up ingredients" Width="720" Height="580"
+        Icon="/Assets/avalonia-logo.ico"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Top" Spacing="4">
+            <TextBlock FontSize="16" FontWeight="SemiBold" Text="Use up ingredients" />
+            <TextBlock FontSize="11" Foreground="Gray" TextWrapping="Wrap"
+                       Text="List the foods you want to get rid of (comma or line separated), then search. Recipes are ranked by how many of them they use and how closely their ingredients match." />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,12,0,0">
+            <TextBox Text="{Binding SearchTermsText}" AcceptsReturn="True" MinHeight="80"
+                     PlaceholderText="e.g. chicken, tomato, coriander" />
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="Search" Command="{Binding SearchCommand}" Classes="accent" />
+                <Button Content="Close" Command="{Binding CancelCommand}" />
+            </StackPanel>
+        </StackPanel>
+
+        <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" IsVisible="{Binding IsSearching}"
+                     Margin="0,12,0,0" />
+
+        <TextBlock DockPanel.Dock="Top" Text="No recipes match those ingredients."
+                   IsVisible="{Binding HasNoResults}" Foreground="Gray" Margin="0,16,0,0" />
+
+        <ScrollViewer Margin="0,12,0,0">
+            <ItemsControl ItemsSource="{Binding Results}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:RecipeIngredientSearchResultViewModel">
+                        <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                HorizontalContentAlignment="Stretch" Margin="0,2"
+                                Command="{Binding $parent[ItemsControl].((vm:IngredientSearchDialogViewModel)DataContext).OpenRecipeCommand}"
+                                CommandParameter="{Binding}">
+                            <Border Padding="10,8" CornerRadius="4"
+                                    Background="{DynamicResource AppSidebarBackgroundBrush}">
+                                <StackPanel Spacing="4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold"
+                                                   FontSize="13" TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                                                    VerticalAlignment="Center">
+                                            <Border Background="#3498DB" CornerRadius="8" Padding="6,1">
+                                                <TextBlock Text="{Binding MatchCountText}" FontSize="10"
+                                                           Foreground="White" />
+                                            </Border>
+                                            <Border Background="#2ECC71" CornerRadius="8" Padding="6,1">
+                                                <TextBlock Text="{Binding AveragePercentText}" FontSize="10"
+                                                           Foreground="White" />
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+                                    <ItemsControl ItemsSource="{Binding MatchedIngredients}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:IngredientHitViewModel">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                                                        <TextBlock Text="{Binding IngredientLine}" FontSize="11"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding SearchTerm}" FontSize="11"
+                                                                   Foreground="Gray" FontStyle="Italic"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                                        <TextBlock Text="{Binding Method}" FontSize="10"
+                                                                   Foreground="Gray" />
+                                                        <TextBlock Text="{Binding ScorePercentText}" FontSize="10"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{Binding ScoreColor}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

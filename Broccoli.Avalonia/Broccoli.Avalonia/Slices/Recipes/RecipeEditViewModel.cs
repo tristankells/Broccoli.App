@@ -340,6 +340,7 @@ public partial class RecipeEditViewModel : ViewModelBase
         OnPropertyChanged(nameof(ProteinColor));
         OnPropertyChanged(nameof(CarbsColor));
         OnPropertyChanged(nameof(FatColor));
+        OpenAutoBalanceCommand.NotifyCanExecuteChanged();
     }
 
     private void RefreshImages(Recipe recipe)
@@ -414,6 +415,89 @@ public partial class RecipeEditViewModel : ViewModelBase
             }
 
             lines[i] = IngredientLineFormatter.Build(parsed.Quantity, parsed.CanonicalUnit, food.Name);
+        }
+
+        Ingredients = string.Join("\n", lines);
+    }
+
+    private bool CanAutoBalance() => IsComparisonEnabled;
+
+    [RelayCommand(CanExecute = nameof(CanAutoBalance))]
+    private void OpenAutoBalance()
+    {
+        if (_parser is null || _macroService is null)
+        {
+            return;
+        }
+
+        List<AutoBalanceIngredient> ingredients = new();
+        foreach (ParsedIngredientMatch match in _parser.ParseAndMatchIngredients(Ingredients))
+        {
+            AutoBalanceIngredient? ingredient = AutoBalanceIngredient.FromMatch(match);
+            if (ingredient is not null)
+            {
+                ingredients.Add(ingredient);
+            }
+        }
+
+        if (ingredients.Count == 0)
+        {
+            return;
+        }
+
+        double servings = EffectiveServings;
+        var targets = new AutoBalanceTargets
+        {
+            Calories = MealTargetCalories * servings,
+            ProteinG = MealTargetProteinG * servings,
+            CarbsG = MealTargetCarbsG * servings,
+            FatG = MealTargetFatG * servings,
+        };
+
+        MacroTargetSettings settings = _macroService.GetSettings();
+        var dialogViewModel = new AutoBalanceDialogViewModel(
+            ingredients,
+            targets,
+            servings,
+            ComparisonPersonName ?? "target",
+            settings.AutoBalanceStrategy,
+            settings.CalorieMatchTolerancePercent)
+        {
+            ApplyRequested = ApplyAutoBalance,
+        };
+
+        var dialog = new AutoBalanceDialog { DataContext = dialogViewModel };
+        dialog.Show();
+    }
+
+    private void ApplyAutoBalance(IReadOnlyList<AutoBalanceAdjustment> adjustments)
+    {
+        if (_parser is null || adjustments.Count == 0)
+        {
+            return;
+        }
+
+        string[] lines = Ingredients.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            ParsedIngredient? parsed = _parser.ParseLine(lines[i].TrimEnd('\r'));
+            if (parsed is null)
+            {
+                continue;
+            }
+
+            AutoBalanceAdjustment? adjustment = adjustments.FirstOrDefault(a =>
+                string.Equals(a.Ingredient.FoodDescription, parsed.FoodDescription, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(a.Ingredient.CanonicalUnit, parsed.CanonicalUnit, StringComparison.OrdinalIgnoreCase));
+
+            if (adjustment is null || adjustment.BeforeGrams <= 0)
+            {
+                continue;
+            }
+
+            double ratio = adjustment.AfterGrams / adjustment.BeforeGrams;
+            double newQuantity = parsed.Quantity * ratio;
+            lines[i] = IngredientLineFormatter.Build(newQuantity, parsed.CanonicalUnit, adjustment.Ingredient.FoodName);
         }
 
         Ingredients = string.Join("\n", lines);

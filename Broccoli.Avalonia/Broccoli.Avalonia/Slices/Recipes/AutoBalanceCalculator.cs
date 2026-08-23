@@ -1,3 +1,5 @@
+using Broccoli.Avalonia.Models;
+
 namespace Broccoli.Avalonia.Slices.Recipes;
 
 /// <summary>
@@ -191,7 +193,7 @@ public static class AutoBalanceCalculator
             return false;
         }
 
-        var newGrams = new double[n];
+        double[] newGrams = new double[n];
         for (int i = 0; i < n; i++)
         {
             double after = working[pivots[i]].Grams + deltas[i];

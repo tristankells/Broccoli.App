@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
+using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -108,7 +110,7 @@ public partial class AutoBalanceDialogViewModel : ViewModelBase
 
         _preview = AutoBalanceCalculator.Calculate(_ingredients, _targets, selected, _strategy, _tolerancePercent);
         RebuildPreviewRows();
-        AutoBalanceCommand.NotifyCanExecuteChanged();
+        ApplyCommand.NotifyCanExecuteChanged();
     }
 
     private void RebuildPreviewRows()
@@ -183,9 +185,9 @@ public sealed class AutoBalanceTargetRow
         double afterPerServing = servings > 0 ? after / servings : after;
 
         Name = name;
-        TargetText = targetPerServing.ToString(format);
-        BeforeText = beforePerServing.ToString(format);
-        AfterText = afterPerServing.ToString(format);
+        TargetText = targetPerServing.ToString(format, CultureInfo.InvariantCulture);
+        BeforeText = beforePerServing.ToString(format, CultureInfo.InvariantCulture);
+        AfterText = afterPerServing.ToString(format, CultureInfo.InvariantCulture);
         DeltaText = $"{after - before:+0.0;-0.0;0}";
     }
 

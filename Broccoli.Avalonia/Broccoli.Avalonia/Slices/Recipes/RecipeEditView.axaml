@@ -257,6 +257,8 @@
                                         <TextBlock Text="> 25%" FontSize="10" Foreground="Gray" />
                                     </StackPanel>
                                 </StackPanel>
+                                <Button Content="Auto Balance…" Classes="accent" Command="{Binding OpenAutoBalanceCommand}"
+                                        HorizontalAlignment="Left" Margin="0,8,0,0" />
                             </StackPanel>
                         </Border>
                     </StackPanel>

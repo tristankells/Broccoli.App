@@ -7,7 +7,7 @@ namespace Broccoli.Avalonia.Tests.Slices.Recipes;
 
 /// <summary>
 /// Exercises the auto-balance pipeline against the real "Crispy Gnocchi &amp; Beef Bolognese with
-/// Parmesan" recipe (Crispy Gnocchi &amp; Beef Bolognese with Parmesan, 10 servings) stored locally at
+/// Parmesan" recipe (10 servings) stored locally at
 /// <c>{LocalAppData}\Broccoli\Recipes\d221cfb7-fbed-4d5a-b1be-efeb843fa451\recipe.md</c>. The
 /// ingredient block is embedded verbatim so the tests stay hermetic; food nutrition is a realistic
 /// stand-in for the food database entries the matcher would resolve.
@@ -48,13 +48,13 @@ public class AutoBalanceRecipeTests
     private static readonly Dictionary<string, Food> s_foods = new(StringComparer.OrdinalIgnoreCase)
     {
         ["onion"] = MakeFood(1, "Onion", 40, 1.1, 9.3, 0.1),
-        ["garlic"] = MakeFood(2, "Garlic", 149, 6.4, 33.0, 0.5),
+        ["cloves of garlic"] = MakeFood(2, "Garlic", 149, 6.4, 33.0, 0.5, gramsPerMeasure: 3),
         ["carrot"] = MakeFood(3, "Carrot", 41, 0.9, 10.0, 0.2),
-        ["oil"] = MakeFood(4, "Olive Oil", 884, 0.0, 0.0, 100.0),
+        ["oil"] = MakeFood(4, "Olive Oil", 884, 0.0, 0.0, 100.0, gramsPerMeasure: 15),
         ["lean beef mince"] = MakeFood(5, "Lean Beef Mince", 150, 21.0, 0.0, 7.0),
         ["italian herbs"] = MakeFood(6, "Italian Herbs", 0, 0.0, 0.0, 0.0),
         ["tomato paste"] = MakeFood(7, "Tomato Paste", 82, 4.3, 18.9, 0.5),
-        ["crushed tomatoes"] = MakeFood(8, "Crushed Tomatoes", 32, 1.6, 7.0, 0.2),
+        ["crushed tomatoes"] = MakeFood(8, "Crushed Tomatoes", 32, 1.6, 7.0, 0.2, gramsPerMeasure: 400),
         ["beef stock"] = MakeFood(9, "Beef Stock", 12, 1.7, 1.2, 0.1),
         ["baby spinach"] = MakeFood(10, "Baby Spinach", 23, 2.9, 3.6, 0.4),
         ["butter"] = MakeFood(11, "Butter", 717, 0.9, 0.1, 81.0),
@@ -63,15 +63,48 @@ public class AutoBalanceRecipeTests
     };
 
     [TestMethod]
-    public void BuildIngredients_FiltersToWeightBasedMatchedOnly()
+    public void BuildIngredients_IncludesAllMatched_OnlyWeightBasedAdjustable()
     {
         List<AutoBalanceIngredient> ingredients = BuildIngredients(RecipeIngredients);
 
-        Assert.AreEqual(6, ingredients.Count);
+        Assert.AreEqual(13, ingredients.Count);
+
+        List<AutoBalanceIngredient> adjustable = ingredients.Where(i => i.IsAdjustable).ToList();
         CollectionAssert.AreEquivalent(
             new[] { "Carrot", "Lean Beef Mince", "Tomato Paste", "Baby Spinach", "Gnocchi", "Grated Parmesan" },
-            ingredients.Select(i => i.FoodName).ToList());
-        Assert.IsTrue(ingredients.All(i => i.CanonicalUnit is "g" or "kg"));
+            adjustable.Select(i => i.FoodName).ToList());
+        Assert.IsTrue(adjustable.All(i => i.CanonicalUnit is "g" or "kg"));
+
+        // Volume/count ingredients (onion, garlic, oil, herbs, tomatoes, stock, butter) count toward
+        // the totals but are never eligible to be scaled.
+        Assert.IsTrue(ingredients.Where(i => !i.IsAdjustable).All(i => i.CanonicalUnit is not ("g" or "kg")));
+        Assert.IsTrue(ingredients.Any(i => !i.IsAdjustable && i.FoodName == "Olive Oil"));
+        Assert.IsTrue(ingredients.Any(i => !i.IsAdjustable && i.FoodName == "Butter"));
+    }
+
+    [TestMethod]
+    public void Before_TotalsMatchRecipeEditorTotals()
+    {
+        List<ParsedIngredientMatch> matches = ParseRecipe(RecipeIngredients);
+        List<AutoBalanceIngredient> ingredients = BuildIngredients(RecipeIngredients);
+
+        AutoBalancePreview preview = AutoBalanceCalculator.Calculate(
+            ingredients,
+            Targets(3500, 260, 400, 90),
+            s_allTargets,
+            AutoBalanceStrategy.IndependentSinglePass);
+
+        // The editor's Nutrition Summary sums match.GetCalories()/… over every matched ingredient;
+        // the dialog's Before must agree so it never looks stale.
+        double calories = matches.Where(m => m.IsMatched).Sum(m => m.GetCalories());
+        double protein = matches.Where(m => m.IsMatched).Sum(m => m.GetProtein());
+        double carbs = matches.Where(m => m.IsMatched).Sum(m => m.GetCarbohydrates());
+        double fat = matches.Where(m => m.IsMatched).Sum(m => m.GetFat());
+
+        Assert.AreEqual(calories, preview.Before.Calories, 0.001);
+        Assert.AreEqual(protein, preview.Before.ProteinG, 0.001);
+        Assert.AreEqual(carbs, preview.Before.CarbsG, 0.001);
+        Assert.AreEqual(fat, preview.Before.FatG, 0.001);
     }
 
     [TestMethod]
@@ -131,15 +164,15 @@ public class AutoBalanceRecipeTests
     {
         AutoBalancePreview preview = Calculate(
             RecipeIngredients,
-            Targets(3500, 260, 400, 90),
+            Targets(3500, 330, 560, 165),
             s_noCalories,
             AutoBalanceStrategy.LinearSolve);
 
         Assert.IsFalse(preview.UsedFallback);
         Assert.AreEqual(3, preview.Adjustments.Count);
-        Assert.AreEqual(260, preview.After.ProteinG, 0.01);
-        Assert.AreEqual(400, preview.After.CarbsG, 0.01);
-        Assert.AreEqual(90, preview.After.FatG, 0.01);
+        Assert.AreEqual(330, preview.After.ProteinG, 0.01);
+        Assert.AreEqual(560, preview.After.CarbsG, 0.01);
+        Assert.AreEqual(165, preview.After.FatG, 0.01);
     }
 
     [TestMethod]
@@ -163,9 +196,18 @@ public class AutoBalanceRecipeTests
     [TestMethod]
     public void SinglePass_WithinTolerance_NoChanges()
     {
-        AutoBalancePreview preview = Calculate(
-            RecipeIngredients,
-            Targets(4000, 260, 480, 95),
+        List<AutoBalanceIngredient> ingredients = BuildIngredients(RecipeIngredients);
+        AutoBalanceTotals before = SumTotals(ingredients);
+
+        AutoBalancePreview preview = AutoBalanceCalculator.Calculate(
+            ingredients,
+            new AutoBalanceTargets
+            {
+                Calories = before.Calories * 1.05,
+                ProteinG = before.ProteinG * 1.05,
+                CarbsG = before.CarbsG * 1.05,
+                FatG = before.FatG * 1.05,
+            },
             s_allTargets,
             AutoBalanceStrategy.IndependentSinglePass,
             tolerancePercent: 15);
@@ -182,7 +224,7 @@ public class AutoBalanceRecipeTests
         double tolerancePercent = 0) =>
         AutoBalanceCalculator.Calculate(BuildIngredients(ingredientText), targets, selected, strategy, tolerancePercent);
 
-    private static List<AutoBalanceIngredient> BuildIngredients(string ingredientText)
+    private static List<ParsedIngredientMatch> ParseRecipe(string ingredientText)
     {
         var foodService = new Mock<IFoodService>();
         foodService.Setup(s => s.FindBestMatch(It.IsAny<string>()))
@@ -191,11 +233,28 @@ public class AutoBalanceRecipeTests
                 : new FoodMatchResult { Score = 0, Method = "None" });
 
         IngredientParserService parser = new(foodService.Object);
-        return parser.ParseAndMatchIngredients(ingredientText)
+        return parser.ParseAndMatchIngredients(ingredientText);
+    }
+
+    private static List<AutoBalanceIngredient> BuildIngredients(string ingredientText) =>
+        ParseRecipe(ingredientText)
             .Select(AutoBalanceIngredient.FromMatch)
             .Where(ingredient => ingredient is not null)
             .Select(ingredient => ingredient!)
             .ToList();
+
+    private static AutoBalanceTotals SumTotals(IEnumerable<AutoBalanceIngredient> ingredients)
+    {
+        double calories = 0, protein = 0, carbs = 0, fat = 0;
+        foreach (AutoBalanceIngredient ingredient in ingredients)
+        {
+            calories += ingredient.Grams * ingredient.KcalPerGram;
+            protein += ingredient.Grams * ingredient.ProteinPerGram;
+            carbs += ingredient.Grams * ingredient.CarbsPerGram;
+            fat += ingredient.Grams * ingredient.FatPerGram;
+        }
+
+        return new AutoBalanceTotals { Calories = calories, ProteinG = protein, CarbsG = carbs, FatG = fat };
     }
 
     private static AutoBalanceTargets Targets(
@@ -210,12 +269,19 @@ public class AutoBalanceRecipeTests
         FatG = fat,
     };
 
-    private static Food MakeFood(int id, string name, double calories, double protein, double carbs, double fat) => new()
+    private static Food MakeFood(
+        int id,
+        string name,
+        double calories,
+        double protein,
+        double carbs,
+        double fat,
+        double gramsPerMeasure = 100) => new()
     {
         Id = id,
         Name = name,
         Measure = "100g",
-        GramsPerMeasure = 100,
+        GramsPerMeasure = gramsPerMeasure,
         CaloriesPer100g = calories,
         ProteinPer100g = protein,
         CarbohydratesPer100g = carbs,

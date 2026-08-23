@@ -215,7 +215,7 @@ public class AutoBalanceCalculatorTests
     }
 
     [TestMethod]
-    public void FromMatch_NonWeightUnit_ReturnsNull()
+    public void FromMatch_NonWeightUnit_IsNotAdjustable()
     {
         var parsed = new ParsedIngredient
         {
@@ -236,7 +236,10 @@ public class AutoBalanceCalculatorTests
             IsMatched = true,
         };
 
-        Assert.IsNull(AutoBalanceIngredient.FromMatch(match));
+        AutoBalanceIngredient? ingredient = AutoBalanceIngredient.FromMatch(match);
+
+        Assert.IsNotNull(ingredient);
+        Assert.IsFalse(ingredient.IsAdjustable);
     }
 
     [TestMethod]

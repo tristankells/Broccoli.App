@@ -12,7 +12,9 @@ public enum AutoBalanceNutrient
 }
 
 /// <summary>
-/// A single matched, weight-based ingredient that the auto-balance feature is allowed to scale.
+/// A single matched ingredient the auto-balance feature works with. Every matched ingredient is
+/// included in the before/after totals (so the dialog matches the recipe editor's nutrition
+/// summary), but only weight-based (g/kg) ingredients are eligible to be scaled.
 /// </summary>
 public sealed class AutoBalanceIngredient
 {
@@ -26,6 +28,9 @@ public sealed class AutoBalanceIngredient
     public required double Quantity { get; set; }
 
     public required double Grams { get; set; }
+
+    /// <summary>True when the ingredient is expressed in grams/kg and may be scaled to hit targets.</summary>
+    public bool IsAdjustable { get; set; } = true;
 
     public required double KcalPerGram { get; set; }
 
@@ -47,8 +52,10 @@ public sealed class AutoBalanceIngredient
     public double Contribution(AutoBalanceNutrient nutrient) => Grams * Density(nutrient);
 
     /// <summary>
-    /// Builds an eligible ingredient from a parsed match, or null when the match is unresolved,
-    /// not weight-based (g/kg), or carries no grams.
+    /// Builds an ingredient from a parsed match, or null when the match is unresolved or carries no
+    /// grams. All matched ingredients are kept so the preview totals match the recipe editor;
+    /// <see cref="IsAdjustable"/> is set to false for non-weight (cup/tbsp/can/…) units so they
+    /// count toward the totals but are never scaled.
     /// </summary>
     public static AutoBalanceIngredient? FromMatch(ParsedIngredientMatch match)
     {
@@ -58,10 +65,6 @@ public sealed class AutoBalanceIngredient
         }
 
         string unit = match.ParsedIngredient.CanonicalUnit?.ToLowerInvariant() ?? string.Empty;
-        if (unit is not ("g" or "kg"))
-        {
-            return null;
-        }
 
         double grams = match.GetWeightInGrams();
         if (grams <= 0)
@@ -76,6 +79,7 @@ public sealed class AutoBalanceIngredient
             CanonicalUnit = unit,
             Quantity = match.ParsedIngredient.Quantity,
             Grams = grams,
+            IsAdjustable = unit is "g" or "kg",
             KcalPerGram = match.MatchedFood.CaloriesPer100g / 100.0,
             ProteinPerGram = match.MatchedFood.ProteinPer100g / 100.0,
             CarbsPerGram = match.MatchedFood.CarbohydratesPer100g / 100.0,

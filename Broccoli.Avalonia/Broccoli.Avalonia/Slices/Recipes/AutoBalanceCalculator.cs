@@ -168,7 +168,9 @@ public static class AutoBalanceCalculator
             double bestContribution = 0;
             for (int j = 0; j < working.Length; j++)
             {
-                if (used.Contains(j) || working[j].Density(ordered[i]) <= 0)
+                if (used.Contains(j) ||
+                    !working[j].IsAdjustable ||
+                    working[j].Density(ordered[i]) <= 0)
                 {
                     continue;
                 }
@@ -237,7 +239,7 @@ public static class AutoBalanceCalculator
         double bestContribution = 0;
         for (int i = 0; i < working.Length; i++)
         {
-            if (working[i].Density(nutrient) <= 0)
+            if (!working[i].IsAdjustable || working[i].Density(nutrient) <= 0)
             {
                 continue;
             }
@@ -317,6 +319,7 @@ public static class AutoBalanceCalculator
         CanonicalUnit = source.CanonicalUnit,
         Quantity = source.Quantity,
         Grams = source.Grams,
+        IsAdjustable = source.IsAdjustable,
         KcalPerGram = source.KcalPerGram,
         ProteinPerGram = source.ProteinPerGram,
         CarbsPerGram = source.CarbsPerGram,

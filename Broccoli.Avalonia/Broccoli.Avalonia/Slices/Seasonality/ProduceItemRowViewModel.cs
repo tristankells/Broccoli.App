@@ -6,8 +6,8 @@ namespace Broccoli.Avalonia.Slices.Seasonality;
 
 /// <summary>
 /// A single produce item shown on the Seasonality page. Every editable field (name, type, seasons,
-/// year-round, notes) is bound directly to the row's controls and persisted to the store via the
-/// save callback as it changes, so no separate edit mode is needed.
+/// year-round) is bound directly to the row's controls and persisted to the store via the save
+/// callback as it changes, so no separate edit mode is needed.
 /// </summary>
 public partial class ProduceItemRowViewModel : ViewModelBase
 {
@@ -36,9 +36,6 @@ public partial class ProduceItemRowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _inWinter;
 
-    [ObservableProperty]
-    private string? _notes;
-
     /// <summary>The season currently being viewed (lowercase: "spring", "summer", ...).</summary>
     [ObservableProperty]
     private string _season = string.Empty;
@@ -54,7 +51,6 @@ public partial class ProduceItemRowViewModel : ViewModelBase
         _inSummer = item.Seasons.Contains("summer", StringComparer.OrdinalIgnoreCase);
         _inAutumn = item.Seasons.Contains("autumn", StringComparer.OrdinalIgnoreCase);
         _inWinter = item.Seasons.Contains("winter", StringComparer.OrdinalIgnoreCase);
-        _notes = item.Notes;
     }
 
     public ProduceItem Item { get; }
@@ -102,12 +98,6 @@ public partial class ProduceItemRowViewModel : ViewModelBase
     partial void OnInAutumnChanged(bool value) => ApplySeasons();
 
     partial void OnInWinterChanged(bool value) => ApplySeasons();
-
-    partial void OnNotesChanged(string? value)
-    {
-        Item.Notes = value;
-        RequestSave();
-    }
 
     private void ApplySeasons()
     {

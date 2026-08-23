@@ -49,7 +49,7 @@
 
         <!-- Column header (outside the scrolling region so it stays put) -->
         <Grid DockPanel.Dock="Top" ColumnDefinitions="10,*,110,Auto,Auto,Auto,Auto,Auto,Auto"
-              ColumnSpacing="8" Margin="8,0,8,2">
+              ColumnSpacing="8" Margin="12,0,8,2">
             <TextBlock Grid.Column="1" Text="Name" FontSize="10" Foreground="Gray" />
             <TextBlock Grid.Column="2" Text="Type" FontSize="10" Foreground="Gray" />
             <TextBlock Grid.Column="3" Text="Spring" FontSize="10" Foreground="Gray" />
@@ -72,10 +72,15 @@
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="vm:ProduceItemRowViewModel">
-                        <Border Margin="0,1" Padding="8,4" CornerRadius="2"
-                                BorderBrush="{Binding SeasonColor}" BorderThickness="3,0,0,0">
-                            <StackPanel Spacing="2">
-                                <Grid ColumnDefinitions="10,*,110,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+                        <!-- Thin border around the row; the left accent strip + dot show whether
+                             the item is in season for the selected month. -->
+                        <Border Margin="0,1" Padding="0" CornerRadius="3" ClipToBounds="True"
+                                BorderBrush="#40808080" BorderThickness="1">
+                            <Grid ColumnDefinitions="3,*">
+                                <Border Grid.Column="0" Background="{Binding SeasonColor}" CornerRadius="3,0,0,3" />
+                                <Grid Grid.Column="1" Margin="8,4"
+                                      ColumnDefinitions="10,*,110,Auto,Auto,Auto,Auto,Auto,Auto"
+                                      ColumnSpacing="8">
                                     <Ellipse Grid.Column="0" Fill="{Binding SeasonColor}" Width="10" Height="10"
                                              VerticalAlignment="Center" IsHitTestVisible="False" />
                                     <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
@@ -109,10 +114,7 @@
                                                   Width="10" Height="10" Foreground="Red" />
                                     </Button>
                                 </Grid>
-                                <TextBox Text="{Binding Notes, UpdateSourceTrigger=LostFocus}"
-                                         PlaceholderText="Notes..." FontSize="11" MinHeight="24"
-                                         Margin="18,0,0,0" />
-                            </StackPanel>
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>

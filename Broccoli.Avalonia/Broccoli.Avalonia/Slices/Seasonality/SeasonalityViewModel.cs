@@ -56,6 +56,9 @@ public partial class SeasonalityViewModel : ViewModelBase
     private int _inSeasonCount;
 
     [ObservableProperty]
+    private int _partiallyInSeasonCount;
+
+    [ObservableProperty]
     private int _totalCount;
 
     public SeasonalityViewModel()
@@ -84,8 +87,6 @@ public partial class SeasonalityViewModel : ViewModelBase
     public string SeasonBannerText => $"{CurrentMonthName} → {CurrentSeasonName}";
 
     private DateTime SelectedMonthDate => new(2000, SelectedMonthIndex + 1, 1);
-
-    private string CurrentSeason => SeasonHelper.GetCurrentSeason(SelectedMonthDate);
 
     partial void OnSelectedMonthIndexChanged(int value)
     {
@@ -191,18 +192,24 @@ public partial class SeasonalityViewModel : ViewModelBase
 
     private void RefreshSeason()
     {
-        string season = CurrentSeason;
-        int inSeason = 0;
+        int month = SelectedMonthIndex + 1;
+        int inSeason = 0, partial = 0;
         foreach (ProduceItemRowViewModel row in Items)
         {
-            row.Season = season;
-            if (row.IsInSeason)
+            row.CurrentMonth = month;
+            switch (row.CurrentState)
             {
-                inSeason++;
+                case SeasonalityState.InSeason:
+                    inSeason++;
+                    break;
+                case SeasonalityState.PartiallyInSeason:
+                    partial++;
+                    break;
             }
         }
 
         InSeasonCount = inSeason;
+        PartiallyInSeasonCount = partial;
         TotalCount = Items.Count;
     }
 

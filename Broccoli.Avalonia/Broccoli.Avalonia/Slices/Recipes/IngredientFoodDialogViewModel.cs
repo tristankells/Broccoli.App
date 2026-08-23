@@ -11,6 +11,7 @@ public partial class IngredientFoodDialogViewModel : ViewModelBase
 {
     private readonly IFoodService _foodService;
     private bool _isNewFood;
+    private bool _isSyncing;
 
     public IngredientFoodDialogViewModel(
         IFoodService foodService,
@@ -60,7 +61,10 @@ public partial class IngredientFoodDialogViewModel : ViewModelBase
     private double _gramsPerMeasure;
 
     [ObservableProperty]
-    private double _caloriesPer100g;
+    private string? _caloriesInput;
+
+    [ObservableProperty]
+    private string? _kilojoulesInput;
 
     [ObservableProperty]
     private double _fatPer100g;
@@ -102,6 +106,38 @@ public partial class IngredientFoodDialogViewModel : ViewModelBase
         }
 
         UpdateMatchQuality();
+    }
+
+    partial void OnCaloriesInputChanged(string? value)
+    {
+        if (_isSyncing)
+        {
+            return;
+        }
+
+        if (EnergyConversions.TryParse(value, out double calories))
+        {
+            _isSyncing = true;
+            CaloriesInput = EnergyConversions.Format(calories);
+            KilojoulesInput = EnergyConversions.Format(calories * EnergyConversions.KilojoulesPerCalorie);
+            _isSyncing = false;
+        }
+    }
+
+    partial void OnKilojoulesInputChanged(string? value)
+    {
+        if (_isSyncing)
+        {
+            return;
+        }
+
+        if (EnergyConversions.TryParse(value, out double kilojoules))
+        {
+            _isSyncing = true;
+            KilojoulesInput = EnergyConversions.Format(kilojoules);
+            CaloriesInput = EnergyConversions.Format(kilojoules / EnergyConversions.KilojoulesPerCalorie);
+            _isSyncing = false;
+        }
     }
 
     [RelayCommand]
@@ -182,7 +218,7 @@ public partial class IngredientFoodDialogViewModel : ViewModelBase
             Name = string.Empty;
             Measure = string.Empty;
             GramsPerMeasure = 0;
-            CaloriesPer100g = 0;
+            SetEnergyInputs(0);
             FatPer100g = 0;
             ProteinPer100g = 0;
             CarbohydratesPer100g = 0;
@@ -196,7 +232,7 @@ public partial class IngredientFoodDialogViewModel : ViewModelBase
         Name = SelectedFood.Name;
         Measure = SelectedFood.Measure;
         GramsPerMeasure = SelectedFood.GramsPerMeasure;
-        CaloriesPer100g = SelectedFood.CaloriesPer100g;
+        SetEnergyInputs(SelectedFood.CaloriesPer100g);
         FatPer100g = SelectedFood.FatPer100g;
         ProteinPer100g = SelectedFood.ProteinPer100g;
         CarbohydratesPer100g = SelectedFood.CarbohydratesPer100g;
@@ -204,6 +240,14 @@ public partial class IngredientFoodDialogViewModel : ViewModelBase
         DietaryFiberPer100g = SelectedFood.DietaryFiberPer100g;
         SugarsPer100g = SelectedFood.SugarsPer100g;
         SodiumMgPer100g = SelectedFood.SodiumMgPer100g;
+    }
+
+    private void SetEnergyInputs(double calories)
+    {
+        _isSyncing = true;
+        CaloriesInput = EnergyConversions.Format(calories);
+        KilojoulesInput = EnergyConversions.Format(calories * EnergyConversions.KilojoulesPerCalorie);
+        _isSyncing = false;
     }
 
     private static Food Clone(Food source) => new()
@@ -229,7 +273,7 @@ public partial class IngredientFoodDialogViewModel : ViewModelBase
         SelectedFood!.Name = Name.Trim();
         SelectedFood.Measure = Measure;
         SelectedFood.GramsPerMeasure = GramsPerMeasure;
-        SelectedFood.CaloriesPer100g = CaloriesPer100g;
+        SelectedFood.CaloriesPer100g = EnergyConversions.ParseOrDefault(CaloriesInput);
         SelectedFood.FatPer100g = FatPer100g;
         SelectedFood.ProteinPer100g = ProteinPer100g;
         SelectedFood.CarbohydratesPer100g = CarbohydratesPer100g;

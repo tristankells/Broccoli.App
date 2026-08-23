@@ -79,9 +79,13 @@
             </StackPanel>
             <TextBlock Text="Per 100g" FontSize="11" FontWeight="SemiBold" />
             <StackPanel Orientation="Horizontal" Spacing="8">
-                <StackPanel Spacing="2" Width="100">
-                    <TextBlock Text="Calories" FontSize="11" />
-                    <TextBox Text="{Binding CaloriesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                <StackPanel Spacing="2" Width="110">
+                    <TextBlock Text="Calories (kcal)" FontSize="11" />
+                    <TextBox Text="{Binding CaloriesInput, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="110">
+                    <TextBlock Text="Energy (kJ)" FontSize="11" />
+                    <TextBox Text="{Binding KilojoulesInput, UpdateSourceTrigger=LostFocus}" />
                 </StackPanel>
                 <StackPanel Spacing="2" Width="100">
                     <TextBlock Text="Fat (g)" FontSize="11" />

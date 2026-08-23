@@ -23,7 +23,22 @@ public partial class SeasonalityViewModel : ViewModelBase
 
     public ObservableCollection<ProduceItemRowViewModel> Items { get; } = new();
 
-    public ObservableCollection<ProduceItemRowViewModel> FilteredItems { get; } = new();
+    private ObservableCollection<ProduceItemRowViewModel> _filteredItems = new();
+
+    public ObservableCollection<ProduceItemRowViewModel> FilteredItems
+    {
+        get => _filteredItems;
+        private set
+        {
+            if (ReferenceEquals(_filteredItems, value))
+            {
+                return;
+            }
+
+            _filteredItems = value;
+            OnPropertyChanged();
+        }
+    }
 
     [ObservableProperty]
     private int _selectedMonthIndex;
@@ -207,11 +222,9 @@ public partial class SeasonalityViewModel : ViewModelBase
             query = query.Where(r => r.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
-        FilteredItems.Clear();
-        foreach (ProduceItemRowViewModel row in query)
-        {
-            FilteredItems.Add(row);
-        }
+        // Replacing the collection (single Reset) is far cheaper for the list control than
+        // clearing and re-adding items one at a time.
+        FilteredItems = new ObservableCollection<ProduceItemRowViewModel>(query);
     }
 
     private static string GenerateId(string name)

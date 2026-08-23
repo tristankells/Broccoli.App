@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,12 +9,17 @@ namespace Broccoli.Avalonia.Slices.Settings;
 
 /// <summary>
 /// Backs the food edit popup. Calories and kilojoules are two-way bound: editing either field
-/// recomputes the other (1 kcal = 4.184 kJ). Kilojoules is a UI-only value derived from calories
-/// and is never stored on the <see cref="Food"/> itself.
+/// recomputes the other (1 kcal = 4.184 kJ) once the field loses focus, and unit-suffixed pastes
+/// such as "739kJ" or "100 kcal" are trimmed to just the number. Kilojoules is a UI-only value
+/// derived from calories and is never stored on the <see cref="Food"/> itself.
 /// </summary>
 public partial class FoodEditDialogViewModel : ViewModelBase
 {
     private const double KilojoulesPerCalorie = 4.184;
+
+    private static readonly Regex s_numberPrefix = new(
+        @"^\s*(?<number>[-+]?\d+(?:[.,]\d+)?)",
+        RegexOptions.Compiled);
 
     private bool _isSyncing;
     private Action<Food>? _saved;
@@ -56,9 +62,10 @@ public partial class FoodEditDialogViewModel : ViewModelBase
             return;
         }
 
-        if (TryParse(value, out double calories))
+        if (TryParseEnergy(value, out double calories))
         {
             _isSyncing = true;
+            CaloriesInput = FormatValue(calories);
             KilojoulesInput = FormatValue(calories * KilojoulesPerCalorie);
             _isSyncing = false;
         }
@@ -71,9 +78,10 @@ public partial class FoodEditDialogViewModel : ViewModelBase
             return;
         }
 
-        if (TryParse(value, out double kilojoules))
+        if (TryParseEnergy(value, out double kilojoules))
         {
             _isSyncing = true;
+            KilojoulesInput = FormatValue(kilojoules);
             CaloriesInput = FormatValue(kilojoules / KilojoulesPerCalorie);
             _isSyncing = false;
         }
@@ -97,7 +105,7 @@ public partial class FoodEditDialogViewModel : ViewModelBase
             return;
         }
 
-        Food.CaloriesPer100g = ParseOrDefault(CaloriesInput);
+        Food.CaloriesPer100g = ParseEnergyOrDefault(CaloriesInput);
         _saved?.Invoke(Food);
         RequestClose?.Invoke();
     }
@@ -105,11 +113,27 @@ public partial class FoodEditDialogViewModel : ViewModelBase
     [RelayCommand]
     private void Cancel() => RequestClose?.Invoke();
 
-    private static bool TryParse(string? value, out double result) =>
-        double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
+    /// <summary>Extracts the leading number from a value, ignoring trailing unit text like "kJ" or "kcal".</summary>
+    private static bool TryParseEnergy(string? value, out double result)
+    {
+        result = 0;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
 
-    private static double ParseOrDefault(string? value) =>
-        double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double d) ? d : 0;
+        Match match = s_numberPrefix.Match(value);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        string number = match.Groups["number"].Value.Replace(',', '.');
+        return double.TryParse(number, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
+    }
+
+    private static double ParseEnergyOrDefault(string? value) =>
+        TryParseEnergy(value, out double d) ? d : 0;
 
     private static string FormatValue(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 }

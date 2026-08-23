@@ -33,6 +33,8 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     private double _calorieMatchTolerancePercent = 15;
     [ObservableProperty]
     private int _historyBackupCount = 10;
+    [ObservableProperty]
+    private AutoBalanceStrategy _autoBalanceStrategy = AutoBalanceStrategy.IndependentSinglePass;
 
     public RecipeSettingsViewModel()
         : this(new MacroTargetService())
@@ -47,6 +49,24 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     }
 
     public List<MacroTarget> AvailableTargets { get; } = new();
+
+    public List<AutoBalanceStrategyOption> AutoBalanceStrategyOptions { get; } = new()
+    {
+        new("Independent single-pass", "Scale the leading contributor of each selected macro; simple, but other macros can drift.", AutoBalanceStrategy.IndependentSinglePass),
+        new("Exact linear solve", "Solve a linear system over the leading contributors to hit all selected targets exactly.", AutoBalanceStrategy.LinearSolve),
+    };
+
+    public AutoBalanceStrategyOption SelectedAutoBalanceStrategyOption
+    {
+        get => AutoBalanceStrategyOptions.FirstOrDefault(o => o.Value == AutoBalanceStrategy) ?? AutoBalanceStrategyOptions[0];
+        set
+        {
+            if (value is not null)
+            {
+                AutoBalanceStrategy = value.Value;
+            }
+        }
+    }
 
     private const int EstimatedKilobytesPerBackup = 2;
 
@@ -87,6 +107,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         ShowCardCalorieMatch = settings.ShowCardCalorieMatch;
         CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
         HistoryBackupCount = settings.RecipeHistoryBackupCount;
+        AutoBalanceStrategy = settings.AutoBalanceStrategy;
 
         List<MacroTarget> targets = _macroService.GetAll();
         AvailableTargets.Clear();
@@ -98,6 +119,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(SelectedTargetIndex));
+        OnPropertyChanged(nameof(SelectedAutoBalanceStrategyOption));
     }
 
     partial void OnHistoryBackupCountChanged(int value) => OnPropertyChanged(nameof(BackupStorageHintText));
@@ -116,8 +138,25 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         settings.ShowCardCalorieMatch = ShowCardCalorieMatch;
         settings.CalorieMatchTolerancePercent = CalorieMatchTolerancePercent;
         settings.RecipeHistoryBackupCount = HistoryBackupCount;
+        settings.AutoBalanceStrategy = AutoBalanceStrategy;
         _macroService.SaveSettings(settings);
         StatusMessage = "Saved.";
         WeakReferenceMessenger.Default.Send(new CardSettingsChangedMessage());
     }
+}
+
+public sealed class AutoBalanceStrategyOption
+{
+    public AutoBalanceStrategyOption(string name, string description, AutoBalanceStrategy value)
+    {
+        Name = name;
+        Description = description;
+        Value = value;
+    }
+
+    public string Name { get; }
+
+    public string Description { get; }
+
+    public AutoBalanceStrategy Value { get; }
 }

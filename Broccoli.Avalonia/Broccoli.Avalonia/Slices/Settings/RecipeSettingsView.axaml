@@ -60,6 +60,28 @@
                 </StackPanel>
             </Border>
 
+            <!-- Auto Balance -->
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Auto Balance" FontWeight="SemiBold" />
+                    <TextBlock Text="Strategy used when auto-balancing a recipe against the meal macro target on the recipe edit page."
+                               FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+                    <ComboBox ItemsSource="{Binding AutoBalanceStrategyOptions}"
+                              SelectedItem="{Binding SelectedAutoBalanceStrategyOption}"
+                              Width="260" HorizontalAlignment="Left">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AutoBalanceStrategyOption">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}" FontSize="12" />
+                                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="Gray"
+                                               TextWrapping="Wrap" MaxWidth="360" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
             <!-- Recipe History -->
             <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
                 <StackPanel Spacing="6">

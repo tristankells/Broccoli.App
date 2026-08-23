@@ -6,7 +6,7 @@ public static class IngredientParsingExtensions
 {
     public static IServiceCollection AddIngredientParsing(this IServiceCollection services)
     {
-        services.AddSingleton<IFoodService, LocalJsonFoodService>();
+        services.AddSingleton<IFoodService, FoodService>();
         services.AddSingleton<IngredientParserService>();
         return services;
     }

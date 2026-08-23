@@ -28,11 +28,12 @@ Broccoli.Avalonia/
                                   TombstoneStore, Migrations/
     Shared/                     ← ViewModelBase, cross-slice messenger records (e.g. PantryListChangedMessage),
                                   XAML value converters (Shared/Converters/)
-    _Shared/IngredientParsing/  ← IFoodService, IngredientParserService, LocalJsonFoodService, ParsedIngredient, ...
-    _Shared/Seasonality/        ← ISeasonalityService, LocalJsonSeasonalityService, SeasonHelper
+    _Shared/IngredientParsing/  ← IFoodService, IngredientParserService, FoodService, FoodDatabaseSeeder, ParsedIngredient, ...
+    _Shared/Seasonality/        ← ISeasonalityService, SeasonalityService, SeasonalityDataStore, ProduceSeeder, SeasonHelper
     Slices/
         Groceries/              ← GroceriesView(+VM), AddToCartDialog, IGroceryListService, IngredientCartService
         Pantry/                 ← PantryView(+VM), IPantryService, PantryService
+        Seasonality/            ← SeasonalityView(+VM), ProduceItemRowViewModel (editable seasonality data tab)
         Planning/               ← PlanningPageView, MacroTargetsView, DayPlanView, MealPrepView + services
         Recipes/                ← RecipeListPageView, RecipeDetailView, RecipeEditView, IRecipeService, RecipeService
             Import/             ← ImportDialog, IImportFormat (PaprikaHtmlImportFormat, BargainBoxPasteImportFormat), RecipeImportService
@@ -79,11 +80,11 @@ Each slice owns its views, view models, service interfaces, and implementations 
 
 ## Ingredient Parsing Pipeline
 
-`IngredientParserService.ParseAndMatchIngredientsAsync()` → regex parse → `LocalJsonFoodService.FindBestMatch()` (exact → stopword-stripped → token ratio → `FuzzySharp` WRatio). `FoodDatabase.json` is embedded as an `avares://` resource (`Assets/` is an `AvaloniaResource`) and loaded once at startup. Register via `services.AddIngredientParsing()`.
+`IngredientParserService.ParseAndMatchIngredientsAsync()` → regex parse → `FoodService.FindBestMatch()` (exact → stopword-stripped → token ratio → `FuzzySharp` WRatio). Foods live in SQLite (`Foods` table); `FoodDatabase.json` is embedded as an `avares://` resource and used only as the initial seed (and to reset the database from Settings). Register via `services.AddIngredientParsing()`.
 
 ## Seasonality
 
-`LocalJsonSeasonalityService` reads the embedded `Assets/nz-produce.json`; `SeasonHelper` answers "is this in season". Register via `services.AddSeasonality()`.
+Produce data lives in SQLite (`ProduceItems` table) with **per-month availability** (`SeasonalityState` = InSeason / PartiallyInSeason / OutOfSeason for months 1–12), seeded once from the embedded `Assets/nz-produce.json` via `ProduceSeeder` (the JSON is never the live store). `SeasonalityService` scores recipe ingredients against that data (partial counts at half weight) and reloads its cache when `SeasonalityDataChangedMessage` is raised. `SeasonHelper` maps months→seasons for the banner and derives the scarcity weight from the in-season month count. The Seasonality nav tab (Slices/Seasonality, hideable from Settings > Seasonality) edits the dataset month by month. Register via `services.AddSeasonality()`.
 
 ## Google Drive Sync (Settings > Sync)
 
@@ -115,4 +116,4 @@ dotnet test Broccoli.Avalonia/Broccoli.Avalonia.UnitTests/Broccoli.Avalonia.Unit
 - `Broccoli.Avalonia/Shell/MainViewModel.cs` — nav items + selection state
 - `Broccoli.Avalonia/Storage/BroccoliDbContext.cs` — SQLite schema
 - `Broccoli.Avalonia/Storage/RecipeMarkdownStore.cs` — recipe persistence format
-- `Broccoli.Avalonia/_Shared/IngredientParsing/LocalJsonFoodService.cs` — fuzzy matching thresholds
+- `Broccoli.Avalonia/_Shared/IngredientParsing/FoodService.cs` — SQLite-backed food store + fuzzy matching thresholds

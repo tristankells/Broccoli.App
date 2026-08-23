@@ -24,6 +24,14 @@ public class BroccoliDbContext : DbContext
         v => JsonSerializer.Serialize(v, JsonOptions).GetHashCode(),
         v => JsonSerializer.Deserialize<List<DailyFoodPlanTab>>(JsonSerializer.Serialize(v, JsonOptions), JsonOptions)!);
 
+    private static readonly ValueComparer<Dictionary<int, SeasonalityState>> MonthStateDictComparer = new(
+        (a, b) => (a ?? new Dictionary<int, SeasonalityState>()).Count == (b ?? new Dictionary<int, SeasonalityState>()).Count
+            && (a ?? new Dictionary<int, SeasonalityState>()).Keys.All(k =>
+                (b ?? new Dictionary<int, SeasonalityState>()).ContainsKey(k)
+                && (b ?? new Dictionary<int, SeasonalityState>())[k] == (a ?? new Dictionary<int, SeasonalityState>())[k]),
+        v => (v ?? new Dictionary<int, SeasonalityState>()).Aggregate(0, (hash, kv) => HashCode.Combine(hash, kv.Key.GetHashCode(), kv.Value.GetHashCode())),
+        v => v == null ? new Dictionary<int, SeasonalityState>() : new Dictionary<int, SeasonalityState>(v));
+
     public BroccoliDbContext(DbContextOptions<BroccoliDbContext> options)
         : base(options)
     {
@@ -40,6 +48,10 @@ public class BroccoliDbContext : DbContext
     public DbSet<MacroTargetSettings> MacroTargetSettings => Set<MacroTargetSettings>();
 
     public DbSet<DailyFoodPlan> DailyFoodPlans => Set<DailyFoodPlan>();
+
+    public DbSet<Food> Foods => Set<Food>();
+
+    public DbSet<ProduceItem> ProduceItems => Set<ProduceItem>();
 
     /// <summary>
     /// Convenience factory for runtime (non-design-time) code, pointing at the app's real
@@ -58,6 +70,24 @@ public class BroccoliDbContext : DbContext
     {
         modelBuilder.Entity<GroceryListItem>().Ignore(x => x.IsEditing);
         modelBuilder.Entity<GroceryListItem>().Ignore(x => x.EditText);
+
+        // Food.Id is seeded from the embedded JSON, so EF must never assign it.
+        modelBuilder.Entity<Food>()
+            .Property(f => f.Id)
+            .ValueGeneratedNever();
+
+        // ProduceItem.Id is seeded from the embedded JSON, so EF must never assign it.
+        modelBuilder.Entity<ProduceItem>()
+            .Property(p => p.Id)
+            .ValueGeneratedNever();
+
+        // ProduceItem.Months (month -> state) is a dictionary -> store as a JSON-encoded column.
+        modelBuilder.Entity<ProduceItem>()
+            .Property(p => p.Months)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, JsonOptions),
+                v => JsonSerializer.Deserialize<Dictionary<int, SeasonalityState>>(v, JsonOptions) ?? new Dictionary<int, SeasonalityState>())
+            .Metadata.SetValueComparer(MonthStateDictComparer);
 
         // MealPrepPlan.RecipeIds is a simple string list -> store as a JSON-encoded column.
         modelBuilder.Entity<MealPrepPlan>()

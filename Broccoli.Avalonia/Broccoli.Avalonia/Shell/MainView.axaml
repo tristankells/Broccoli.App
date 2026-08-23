@@ -26,7 +26,7 @@
                 DrawerBackground="{DynamicResource AppSidebarBackgroundBrush}"
                 Background="{DynamicResource AppContentBackgroundBrush}">
         <DrawerPage.Drawer>
-            <ListBox ItemsSource="{Binding MenuItems}"
+            <ListBox ItemsSource="{Binding VisibleMenuItems}"
                      SelectedItem="{Binding SelectedMenuItem}"
                      Background="Transparent">
                 <ListBox.ItemTemplate>

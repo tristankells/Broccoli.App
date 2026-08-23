@@ -97,6 +97,8 @@ public class IngredientParserService(IFoodService foodService)
         return results;
     }
 
+    public ParsedIngredient? ParseLine(string line) => ParseIngredient(line);
+
     private static ParsedIngredient? ParseIngredient(string line)
     {
         if (string.IsNullOrWhiteSpace(line))

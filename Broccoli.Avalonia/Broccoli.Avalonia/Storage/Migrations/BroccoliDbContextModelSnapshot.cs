@@ -51,6 +51,58 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     b.ToTable("DailyFoodPlans");
                 });
 
+            modelBuilder.Entity("Broccoli.Avalonia.Models.Food", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("CaloriesPer100g")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("CarbohydratesPer100g")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("DietaryFiberPer100g")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("FatPer100g")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("GramsPerMeasure")
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("IsCustom")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Measure")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("ProteinPer100g")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("SaturatedFatPer100g")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("SodiumMgPer100g")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("SugarsPer100g")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Foods");
+                });
+
             modelBuilder.Entity("Broccoli.Avalonia.Models.GroceryListItem", b =>
                 {
                     b.Property<string>("Id")
@@ -246,6 +298,10 @@ namespace Broccoli.Avalonia.Storage.Migrations
                         .HasColumnType("INTEGER")
                         .HasJsonPropertyName("showCardTags");
 
+                    b.Property<bool>("ShowSeasonalityNavItem")
+                        .HasColumnType("INTEGER")
+                        .HasJsonPropertyName("showSeasonalityNavItem");
+
                     b.Property<int>("UnitSystem")
                         .HasColumnType("INTEGER")
                         .HasJsonPropertyName("unitSystem");
@@ -334,6 +390,36 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PantryItems");
+                });
+
+            modelBuilder.Entity("Broccoli.Avalonia.Models.ProduceItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT")
+                        .HasJsonPropertyName("id");
+
+                    b.Property<string>("Months")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasJsonPropertyName("months");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasJsonPropertyName("name");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT")
+                        .HasJsonPropertyName("notes");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasJsonPropertyName("type");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProduceItems");
                 });
 #pragma warning restore 612, 618
         }

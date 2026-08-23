@@ -102,6 +102,10 @@ public class MacroTargetSettings
     [JsonPropertyName("showCardCalorieMatch")]
     public bool ShowCardCalorieMatch { get; set; } = false;
 
+    /// <summary>When false, the Seasonality tab is hidden from the navigation drawer.</summary>
+    [JsonPropertyName("showSeasonalityNavItem")]
+    public bool ShowSeasonalityNavItem { get; set; } = true;
+
     [JsonPropertyName("calorieMatchTolerancePercent")]
     public double CalorieMatchTolerancePercent { get; set; } = 15;
 

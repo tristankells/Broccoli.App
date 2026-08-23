@@ -1,0 +1,124 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
+        xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+        x:Class="Broccoli.Avalonia.Slices.Recipes.UsdaSearchDialog"
+        x:DataType="vm:IngredientFoodDialogViewModel"
+        Title="Fix &amp; edit food" Width="640" SizeToContent="Height"
+        Icon="/Assets/avalonia-logo.ico"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap">
+            <Run Text="Ingredient: " /><Run Text="{Binding FoodDescription}" FontStyle="Italic" />
+        </TextBlock>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   Margin="0,6,0,0" />
+
+        <!-- Section 1: Match -->
+        <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,10,0,0">
+            <TextBlock Text="Match" FontWeight="SemiBold" FontSize="13" />
+            <ScrollViewer MaxHeight="240">
+                <ItemsControl ItemsSource="{Binding Candidates}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ResolveMatchCandidate">
+                            <Border Margin="0,1" Padding="8,5" CornerRadius="2"
+                                    Background="{DynamicResource AppSidebarBackgroundBrush}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="1">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" />
+                                            <Border IsVisible="{Binding IsCurrent}" Background="#2ECC71"
+                                                    CornerRadius="8" Padding="6,1" VerticalAlignment="Center">
+                                                <TextBlock Text="current" FontSize="9" Foreground="White" />
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock FontSize="10" Foreground="Gray">
+                                            <Run Text="{Binding Method}" />
+                                            <Run Text=" · " />
+                                            <Run Text="{Binding ScoreText}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Select" FontSize="11" Padding="8,3" VerticalAlignment="Center"
+                                            Command="{Binding $parent[ItemsControl].((vm:IngredientFoodDialogViewModel)DataContext).SelectCommand}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <Button Content="Create new food…" Command="{Binding CreateNewFoodCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+
+        <!-- Divider -->
+        <Border DockPanel.Dock="Top" Height="1" Background="#33000000" Margin="0,12" />
+
+        <!-- Section 2: Edit food details -->
+        <StackPanel Spacing="8" IsEnabled="{Binding HasSelectedFood}">
+            <TextBlock Text="Edit food details" FontWeight="SemiBold" FontSize="13" />
+            <StackPanel Spacing="2">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="Name" FontSize="11" />
+                    <TextBlock Grid.Column="1" Text="{Binding MatchQualityLabel}" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{Binding MatchQualityColor}" VerticalAlignment="Center" />
+                </Grid>
+                <TextBox Text="{Binding Name}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Spacing="2" Width="140">
+                    <TextBlock Text="Measure" FontSize="11" />
+                    <TextBox Text="{Binding Measure}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="140">
+                    <TextBlock Text="g / Measure" FontSize="11" />
+                    <TextBox Text="{Binding GramsPerMeasure, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+            </StackPanel>
+            <TextBlock Text="Per 100g" FontSize="11" FontWeight="SemiBold" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Calories" FontSize="11" />
+                    <TextBox Text="{Binding CaloriesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Fat (g)" FontSize="11" />
+                    <TextBox Text="{Binding FatPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Protein (g)" FontSize="11" />
+                    <TextBox Text="{Binding ProteinPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Carbs (g)" FontSize="11" />
+                    <TextBox Text="{Binding CarbohydratesPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Sat. Fat (g)" FontSize="11" />
+                    <TextBox Text="{Binding SaturatedFatPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Fiber (g)" FontSize="11" />
+                    <TextBox Text="{Binding DietaryFiberPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Sugars (g)" FontSize="11" />
+                    <TextBox Text="{Binding SugarsPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+                <StackPanel Spacing="2" Width="100">
+                    <TextBlock Text="Sodium (mg)" FontSize="11" />
+                    <TextBox Text="{Binding SodiumMgPer100g, Converter={x:Static conv:SafeDoubleConverter.Instance}}" />
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
+                <Button Content="Search USDA" Command="{Binding SaveAndUseCommand}" Classes="accent" />
+                <Button Content="Use this food" Command="{Binding SaveAndUseCommand}" Classes="accent" />
+                <Button Content="Cancel" Command="{Binding CancelCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </DockPanel>
+</Window>

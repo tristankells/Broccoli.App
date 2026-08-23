@@ -1,11 +1,14 @@
 using Avalonia.Media;
+using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Groceries;
 using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes;
+using Broccoli.Avalonia.Slices.Seasonality;
 using Broccoli.Avalonia.Slices.Settings;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Shell;
 
@@ -13,6 +16,8 @@ public partial class MainViewModel : ViewModelBase
 {
     private readonly Lazy<SettingsViewModel> _settingsViewModel;
     private readonly RecipesListViewModel _recipesViewModel;
+    private readonly IMacroTargetService _macroService;
+    private readonly MenuItem _seasonalityMenuItem;
 
     /// <summary>Right-aligned storage-usage footer shown at the bottom of the shell.</summary>
     public StorageUsageFooterViewModel StorageUsageFooter { get; }
@@ -41,9 +46,11 @@ public partial class MainViewModel : ViewModelBase
         new Lazy<PlanningPageViewModel>(() => new PlanningPageViewModel()),
         new Lazy<GroceriesViewModel>(() => new GroceriesViewModel()),
         new Lazy<PantryViewModel>(() => new PantryViewModel()),
+        new Lazy<SeasonalityViewModel>(() => new SeasonalityViewModel()),
         new Lazy<SettingsPageViewModel>(() => new SettingsPageViewModel()),
         new Lazy<SettingsViewModel>(() => new SettingsViewModel()),
-        new StorageUsageFooterViewModel())
+        new StorageUsageFooterViewModel(),
+        new MacroTargetService())
     {
     }
 
@@ -52,13 +59,21 @@ public partial class MainViewModel : ViewModelBase
         Lazy<PlanningPageViewModel> planningViewModel,
         Lazy<GroceriesViewModel> groceriesViewModel,
         Lazy<PantryViewModel> pantryViewModel,
+        Lazy<SeasonalityViewModel> seasonalityViewModel,
         Lazy<SettingsPageViewModel> settingsViewModel,
         Lazy<SettingsViewModel> lazySettingsViewModel,
-        StorageUsageFooterViewModel storageUsageFooterViewModel)
+        StorageUsageFooterViewModel storageUsageFooterViewModel,
+        IMacroTargetService macroService)
     {
         _settingsViewModel = lazySettingsViewModel;
         _recipesViewModel = recipesViewModel;
+        _macroService = macroService;
         StorageUsageFooter = storageUsageFooterViewModel;
+
+        _seasonalityMenuItem = new MenuItem(
+            "Seasonality",
+            Geometry.Parse("M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"),
+            new Lazy<ViewModelBase>(() => seasonalityViewModel.Value));
 
         // Each MenuItem wraps an already-constructed (singleton) page view model, so switching
         // between nav items and back preserves whatever state that page was in - e.g. the
@@ -81,11 +96,14 @@ public partial class MainViewModel : ViewModelBase
                 "Pantry",
                 Geometry.Parse("M19,20H5V9H19M16,2V4H8V2H6V4H5A2,2 0 0,0 3,6V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V6A2,2 0 0,0 19,4H18V2H16M9,13H15V18H9V13Z"),
                 new Lazy<ViewModelBase>(() => pantryViewModel.Value)),
+            _seasonalityMenuItem,
             new MenuItem(
                 "Settings",
                 Geometry.Parse("M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.95C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"),
                 new Lazy<ViewModelBase>(() => settingsViewModel.Value)),
         ];
+
+        WeakReferenceMessenger.Default.Register<NavVisibilityChangedMessage>(this, (_, message) => ApplyNavVisibility(message.ShowSeasonalityTab));
 
         SelectedMenuItem = MenuItems[0];
         CurrentPage = SelectedMenuItem.Page.Value;
@@ -96,6 +114,30 @@ public partial class MainViewModel : ViewModelBase
     /// enough here - no need for the change-notification overhead of <c>ObservableCollection</c>.
     /// </summary>
     public IReadOnlyList<MenuItem> MenuItems { get; }
+
+    /// <summary>
+    /// The subset of <see cref="MenuItems"/> currently shown in the drawer, filtered by the
+    /// per-item <see cref="MenuItem.IsVisible"/> flag.
+    /// </summary>
+    public IReadOnlyList<MenuItem> VisibleMenuItems => MenuItems.Where(m => m.IsVisible).ToList();
+
+    private void ApplyNavVisibility(bool showSeasonalityTab)
+    {
+        if (_seasonalityMenuItem.IsVisible == showSeasonalityTab)
+        {
+            return;
+        }
+
+        _seasonalityMenuItem.IsVisible = showSeasonalityTab;
+        OnPropertyChanged(nameof(VisibleMenuItems));
+
+        // If the page that was just hidden is currently selected, fall back to the first
+        // remaining visible item so the content area never shows a hidden page.
+        if (SelectedMenuItem is not null && !SelectedMenuItem.IsVisible)
+        {
+            SelectedMenuItem = VisibleMenuItems.Count > 0 ? VisibleMenuItems[0] : null;
+        }
+    }
 
     /// <summary>
     /// Resolved on first access only (see <see cref="ServiceCollectionExtensions.AddAppServices"/>),
@@ -110,8 +152,26 @@ public partial class MainViewModel : ViewModelBase
     /// </summary>
     public async Task LoadAsync()
     {
+        ApplyStoredNavVisibility();
         await _recipesViewModel.LoadAsync();
         _ = StorageUsageFooter.RefreshAsync();
+    }
+
+    /// <summary>
+    /// Restores the Seasonality tab visibility from the stored settings. Runs after the database
+    /// has been migrated (see <see cref="App"/>) so the settings row is guaranteed to be readable.
+    /// </summary>
+    private void ApplyStoredNavVisibility()
+    {
+        try
+        {
+            MacroTargetSettings settings = _macroService.GetSettings();
+            ApplyNavVisibility(settings.ShowSeasonalityNavItem);
+        }
+        catch (Exception)
+        {
+            // Best-effort: keep the default (visible) if the database isn't ready yet.
+        }
     }
 
     partial void OnSelectedMenuItemChanged(MenuItem? value)
@@ -120,5 +180,28 @@ public partial class MainViewModel : ViewModelBase
         IsMenuOpen = false;
     }
 
-    public record MenuItem(string Title, Geometry Icon, Lazy<ViewModelBase> Page);
+    /// <summary>One entry in the navigation drawer.</summary>
+    public sealed partial class MenuItem : ViewModelBase
+    {
+        public MenuItem(string title, Geometry icon, Lazy<ViewModelBase> page, bool isVisible = true)
+        {
+            Title = title;
+            Icon = icon;
+            Page = page;
+            _isVisible = isVisible;
+        }
+
+        public string Title { get; }
+
+        public Geometry Icon { get; }
+
+        public Lazy<ViewModelBase> Page { get; }
+
+        /// <summary>
+        /// Whether the item is currently shown in the drawer. Toggled by the shell when the
+        /// Seasonality tab's visibility setting changes.
+        /// </summary>
+        [ObservableProperty]
+        private bool _isVisible;
+    }
 }

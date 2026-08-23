@@ -5,6 +5,7 @@ using Broccoli.Avalonia.Slices.Groceries;
 using Broccoli.Avalonia.Slices.Pantry;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Slices.Recipes;
+using Broccoli.Avalonia.Slices.Seasonality;
 using Broccoli.Avalonia.Slices.Settings;
 
 namespace Broccoli.Avalonia;
@@ -29,9 +30,11 @@ public class ViewLocator : IDataTemplate
         [typeof(MealPrepViewModel)] = () => new MealPrepView(),
         [typeof(GroceriesViewModel)] = () => new GroceriesView(),
         [typeof(PantryViewModel)] = () => new PantryView(),
+        [typeof(SeasonalityViewModel)] = () => new SeasonalityView(),
         [typeof(SettingsPageViewModel)] = () => new SettingsPageView(),
         [typeof(SettingsViewModel)] = () => new SettingsView(),
         [typeof(RecipeSettingsViewModel)] = () => new RecipeSettingsView(),
+        [typeof(SeasonalitySettingsViewModel)] = () => new SeasonalitySettingsView(),
         [typeof(FoodDatabaseViewModel)] = () => new FoodDatabaseView(),
     };
 

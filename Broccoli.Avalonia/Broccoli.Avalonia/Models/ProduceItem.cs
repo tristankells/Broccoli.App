@@ -4,6 +4,7 @@ namespace Broccoli.Avalonia.Models;
 
 /// <summary>
 /// Represents a single produce item from the bundled NZ seasonal produce dataset.
+/// Seasonality is stored per month (1..12) rather than per season.
 /// </summary>
 public class ProduceItem
 {
@@ -20,24 +21,25 @@ public class ProduceItem
     public string Type { get; set; } = string.Empty;
 
     /// <summary>
-    /// Seasons this ingredient is in season: "spring", "summer", "autumn", "winter".
-    /// Ignored for scoring when <see cref="YearRound"/> is true.
+    /// Availability for each month, keyed by month number (1 = January .. 12 = December).
+    /// Months not present are treated as <see cref="SeasonalityState.OutOfSeason"/>.
     /// </summary>
-    [JsonPropertyName("seasons")]
-    public List<string> Seasons { get; set; } = new();
-
-    /// <summary>
-    /// When true the ingredient is always considered in-season and receives
-    /// scarcity weight 0.25 regardless of the <see cref="Seasons"/> list.
-    /// </summary>
-    [JsonPropertyName("year_round")]
-    public bool YearRound { get; set; }
-
-    /// <summary>Optional peak seasons noted in the dataset (not used for scoring).</summary>
-    [JsonPropertyName("peak_seasons")]
-    public List<string>? PeakSeasons { get; set; }
+    [JsonPropertyName("months")]
+    public Dictionary<int, SeasonalityState> Months { get; set; } = new();
 
     /// <summary>Optional human-readable note from the dataset.</summary>
     [JsonPropertyName("notes")]
     public string? Notes { get; set; }
+
+    /// <summary>Returns the availability for a month (1..12), defaulting to out of season.</summary>
+    public SeasonalityState GetStateForMonth(int month)
+    {
+        return Months.TryGetValue(month, out SeasonalityState state) ? state : SeasonalityState.OutOfSeason;
+    }
+
+    /// <summary>Sets the availability for a month (1..12).</summary>
+    public void SetStateForMonth(int month, SeasonalityState state)
+    {
+        Months[month] = state;
+    }
 }

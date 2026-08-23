@@ -180,14 +180,14 @@ public class ParsedIngredientMatch
 
         double grams = GetWeightInGrams();
         string unit = ParsedIngredient.Unit?.ToLowerInvariant() ?? string.Empty;
-        string gramsStr = $"{grams:F1} g";
+        string gramsStr = $"{grams:0.#} g";
 
         if (unit == "g" || string.IsNullOrEmpty(unit))
         {
             return gramsStr;
         }
 
-        return $"{gramsStr} ({ParsedIngredient.Quantity:F1} {ParsedIngredient.Unit})";
+        return $"{gramsStr} ({ParsedIngredient.Quantity:0.#} {ParsedIngredient.Unit})";
     }
 
     public double CalculateNutrient(Func<double, double> nutrientPer100gCalculator)

@@ -127,13 +127,15 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     public double TotalFatG { get; private set; }
 
-    public double PerServingCalories => Servings > 0 ? TotalCalories / Servings.Value : 0;
+    public double PerServingCalories => TotalCalories / EffectiveServings;
 
-    public double PerServingProteinG => Servings > 0 ? TotalProteinG / Servings.Value : 0;
+    public double PerServingProteinG => TotalProteinG / EffectiveServings;
 
-    public double PerServingCarbsG => Servings > 0 ? TotalCarbsG / Servings.Value : 0;
+    public double PerServingCarbsG => TotalCarbsG / EffectiveServings;
 
-    public double PerServingFatG => Servings > 0 ? TotalFatG / Servings.Value : 0;
+    public double PerServingFatG => TotalFatG / EffectiveServings;
+
+    private int EffectiveServings => Servings > 0 ? Servings.Value : 1;
 
     public bool IsComparisonEnabled { get; private set; }
 
@@ -354,6 +356,68 @@ public partial class RecipeEditViewModel : ViewModelBase
 
     [RelayCommand]
     private void OpenHistory() => HistoryRequested?.Invoke(_recipe);
+
+    [RelayCommand]
+    private void ResolveIngredient(ParsedIngredientRow row)
+    {
+        if (_foodService is null)
+        {
+            return;
+        }
+
+        IReadOnlyList<FoodMatchResult> matches = _foodService.FindMatches(row.FoodDescription, 10);
+        var dialogViewModel = new IngredientFoodDialogViewModel(
+            _foodService,
+            row.FoodDescription,
+            matches,
+            row.MatchedFood)
+        {
+            FoodSelected = food => ApplyFoodFix(row, food),
+        };
+
+        var dialog = new IngredientFoodDialog { DataContext = dialogViewModel };
+        dialog.Show();
+    }
+
+    private void ApplyFoodFix(ParsedIngredientRow row, Food selectedFood)
+    {
+        bool selectionChanged = row.MatchedFood is null ||
+            selectedFood.Id != row.MatchedFood.Id ||
+            !string.Equals(selectedFood.Name, row.MatchedFood.Name, StringComparison.OrdinalIgnoreCase);
+
+        if (selectionChanged)
+        {
+            ApplyMatchFix(row, selectedFood);
+        }
+        else
+        {
+            ParseIngredients();
+        }
+    }
+
+    private void ApplyMatchFix(ParsedIngredientRow row, Food food)
+    {
+        if (_parser is null)
+        {
+            return;
+        }
+
+        string[] lines = Ingredients.Split('\n');
+        for (int i = 0; i < lines.Length; i++)
+        {
+            ParsedIngredient? parsed = _parser.ParseLine(lines[i].TrimEnd('\r'));
+            if (parsed is null ||
+                !string.Equals(parsed.FoodDescription, row.FoodDescription, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(parsed.CanonicalUnit, row.CanonicalUnit, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            lines[i] = IngredientLineFormatter.Build(parsed.Quantity, parsed.CanonicalUnit, food.Name);
+        }
+
+        Ingredients = string.Join("\n", lines);
+    }
 
     [RelayCommand]
     private async Task AddImage()

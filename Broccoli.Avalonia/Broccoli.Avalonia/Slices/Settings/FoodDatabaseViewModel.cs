@@ -18,6 +18,9 @@ public partial class FoodDatabaseViewModel : ViewModelBase
     private string? _errorMessage;
 
     [ObservableProperty]
+    private string _searchText = string.Empty;
+
+    [ObservableProperty]
     private string _usdaQuery = string.Empty;
 
     [ObservableProperty]
@@ -54,6 +57,8 @@ public partial class FoodDatabaseViewModel : ViewModelBase
 
     public ObservableCollection<Food> Foods { get; } = new();
 
+    public ObservableCollection<Food> FilteredFoods { get; } = new();
+
     public bool IsUsdaResultVisible => UsdaResult?.Foods.Count > 0;
 
     public void Load()
@@ -67,12 +72,40 @@ public partial class FoodDatabaseViewModel : ViewModelBase
             {
                 Foods.Add(f);
             }
+
+            ApplyFilter();
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Failed to load: {ex.Message}";
         }
     }
+
+    private void ApplyFilter()
+    {
+        string filter = SearchText.Trim();
+
+        FilteredFoods.Clear();
+        if (string.IsNullOrEmpty(filter))
+        {
+            foreach (Food food in Foods)
+            {
+                FilteredFoods.Add(food);
+            }
+
+            return;
+        }
+
+        foreach (Food food in Foods)
+        {
+            if (food.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
+            {
+                FilteredFoods.Add(food);
+            }
+        }
+    }
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
 
     [RelayCommand]
     private void AddFood()
@@ -108,6 +141,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
                     }
                 }
 
+                ApplyFilter();
                 ErrorMessage = null;
             }
             catch (Exception ex)
@@ -145,6 +179,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             _foodService.Delete(food.Id);
             Foods.Remove(food);
+            ApplyFilter();
         }
         catch (Exception ex)
         {
@@ -368,6 +403,7 @@ public partial class FoodDatabaseViewModel : ViewModelBase
         {
             Food added = _foodService.Add(food);
             Foods.Add(added);
+            ApplyFilter();
         }
         catch (Exception ex)
         {

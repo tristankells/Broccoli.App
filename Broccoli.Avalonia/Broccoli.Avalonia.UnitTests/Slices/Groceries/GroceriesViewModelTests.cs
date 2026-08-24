@@ -126,6 +126,48 @@ public class GroceriesViewModelTests
         Assert.AreEqual("2 of 3 checked", vm.StatusText);
     }
 
+    [TestMethod]
+    public void StartEdit_EntersEditModeWithCurrentName()
+    {
+        GroceryListItem item = MakeItem("Milk");
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
+
+        vm.StartEditCommand.Execute(vm.Items[0]);
+
+        Assert.IsTrue(vm.Items[0].IsEditing);
+        Assert.AreEqual("Milk", vm.Items[0].EditText);
+    }
+
+    [TestMethod]
+    public void CommitEdit_UpdatesNameAndRaisesPropertyChanged()
+    {
+        GroceryListItem item = MakeItem("Milk");
+        var changedProperties = new List<string?>();
+        item.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName);
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
+        vm.StartEditCommand.Execute(vm.Items[0]);
+
+        vm.Items[0].EditText = "Whole Milk";
+        vm.CommitEditCommand.Execute(vm.Items[0]);
+
+        Assert.AreEqual("Whole Milk", vm.Items[0].Name);
+        Assert.IsFalse(vm.Items[0].IsEditing);
+        Assert.IsTrue(changedProperties.Contains(nameof(GroceryListItem.Name)), "Name change must be observable so the UI updates without a tab switch.");
+        _serviceMock.Verify(s => s.Update(It.IsAny<GroceryListItem>()), Times.Once);
+    }
+
+    [TestMethod]
+    public void NameSetter_RaisesPropertyChanged()
+    {
+        GroceryListItem item = MakeItem("Milk");
+        bool changed = false;
+        item.PropertyChanged += (_, e) => changed |= e.PropertyName == nameof(GroceryListItem.Name);
+
+        item.Name = "Whole Milk";
+
+        Assert.IsTrue(changed);
+    }
+
     private static GroceryListItem MakeItem(string name, bool isChecked = false) => new()
     {
         Id = Guid.NewGuid().ToString(),

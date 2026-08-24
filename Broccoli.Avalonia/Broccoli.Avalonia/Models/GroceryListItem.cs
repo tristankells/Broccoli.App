@@ -22,14 +22,16 @@ public partial class GroceryListItem : ObservableObject
     /// <summary>
     /// Name / description of the grocery item (e.g. "2 cups Flour", "1 drizzle of oil")
     /// </summary>
+    [ObservableProperty]
     [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    private string _name = string.Empty;
 
     /// <summary>
     /// Whether the item has been purchased / checked off
     /// </summary>
+    [ObservableProperty]
     [JsonPropertyName("isChecked")]
-    public bool IsChecked { get; set; } = false;
+    private bool _isChecked;
 
     /// <summary>
     /// ID of the user who owns this grocery list item
@@ -54,5 +56,6 @@ public partial class GroceryListItem : ObservableObject
     /// e.g. "(~305g)" for item-based inputs or "(~5 medium carrots)" for gram-based inputs.
     /// Null when the food cannot be matched or has no meaningful unit conversion.
     /// </summary>
-    public string? QuantityHint { get; set; }
+    [ObservableProperty]
+    private string? _quantityHint;
 }

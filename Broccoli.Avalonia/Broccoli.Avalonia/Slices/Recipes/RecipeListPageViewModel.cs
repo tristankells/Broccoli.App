@@ -59,6 +59,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     public Action<Recipe>? RecipeSelected { get; set; }
 
+    public Action<Recipe>? EditRecipeRequested { get; set; }
+
     public ObservableCollection<RecipeCardViewModel> FilteredRecipes { get; set; } = [];
 
     [ObservableProperty]
@@ -160,6 +162,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
                 ShowSeasonality,
                 ShowNutrition);
             card.AddToCartRequested = AddToCart;
+            card.EditRequested = EditRecipe;
             cards.Add(card);
         }
 
@@ -269,6 +272,9 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     [RelayCommand]
     private void SelectRecipe(RecipeCardViewModel card) => RecipeSelected?.Invoke(card.Recipe);
+
+    [RelayCommand]
+    private void EditRecipe(RecipeCardViewModel card) => EditRecipeRequested?.Invoke(card.Recipe);
 
     [RelayCommand]
     private void AddToCart(RecipeCardViewModel card)

@@ -45,7 +45,7 @@
         <ScrollViewer>
             <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
                 <ItemsRepeater.Layout>
-                    <UniformGridLayout MinItemWidth="220" MinColumnSpacing="12" MinRowSpacing="12" />
+                    <vm:ResponsiveGridLayout ItemWidth="220" ColumnSpacing="16" RowSpacing="16" />
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="vm:RecipeCardViewModel">

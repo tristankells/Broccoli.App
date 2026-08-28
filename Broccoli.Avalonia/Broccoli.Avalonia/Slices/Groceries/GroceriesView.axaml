@@ -56,7 +56,8 @@
                         <DataTemplate x:DataType="models:GroceryListItem">
                             <Border Margin="0,1" Padding="8,4"
                                     Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                    CornerRadius="4">
+                                    CornerRadius="4"
+                                    ToolTip.Tip="{Binding MatchedFoodInfo}">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <CheckBox Grid.Column="0"
                                               IsChecked="{Binding IsChecked}"

@@ -96,7 +96,7 @@ public class GroceriesViewModelTests
         vm.AddItemCommand.Execute(null);
 
         Assert.AreEqual(1, vm.Items.Count);
-        Assert.IsNull(vm.Items[0].QuantityHint);
+        Assert.AreEqual(string.Empty, vm.Items[0].QuantityHint);
     }
 
     [TestMethod]
@@ -112,7 +112,90 @@ public class GroceriesViewModelTests
         vm.AddItemCommand.Execute(null);
 
         Assert.AreEqual(1, vm.Items.Count);
-        Assert.IsNull(vm.Items[0].QuantityHint);
+        Assert.AreEqual(string.Empty, vm.Items[0].QuantityHint);
+    }
+
+    [TestMethod]
+    public void AddItem_SetsMatchedFoodInfo_WhenQuantityHintPresent()
+    {
+        Food apple = MakeFood(1, "Apple", "apple", 150);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "apples", apple } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "2 apples";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("Apple (100% match, Exact)", vm.Items[0].MatchedFoodInfo);
+    }
+
+    [TestMethod]
+    public void AddItem_FuzzyMatch_SetsMatchedFoodInfoWithPercent()
+    {
+        Food apple = MakeFood(1, "Granny Smith Apple", "medium apple", 150);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(
+                new Dictionary<string, Food> { { "granny smith apples", apple } },
+                score: 0.87,
+                method: "Fuzzy"));
+        AddReturnsItem();
+
+        vm.NewItemText = "2 granny smith apples";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("Granny Smith Apple (87% match, Fuzzy)", vm.Items[0].MatchedFoodInfo);
+    }
+
+    [TestMethod]
+    public void AddItem_MatchedFoodInfo_Null_WhenNoQuantityHint()
+    {
+        Food chicken = MakeFood(3, "Chicken Breast", "100g", 100);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "chicken breast", chicken } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "250g chicken breast";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.IsNull(vm.Items[0].MatchedFoodInfo);
+    }
+
+    [TestMethod]
+    public void AddItem_PluralItemMatchesMeasure_SetsQuantityHint()
+    {
+        Food potatoes = MakeFood(13, "Potatoes", "Potato", 213);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "Potatoes", potatoes } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "8 Potatoes";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("(~1704g)", vm.Items[0].QuantityHint);
+    }
+
+    [TestMethod]
+    public void AddItem_SingularItemMatchesMeasure_SetsQuantityHint()
+    {
+        Food potatoes = MakeFood(13, "Potatoes", "Potato", 213);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "potato", potatoes } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "Potato";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("(~213g)", vm.Items[0].QuantityHint);
     }
 
     [TestMethod]
@@ -248,12 +331,13 @@ public class GroceriesViewModelTests
         GramsPerMeasure = gramsPerMeasure,
     };
 
-    private static IngredientParserService CreateParser(Dictionary<string, Food> foods)
+    private static IngredientParserService CreateParser(Dictionary<string, Food> foods, double score = 1.0, string method = "Exact")
     {
+        var caseInsensitiveFoods = new Dictionary<string, Food>(foods, StringComparer.OrdinalIgnoreCase);
         var foodService = new Mock<IFoodService>();
         foodService.Setup(s => s.FindBestMatch(It.IsAny<string>()))
-            .Returns((string description) => foods.TryGetValue(description, out Food? food)
-                ? new FoodMatchResult { Food = food, Score = 1.0, Method = "Exact" }
+            .Returns((string description) => caseInsensitiveFoods.TryGetValue(description, out Food? food)
+                ? new FoodMatchResult { Food = food, Score = score, Method = method }
                 : new FoodMatchResult { Score = 0, Method = "None" });
 
         return new IngredientParserService(foodService.Object);

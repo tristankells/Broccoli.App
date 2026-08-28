@@ -1,11 +1,11 @@
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using FuzzySharp;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
@@ -87,29 +87,15 @@ public partial class GroceriesViewModel : ViewModelBase
 
         try
         {
-            string? hint = null;
-            if (_parser is not null)
-            {
-                List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(name);
-
-                // Only offer hints when the food's unit of measure relates to the item the user typed,
-                // e.g. "Apple" ↔ "Medium Apple" or "2 cups flour" ↔ "cup". This prevents over-eager
-                // hints for foods measured purely by weight.
-                IEnumerable<ParsedIngredientMatch> filteredByMeasureMatches = matches
-                    .Where(match => match.MatchedFood is not null &&
-                        (
-                            SharesComponent(match.MatchedFood.Measure, match.MatchedFood.Name) ||
-                            SharesComponent(match.MatchedFood.Measure, match.ParsedIngredient.CanonicalUnit))
-                        );
-
-                hint = filteredByMeasureMatches.FirstOrDefault()?.GetQuantityHint();
-            }
+            ParsedIngredientMatch? match = FindQuantityHintMatch(name);
+            string? hint = match?.GetQuantityHint();
 
             var item = new GroceryListItem
             {
                 Name = name,
                 IsChecked = false,
-                QuantityHint = hint,
+                QuantityHint = hint ?? string.Empty,
+                MatchedFoodInfo = hint is not null ? FormatMatchInfo(match!) : null,
             };
 
             GroceryListItem created = _groceryListService.Add(item);
@@ -217,11 +203,10 @@ public partial class GroceriesViewModel : ViewModelBase
         item.Name = newName;
         item.IsEditing = false;
 
-        if (_parser is not null)
-        {
-            List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(item.Name);
-            item.QuantityHint = matches.FirstOrDefault()?.GetQuantityHint();
-        }
+        ParsedIngredientMatch? match = FindQuantityHintMatch(item.Name);
+        string? hint = match?.GetQuantityHint();
+        item.QuantityHint = hint ?? string.Empty;
+        item.MatchedFoodInfo = hint is not null ? FormatMatchInfo(match!) : null;
 
         try
         {
@@ -246,6 +231,59 @@ public partial class GroceriesViewModel : ViewModelBase
         {
             ErrorMessage = $"Error resetting list: {exception.Message}";
         }
+    }
+
+    private ParsedIngredientMatch? FindQuantityHintMatch(string itemName)
+    {
+        if (_parser is null)
+        {
+            return null;
+        }
+
+        List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(itemName);
+
+        // Only offer hints when the food's unit of measure relates to the item the user typed,
+        // e.g. "Apple" ↔ "Medium Apple", "Potato" ↔ "Potatoes", or "2 cups flour" ↔ "cup".
+        // This prevents over-eager hints for foods measured purely by weight.
+        return matches
+            .Where(match => match.MatchedFood is not null && MeasureRelatesToItem(match))
+            .FirstOrDefault();
+    }
+
+    private static string FormatMatchInfo(ParsedIngredientMatch match)
+    {
+        string matchPercent = $"{match.MatchScore * 100:0}";
+        return $"{match.MatchedFood!.Name} ({matchPercent}% match, {match.MatchMethod})";
+    }
+
+    private static bool MeasureRelatesToItem(ParsedIngredientMatch match)
+    {
+        Food food = match.MatchedFood!;
+        string measure = food.Measure;
+
+        // The unit the user typed lines up with the measure, e.g. "2 cups flour" ↔ "cup".
+        if (!string.IsNullOrEmpty(match.ParsedIngredient.CanonicalUnit) &&
+            SharesComponent(measure, match.ParsedIngredient.CanonicalUnit))
+        {
+            return true;
+        }
+
+        // A single fuzzy pass over the measure tolerates plurals and word order,
+        // e.g. "Potato" ↔ "Potatoes" or "Medium Apple" ↔ "Apple".
+        return MeasureFuzzyMatches(measure, food.Name)
+            || MeasureFuzzyMatches(measure, match.ParsedIngredient.FoodDescription);
+    }
+
+    private static bool MeasureFuzzyMatches(string measure, string itemText)
+    {
+        if (string.IsNullOrWhiteSpace(measure) || string.IsNullOrWhiteSpace(itemText))
+        {
+            return false;
+        }
+
+        return measure.Split(" ").Any(measureToken =>
+            itemText.Split(" ").Any(itemToken =>
+                Fuzz.Ratio(measureToken, itemToken) >= 60));
     }
 
     private static bool SharesComponent(string first, string second)

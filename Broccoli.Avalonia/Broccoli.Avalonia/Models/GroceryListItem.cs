@@ -58,4 +58,11 @@ public partial class GroceryListItem : ObservableObject
     /// </summary>
     [ObservableProperty]
     private string? _quantityHint;
+
+    /// <summary>
+    /// Description of the food this item was matched to, e.g. "Apple (100% match, Exact)".
+    /// Shown as a tooltip on the row. Null when no quantity hint was produced.
+    /// </summary>
+    [ObservableProperty]
+    private string? _matchedFoodInfo;
 }

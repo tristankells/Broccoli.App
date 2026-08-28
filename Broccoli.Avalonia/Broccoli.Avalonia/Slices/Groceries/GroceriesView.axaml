@@ -61,8 +61,6 @@
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <CheckBox Grid.Column="0"
                                               IsChecked="{Binding IsChecked}"
-                                              Command="{Binding $parent[ItemsControl].((vm:GroceriesViewModel)DataContext).ToggleItemCommand}"
-                                              CommandParameter="{Binding}"
                                               VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="1"
                                                 Orientation="Horizontal"
@@ -70,10 +68,18 @@
                                                 Margin="8,0"
                                                 IsVisible="{Binding !IsEditing}"
                                                 PointerPressed="OnItemPointerPressed">
+                                        <StackPanel.Styles>
+                                            <Style Selector="TextBlock.checked">
+                                                <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                <Setter Property="Opacity" Value="0.55" />
+                                            </Style>
+                                        </StackPanel.Styles>
                                         <TextBlock Text="{Binding Name}"
+                                                   Classes.checked="{Binding IsChecked}"
                                                    VerticalAlignment="Center"
                                                    TextWrapping="Wrap" />
                                         <TextBlock Text="{Binding QuantityHint}"
+                                                   Classes.checked="{Binding IsChecked}"
                                                    VerticalAlignment="Center"
                                                    Foreground="Gray"
                                                    FontStyle="Italic"

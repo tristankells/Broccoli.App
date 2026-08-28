@@ -199,29 +199,70 @@ public class GroceriesViewModelTests
     }
 
     [TestMethod]
-    public void ToggleItem_FlipsIsChecked()
+    public void CheckingItem_PersistsAndMovesBelowUnchecked()
     {
-        GroceryListItem item = MakeItem("Milk", false);
-        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
+        GroceryListItem milk = MakeItem("Milk", false);
+        GroceryListItem eggs = MakeItem("Eggs", false);
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { milk, eggs });
 
-        vm.ToggleItemCommand.Execute(vm.Items[0]);
+        vm.Items[0].IsChecked = true;
 
-        Assert.IsTrue(vm.Items[0].IsChecked);
+        Assert.IsTrue(milk.IsChecked);
+        Assert.AreEqual("Eggs", vm.Items[0].Name);
+        Assert.AreEqual("Milk", vm.Items[1].Name);
         _serviceMock.Verify(s => s.Update(It.IsAny<GroceryListItem>()), Times.Once);
     }
 
     [TestMethod]
-    public void ToggleItem_ServiceError_RollsBack()
+    public void CheckingItem_ServiceError_RollsBack()
     {
         GroceryListItem item = MakeItem("Milk", false);
         _serviceMock.Setup(s => s.Update(It.IsAny<GroceryListItem>()))
             .Throws(new Exception("DB error"));
         GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { item });
 
-        vm.ToggleItemCommand.Execute(vm.Items[0]);
+        vm.Items[0].IsChecked = true;
 
         Assert.IsFalse(vm.Items[0].IsChecked);
         Assert.IsTrue(vm.ErrorMessage!.Contains("Error updating"));
+    }
+
+    [TestMethod]
+    public void CheckingItem_MovesBelowUncheckedItems()
+    {
+        GroceryListItem bread = MakeItem("Bread", false);
+        GroceryListItem milk = MakeItem("Milk", false);
+        GroceryListItem eggs = MakeItem("Eggs", true);
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { bread, milk, eggs });
+
+        Assert.AreEqual("Bread", vm.Items[0].Name);
+        Assert.AreEqual("Milk", vm.Items[1].Name);
+        Assert.AreEqual("Eggs", vm.Items[2].Name);
+
+        vm.Items[0].IsChecked = true;
+
+        Assert.AreEqual("Milk", vm.Items[0].Name);
+        Assert.AreEqual("Bread", vm.Items[1].Name);
+        Assert.AreEqual("Eggs", vm.Items[2].Name);
+    }
+
+    [TestMethod]
+    public void UncheckingItem_MovesAboveCheckedItems()
+    {
+        GroceryListItem bread = MakeItem("Bread", false);
+        GroceryListItem eggs = MakeItem("Eggs", true);
+        GroceryListItem milk = MakeItem("Milk", true);
+        GroceriesViewModel vm = CreateViewModel(new List<GroceryListItem> { bread, eggs, milk });
+
+        Assert.AreEqual("Bread", vm.Items[0].Name);
+        Assert.AreEqual("Eggs", vm.Items[1].Name);
+        Assert.AreEqual("Milk", vm.Items[2].Name);
+
+        vm.Items[2].IsChecked = false;
+
+        Assert.AreEqual("Bread", vm.Items[0].Name);
+        Assert.AreEqual("Milk", vm.Items[1].Name);
+        Assert.AreEqual("Eggs", vm.Items[2].Name);
     }
 
     [TestMethod]

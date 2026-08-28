@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
@@ -22,6 +23,8 @@ public partial class GroceriesViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isLoading;
+
+    private bool _isHandlingCheckChanged;
 
     public GroceriesViewModel()
         : this(new GroceryListService(), null!)
@@ -56,10 +59,14 @@ public partial class GroceriesViewModel : ViewModelBase
 
         try
         {
-            List<GroceryListItem> items = _groceryListService.GetAll();
+            List<GroceryListItem> items = _groceryListService.GetAll()
+                .OrderBy(item => item.IsChecked)
+                .ToList();
+            DetachItems();
             Items.Clear();
             foreach (GroceryListItem item in items)
             {
+                AttachItem(item);
                 Items.Add(item);
             }
         }
@@ -99,6 +106,7 @@ public partial class GroceriesViewModel : ViewModelBase
             };
 
             GroceryListItem created = _groceryListService.Add(item);
+            AttachItem(created);
             Items.Insert(0, created);
             NewItemText = string.Empty;
             OnPropertyChanged(nameof(StatusText));
@@ -110,26 +118,9 @@ public partial class GroceriesViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ToggleItem(GroceryListItem item)
-    {
-        item.IsChecked = !item.IsChecked;
-        OnPropertyChanged(nameof(StatusText));
-
-        try
-        {
-            _groceryListService.Update(item);
-        }
-        catch (Exception exception)
-        {
-            item.IsChecked = !item.IsChecked;
-            ErrorMessage = $"Error updating item: {exception.Message}";
-            OnPropertyChanged(nameof(StatusText));
-        }
-    }
-
-    [RelayCommand]
     private void DeleteItem(GroceryListItem item)
     {
+        DetachItem(item);
         Items.Remove(item);
         OnPropertyChanged(nameof(StatusText));
 
@@ -140,6 +131,7 @@ public partial class GroceriesViewModel : ViewModelBase
         catch (Exception exception)
         {
             ErrorMessage = $"Error deleting item: {exception.Message}";
+            AttachItem(item);
             Items.Add(item);
             OnPropertyChanged(nameof(StatusText));
         }
@@ -224,6 +216,7 @@ public partial class GroceriesViewModel : ViewModelBase
         try
         {
             _groceryListService.Reset();
+            DetachItems();
             Items.Clear();
             OnPropertyChanged(nameof(StatusText));
         }
@@ -231,6 +224,64 @@ public partial class GroceriesViewModel : ViewModelBase
         {
             ErrorMessage = $"Error resetting list: {exception.Message}";
         }
+    }
+
+    private void AttachItem(GroceryListItem item)
+    {
+        item.PropertyChanged += OnItemPropertyChanged;
+    }
+
+    private void DetachItem(GroceryListItem item)
+    {
+        item.PropertyChanged -= OnItemPropertyChanged;
+    }
+
+    private void DetachItems()
+    {
+        foreach (GroceryListItem item in Items)
+        {
+            DetachItem(item);
+        }
+    }
+
+    private void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (_isHandlingCheckChanged
+            || sender is not GroceryListItem item
+            || e.PropertyName != nameof(GroceryListItem.IsChecked))
+        {
+            return;
+        }
+
+        _isHandlingCheckChanged = true;
+        try
+        {
+            _groceryListService.Update(item);
+        }
+        catch (Exception exception)
+        {
+            item.IsChecked = !item.IsChecked;
+            ErrorMessage = $"Error updating item: {exception.Message}";
+        }
+        finally
+        {
+            _isHandlingCheckChanged = false;
+        }
+
+        ReorderCheckedItems(item);
+        OnPropertyChanged(nameof(StatusText));
+    }
+
+    private void ReorderCheckedItems(GroceryListItem item)
+    {
+        int oldIndex = Items.IndexOf(item);
+        if (oldIndex < 0)
+        {
+            return;
+        }
+
+        int targetIndex = Items.Count(candidate => !candidate.IsChecked) - (item.IsChecked ? 0 : 1);
+        Items.Move(oldIndex, targetIndex);
     }
 
     private ParsedIngredientMatch? FindQuantityHintMatch(string itemName)

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
@@ -62,9 +63,9 @@ public partial class GroceriesViewModel : ViewModelBase
                 Items.Add(item);
             }
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = $"Error loading grocery list: {ex.Message}";
+            ErrorMessage = $"Error loading grocery list: {exception.Message}";
         }
         finally
         {
@@ -90,7 +91,18 @@ public partial class GroceriesViewModel : ViewModelBase
             if (_parser is not null)
             {
                 List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(name);
-                hint = matches.FirstOrDefault()?.GetQuantityHint();
+
+                // Only offer hints when the food's unit of measure relates to the item the user typed,
+                // e.g. "Apple" ↔ "Medium Apple" or "2 cups flour" ↔ "cup". This prevents over-eager
+                // hints for foods measured purely by weight.
+                IEnumerable<ParsedIngredientMatch> filteredByMeasureMatches = matches
+                    .Where(match => match.MatchedFood is not null &&
+                        (
+                            SharesComponent(match.MatchedFood.Measure, match.MatchedFood.Name) ||
+                            SharesComponent(match.MatchedFood.Measure, match.ParsedIngredient.CanonicalUnit))
+                        );
+
+                hint = filteredByMeasureMatches.FirstOrDefault()?.GetQuantityHint();
             }
 
             var item = new GroceryListItem
@@ -105,9 +117,9 @@ public partial class GroceriesViewModel : ViewModelBase
             NewItemText = string.Empty;
             OnPropertyChanged(nameof(StatusText));
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = $"Error adding item: {ex.Message}";
+            ErrorMessage = $"Error adding item: {exception.Message}";
         }
     }
 
@@ -121,10 +133,10 @@ public partial class GroceriesViewModel : ViewModelBase
         {
             _groceryListService.Update(item);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             item.IsChecked = !item.IsChecked;
-            ErrorMessage = $"Error updating item: {ex.Message}";
+            ErrorMessage = $"Error updating item: {exception.Message}";
             OnPropertyChanged(nameof(StatusText));
         }
     }
@@ -139,9 +151,9 @@ public partial class GroceriesViewModel : ViewModelBase
         {
             _groceryListService.Delete(item.Id);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = $"Error deleting item: {ex.Message}";
+            ErrorMessage = $"Error deleting item: {exception.Message}";
             Items.Add(item);
             OnPropertyChanged(nameof(StatusText));
         }
@@ -215,9 +227,9 @@ public partial class GroceriesViewModel : ViewModelBase
         {
             _groceryListService.Update(item);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = $"Error updating item: {ex.Message}";
+            ErrorMessage = $"Error updating item: {exception.Message}";
         }
     }
 
@@ -230,9 +242,19 @@ public partial class GroceriesViewModel : ViewModelBase
             Items.Clear();
             OnPropertyChanged(nameof(StatusText));
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            ErrorMessage = $"Error resetting list: {ex.Message}";
+            ErrorMessage = $"Error resetting list: {exception.Message}";
         }
+    }
+
+    private static bool SharesComponent(string first, string second)
+    {
+        if (first is null || second is null)
+        {
+            return false;
+        }
+
+        return first.Split(" ").Intersect(second.Split(" "), StringComparer.InvariantCultureIgnoreCase).Any();
     }
 }

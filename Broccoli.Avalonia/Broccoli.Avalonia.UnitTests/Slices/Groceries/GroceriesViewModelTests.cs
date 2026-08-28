@@ -1,3 +1,4 @@
+using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Slices.Groceries;
 using Moq;
@@ -48,6 +49,70 @@ public class GroceriesViewModelTests
         vm.AddItemCommand.Execute(null);
 
         Assert.AreEqual(0, vm.Items.Count);
+    }
+
+    [TestMethod]
+    public void AddItem_MeasureContainsFoodName_SetsQuantityHint()
+    {
+        Food apple = MakeFood(1, "Apple", "apple", 150);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "apples", apple } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "2 apples";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("(~300g)", vm.Items[0].QuantityHint);
+    }
+
+    [TestMethod]
+    public void AddItem_UnitMatchesMeasure_SetsQuantityHint()
+    {
+        Food flour = MakeFood(2, "Flour", "cup", 120);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "flour", flour } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "2 cups flour";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("(~240g)", vm.Items[0].QuantityHint);
+    }
+
+    [TestMethod]
+    public void AddItem_MissingUnitDoesNotMatchMeasure_NoQuantityHint()
+    {
+        Food flour = MakeFood(4, "Flour", "cup", 120);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "flour", flour } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "2 flour";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.IsNull(vm.Items[0].QuantityHint);
+    }
+
+    [TestMethod]
+    public void AddItem_MetricMeasureDoesNotContainFoodName_NoQuantityHint()
+    {
+        Food chicken = MakeFood(3, "Chicken Breast", "100g", 100);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "chicken breast", chicken } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "250g chicken breast";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.IsNull(vm.Items[0].QuantityHint);
     }
 
     [TestMethod]
@@ -175,10 +240,33 @@ public class GroceriesViewModelTests
         IsChecked = isChecked,
     };
 
-    private GroceriesViewModel CreateViewModel(List<GroceryListItem>? existingItems = null)
+    private static Food MakeFood(int id, string name, string measure, double gramsPerMeasure) => new()
+    {
+        Id = id,
+        Name = name,
+        Measure = measure,
+        GramsPerMeasure = gramsPerMeasure,
+    };
+
+    private static IngredientParserService CreateParser(Dictionary<string, Food> foods)
+    {
+        var foodService = new Mock<IFoodService>();
+        foodService.Setup(s => s.FindBestMatch(It.IsAny<string>()))
+            .Returns((string description) => foods.TryGetValue(description, out Food? food)
+                ? new FoodMatchResult { Food = food, Score = 1.0, Method = "Exact" }
+                : new FoodMatchResult { Score = 0, Method = "None" });
+
+        return new IngredientParserService(foodService.Object);
+    }
+
+    private void AddReturnsItem() =>
+        _serviceMock.Setup(s => s.Add(It.IsAny<GroceryListItem>()))
+            .Returns((GroceryListItem item) => item);
+
+    private GroceriesViewModel CreateViewModel(List<GroceryListItem>? existingItems = null, IngredientParserService? parser = null)
     {
         List<GroceryListItem> items = existingItems ?? new List<GroceryListItem>();
         _serviceMock.Setup(s => s.GetAll()).Returns(items);
-        return new GroceriesViewModel(_serviceMock.Object);
+        return new GroceriesViewModel(_serviceMock.Object, parser);
     }
 }

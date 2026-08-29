@@ -93,6 +93,17 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isListView;
 
+    /// <summary>
+    /// Set when the recipe list fails to load (e.g. the local database can't be read). The view
+    /// shows an inline banner with a Retry button instead of leaving the loading spinner stuck.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasError))]
+    private string? _errorMessage;
+
+    /// <summary>True when <see cref="ErrorMessage"/> is set, so the error banner is visible.</summary>
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
     private bool _suppressViewModePersistence;
 
     /// <summary>True only after the first load finished and there are no recipes to show.</summary>
@@ -120,12 +131,20 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     public void Reload()
     {
-        LoadViewMode();
         IsLoading = true;
+        ErrorMessage = null;
         try
         {
+            LoadViewMode();
             (List<Recipe> recipes, List<RecipeCardViewModel> cards) = BuildCards();
             ApplyResults(recipes, cards);
+        }
+        catch (Exception ex)
+        {
+            // Never leave the page stuck on its loading spinner: clear it and surface the
+            // failure inline so the user can retry (or investigate) rather than waiting forever.
+            System.Diagnostics.Trace.TraceError($"Recipe list load failed: {ex}");
+            ErrorMessage = $"Recipes couldn't be loaded: {ex.Message}";
         }
         finally
         {
@@ -139,18 +158,27 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     /// </summary>
     public async Task ReloadAsync()
     {
-        LoadViewMode();
         IsLoading = true;
+        ErrorMessage = null;
         try
         {
+            LoadViewMode();
             (List<Recipe> recipes, List<RecipeCardViewModel> cards) = await Task.Run(BuildCards);
             ApplyResults(recipes, cards);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.TraceError($"Recipe list load failed: {ex}");
+            ErrorMessage = $"Recipes couldn't be loaded: {ex.Message}";
         }
         finally
         {
             IsLoading = false;
         }
     }
+
+    [RelayCommand]
+    private async Task Retry() => await ReloadAsync();
 
     /// <summary>
     /// Restores the cards-vs-list choice from settings. Called on the UI thread (the view mode is

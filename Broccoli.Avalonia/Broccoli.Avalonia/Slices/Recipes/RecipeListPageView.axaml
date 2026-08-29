@@ -52,6 +52,21 @@
             </Button>
         </Grid>
 
+        <!-- Load failure banner: shown instead of an endless spinner when the recipe list
+             can't load (e.g. the local database can't be read). -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,12" Padding="10" CornerRadius="4"
+                Background="{DynamicResource ConflictCardBackgroundBrush}"
+                IsVisible="{Binding HasError}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <PathIcon Data="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+                          Width="20" Height="20" Foreground="#E74C3C" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" VerticalAlignment="Center"
+                           Foreground="{DynamicResource ConflictCardForegroundBrush}" />
+                <Button Content="Retry" Command="{Binding RetryCommand}" Classes="accent"
+                        VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
         <Panel>
             <!-- Empty state: only after the first load has completed -->
             <TextBlock Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."

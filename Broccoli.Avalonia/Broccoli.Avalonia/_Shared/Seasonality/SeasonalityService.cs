@@ -182,7 +182,7 @@ public class SeasonalityService : ISeasonalityService
             SeasonalityState state = produce.GetStateForMonth(month);
             double factor = StateFactor(state);
             double scarcity = SeasonHelper.GetScarcityWeight(produce);
-            double possible = scarcity * grams;
+            double possible = grams;
             double contribution = factor * possible;
             breakdown.Add(new IngredientSeasonalityDetail { Name = produce.Name, State = state, ScarcityWeight = scarcity, WeightInGrams = grams });
             totalWeighted += contribution;
@@ -248,7 +248,7 @@ public class SeasonalityService : ISeasonalityService
             foreach ((ProduceItem? produce, double grams) in matched)
             {
                 double factor = StateFactor(produce.GetStateForMonth(month));
-                double possible = SeasonHelper.GetScarcityWeight(produce) * grams;
+                double possible = grams;
                 totalWeighted += factor * possible;
                 totalPossible += possible;
             }
@@ -257,6 +257,13 @@ public class SeasonalityService : ISeasonalityService
         return (totalWeighted, totalPossible);
     }
 
+    /// <summary>
+    /// Matches a (normalised) food name to a produce dataset entry. Exact name match first; then a
+    /// whole-token match so that e.g. "peas" never matches "Peach" and "butter" never matches
+    /// "Butternut" the way a raw substring search would. A produce item is a match when the
+    /// ingredient tokens fully describe it ("red onion" ⊇ "onion") or the ingredient is a generic
+    /// name for a more specific produce ("cabbage" ⊆ "green cabbage").
+    /// </summary>
     private static ProduceItem? LookupProduce(string foodName, Dictionary<string, ProduceItem> lookup)
     {
         string key = NormaliseName(foodName);
@@ -265,18 +272,40 @@ public class SeasonalityService : ISeasonalityService
             return exact;
         }
 
+        string[] ingredientTokens = SplitTokens(key);
+        if (ingredientTokens.Length == 0)
+        {
+            return null;
+        }
+
         ProduceItem? best = null;
-        int bestLen = int.MaxValue;
+        int bestScore = -1;
         foreach ((string? produceKey, ProduceItem? item) in lookup)
         {
-            bool match = key.Contains(produceKey, StringComparison.OrdinalIgnoreCase) || produceKey.Contains(key, StringComparison.OrdinalIgnoreCase);
-            if (match && produceKey.Length < bestLen)
+            string[] produceTokens = SplitTokens(produceKey);
+            bool produceDescribedByIngredient = produceTokens.Length > 0 && produceTokens.All(ingredientTokens.Contains);
+            bool ingredientDescribedByProduce = ingredientTokens.All(produceTokens.Contains);
+            if (!produceDescribedByIngredient && !ingredientDescribedByProduce)
+            {
+                continue;
+            }
+
+            // Fully-described produce ("red onion" ⊇ "onion") is a stronger signal than a generic
+            // ingredient name ("cabbage" ⊆ "green cabbage"); among same-direction matches prefer
+            // the most specific (most tokens, then longest name).
+            int score = produceDescribedByIngredient
+                ? 1000 + (produceTokens.Length * 100) + produceKey.Length
+                : 100 + (produceTokens.Length * 100) + produceKey.Length;
+            if (score > bestScore)
             {
                 best = item;
-                bestLen = produceKey.Length;
+                bestScore = score;
             }
         }
 
         return best;
     }
+
+    private static string[] SplitTokens(string name) =>
+        name.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }

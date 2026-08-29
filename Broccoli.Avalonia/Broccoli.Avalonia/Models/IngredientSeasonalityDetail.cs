@@ -30,8 +30,9 @@ public class IngredientSeasonalityDetail
     public bool IsOutOfSeason => State == SeasonalityState.OutOfSeason;
 
     /// <summary>
-    /// True when <see cref="ScarcityWeight"/> &gt;= 0.75.
-    /// Used to surface the "Limited season — consider substituting" callout in the UI.
+    /// True when the ingredient has a short in-season window (scarce) AND is currently in season -
+    /// i.e. a rare treat worth making the most of while it lasts. Surface this as a small
+    /// "Limited season" callout rather than a warning.
     /// </summary>
-    public bool IsLimitedSeason => ScarcityWeight >= 0.75;
+    public bool IsLimitedSeason => ScarcityWeight >= 0.75 && IsInSeason;
 }

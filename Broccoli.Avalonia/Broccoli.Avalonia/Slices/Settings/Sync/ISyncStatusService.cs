@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace Broccoli.Avalonia.Slices.Settings.Sync;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace Broccoli.Avalonia.Slices.Settings.Sync;
 /// so every trigger (startup, shutdown push, Settings "Sync now", footer "Sync now") is reflected
 /// in one place — and any UI that binds to it updates for syncs it didn't itself start.
 /// </summary>
-public interface ISyncStatusService
+public interface ISyncStatusService : INotifyPropertyChanged
 {
     /// <summary>True while a sync/push is running anywhere in the app.</summary>
     bool IsSyncing { get; }

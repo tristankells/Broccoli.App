@@ -1,0 +1,55 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Shell"
+             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="28"
+             x:Class="Broccoli.Avalonia.Shell.SyncStatusFooterView"
+             x:DataType="vm:SyncStatusFooterViewModel">
+    <Design.DataContext>
+        <vm:SyncStatusFooterViewModel />
+    </Design.DataContext>
+
+    <!-- Clickable sync-status strip: shows an animated spinner while a sync runs, the last
+         synced time, and a flag when local changes haven't been pushed yet. Clicking forces a
+         sync now (disabled while Drive isn't connected). -->
+    <Button Command="{Binding SyncNowCommand}"
+            IsEnabled="{Binding SyncStatus.IsConnected}"
+            Background="Transparent"
+            BorderThickness="0"
+            Padding="4,2"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+            <ProgressRing Width="12" Height="12"
+                          IsIndeterminate="{Binding SyncStatus.IsSyncing}"
+                          IsVisible="{Binding SyncStatus.IsSyncing}" />
+            <PathIcon Data="M19.35,10.04C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.04C2.34,8.36 0,10.91 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.04M14,13V17H10V13H7L12,8L17,13H14Z"
+                      Width="13" Height="13"
+                      Foreground="Gray"
+                      VerticalAlignment="Center"
+                      IsVisible="{Binding ShowCloudIcon}" />
+            <TextBlock Text="{Binding SummaryText}"
+                       FontSize="11"
+                       Foreground="Gray"
+                       VerticalAlignment="Center" />
+        </StackPanel>
+        <Button.ToolTip.Tip>
+            <ToolTip>
+                <StackPanel Spacing="3" MinWidth="200">
+                    <TextBlock Text="Google Drive backup" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding SummaryText}" />
+                    <TextBlock Text="{Binding SyncStatus.LastSyncError}"
+                               Foreground="Red"
+                               IsVisible="{Binding SyncStatus.LastSyncError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <TextBlock Text="Click to sync now"
+                               IsVisible="{Binding SyncStatus.IsConnected}"
+                               Opacity="0.7" />
+                    <TextBlock Text="Enable backup in Settings"
+                               IsVisible="{Binding SyncStatus.IsConnected, Converter={x:Static BoolConverters.Not}}"
+                               Opacity="0.7" />
+                </StackPanel>
+            </ToolTip>
+        </Button.ToolTip.Tip>
+    </Button>
+</UserControl>

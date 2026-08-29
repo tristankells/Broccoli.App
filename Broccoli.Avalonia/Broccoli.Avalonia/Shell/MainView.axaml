@@ -43,7 +43,15 @@
         <DrawerPage.Content>
             <Grid RowDefinitions="*,Auto">
                 <TransitioningContentControl Grid.Row="0" Content="{Binding CurrentPage}" />
-                <views:StorageUsageFooterView Grid.Row="1" DataContext="{Binding StorageUsageFooter}" />
+                <Border Grid.Row="1"
+                        Background="{DynamicResource AppSidebarBackgroundBrush}"
+                        BorderBrush="#40808080" BorderThickness="0,1,0,0"
+                        Padding="12,3">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <views:SyncStatusFooterView Grid.Column="0" DataContext="{Binding SyncStatusFooter}" />
+                        <views:StorageUsageFooterView Grid.Column="2" DataContext="{Binding StorageUsageFooter}" />
+                    </Grid>
+                </Border>
             </Grid>
         </DrawerPage.Content>
     </DrawerPage>

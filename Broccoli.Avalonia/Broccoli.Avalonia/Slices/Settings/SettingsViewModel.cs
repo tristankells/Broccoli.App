@@ -9,7 +9,7 @@ namespace Broccoli.Avalonia.Slices.Settings;
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IGoogleDriveAuthService _googleDriveAuthService;
-    private readonly IGoogleDriveSyncService _googleDriveSyncService;
+    private readonly ISyncStatusService _syncStatusService;
     private readonly IProgress<SyncProgress> _syncProgress;
 
     [ObservableProperty]
@@ -65,25 +65,21 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     public SettingsViewModel(IGoogleDriveAuthService googleDriveAuthService)
-        : this(googleDriveAuthService, new GoogleDriveSyncService(googleDriveAuthService))
+        : this(googleDriveAuthService, new SyncStatusService(
+            new GoogleDriveSyncService(googleDriveAuthService),
+            googleDriveAuthService))
     {
     }
 
-    public SettingsViewModel(IGoogleDriveAuthService googleDriveAuthService, IGoogleDriveSyncService googleDriveSyncService)
+    public SettingsViewModel(IGoogleDriveAuthService googleDriveAuthService, ISyncStatusService syncStatusService)
     {
         _googleDriveAuthService = googleDriveAuthService;
-        _googleDriveSyncService = googleDriveSyncService;
+        _syncStatusService = syncStatusService;
         _syncProgress = new Progress<SyncProgress>(OnSyncProgress);
         RefreshStatus();
     }
 
     public ObservableCollection<SyncConflict> Conflicts { get; } = new();
-
-    /// <summary>
-    /// Exposed so the app shell can trigger the best-effort push-on-close sync directly
-    /// (bypassing the UI-bound <see cref="SyncNowCommand"/>, since the app may be shutting down).
-    /// </summary>
-    public IGoogleDriveSyncService SyncService => _googleDriveSyncService;
 
     private void OnSyncProgress(SyncProgress update)
     {
@@ -101,11 +97,13 @@ public partial class SettingsViewModel : ViewModelBase
 
     private void RefreshStatus()
     {
+        _syncStatusService.RefreshStatus();
+
         GoogleDriveAccountInfo? account = _googleDriveAuthService.GetStoredAccount();
         IsConnected = account is not null;
         ConnectedEmail = account?.Email;
         ConnectedAtUtc = account?.ConnectedAtUtc;
-        LastSyncedAtUtc = _googleDriveSyncService.LastSyncedAtUtc;
+        LastSyncedAtUtc = _syncStatusService.LastSyncedAtUtc;
 
         RefreshConflicts();
     }
@@ -113,7 +111,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void RefreshConflicts()
     {
         Conflicts.Clear();
-        foreach (SyncConflict conflict in _googleDriveSyncService.GetPendingConflicts())
+        foreach (SyncConflict conflict in _syncStatusService.GetPendingConflicts())
         {
             Conflicts.Add(conflict);
         }
@@ -133,6 +131,9 @@ public partial class SettingsViewModel : ViewModelBase
             IsConnected = true;
             ConnectedEmail = account.Email;
             ConnectedAtUtc = account.ConnectedAtUtc;
+
+            // Surface the newly-connected state app-wide (e.g. the shell footer).
+            _syncStatusService.RefreshStatus();
 
             // Kick off an initial sync right away so the user sees it actually working.
             await SyncNowAsync();
@@ -175,7 +176,7 @@ public partial class SettingsViewModel : ViewModelBase
         IsBusy = true;
         try
         {
-            SyncResult result = await _googleDriveSyncService.SyncAsync(_syncProgress);
+            SyncResult result = await _syncStatusService.SyncNowAsync(_syncProgress);
             if (!result.Success)
             {
                 ErrorMessage = result.ErrorMessage;
@@ -187,7 +188,7 @@ public partial class SettingsViewModel : ViewModelBase
                     : "Synced.";
             }
 
-            LastSyncedAtUtc = _googleDriveSyncService.LastSyncedAtUtc;
+            LastSyncedAtUtc = _syncStatusService.LastSyncedAtUtc;
             RefreshConflicts();
         }
         finally
@@ -200,7 +201,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task KeepLocalAsync(SyncConflict conflict)
     {
-        await _googleDriveSyncService.ResolveConflictKeepLocalAsync(conflict);
+        await _syncStatusService.ResolveConflictKeepLocalAsync(conflict);
         Conflicts.Remove(conflict);
         HasConflicts = Conflicts.Count > 0;
     }
@@ -208,7 +209,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private async Task UseDriveAsync(SyncConflict conflict)
     {
-        await _googleDriveSyncService.ResolveConflictUseDriveAsync(conflict);
+        await _syncStatusService.ResolveConflictUseDriveAsync(conflict);
         Conflicts.Remove(conflict);
         HasConflicts = Conflicts.Count > 0;
     }

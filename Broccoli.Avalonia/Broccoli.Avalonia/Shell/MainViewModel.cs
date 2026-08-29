@@ -22,6 +22,9 @@ public partial class MainViewModel : ViewModelBase
     /// <summary>Right-aligned storage-usage footer shown at the bottom of the shell.</summary>
     public StorageUsageFooterViewModel StorageUsageFooter { get; }
 
+    /// <summary>Left-aligned, clickable sync-status footer shown at the bottom of the shell.</summary>
+    public SyncStatusFooterViewModel SyncStatusFooter { get; }
+
     [ObservableProperty]
     private string _greeting = "Welcome to Avalonia!";
 
@@ -50,6 +53,7 @@ public partial class MainViewModel : ViewModelBase
         new Lazy<SettingsPageViewModel>(() => new SettingsPageViewModel()),
         new Lazy<SettingsViewModel>(() => new SettingsViewModel()),
         new StorageUsageFooterViewModel(),
+        new SyncStatusFooterViewModel(),
         new MacroTargetService())
     {
     }
@@ -63,12 +67,14 @@ public partial class MainViewModel : ViewModelBase
         Lazy<SettingsPageViewModel> settingsViewModel,
         Lazy<SettingsViewModel> lazySettingsViewModel,
         StorageUsageFooterViewModel storageUsageFooterViewModel,
+        SyncStatusFooterViewModel syncStatusFooterViewModel,
         IMacroTargetService macroService)
     {
         _settingsViewModel = lazySettingsViewModel;
         _recipesViewModel = recipesViewModel;
         _macroService = macroService;
         StorageUsageFooter = storageUsageFooterViewModel;
+        SyncStatusFooter = syncStatusFooterViewModel;
 
         _seasonalityMenuItem = new MenuItem(
             "Seasonality",

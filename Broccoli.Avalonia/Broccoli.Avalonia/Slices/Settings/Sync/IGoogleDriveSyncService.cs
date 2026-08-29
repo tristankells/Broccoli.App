@@ -25,6 +25,13 @@ public interface IGoogleDriveSyncService
     /// <summary>Timestamp of the last fully-successful sync (from local state), or null if never synced.</summary>
     DateTime? LastSyncedAtUtc { get; }
 
+    /// <summary>
+    /// True when local data (edited/new recipes, database writes, or pending tombstone deletions)
+    /// has changed since the last successful sync. Cheap and fully offline — no Drive access.
+    /// Mirrors the <c>sinceUtc</c> heuristics used by the sync passes themselves.
+    /// </summary>
+    bool HasPendingChanges();
+
     /// <summary>Conflicts detected by a previous sync that still need the user to pick a side.</summary>
     IReadOnlyList<SyncConflict> GetPendingConflicts();
 

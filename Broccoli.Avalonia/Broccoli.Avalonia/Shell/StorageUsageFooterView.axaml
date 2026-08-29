@@ -10,31 +10,27 @@
         <vm:StorageUsageFooterViewModel />
     </Design.DataContext>
 
-    <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
-            BorderBrush="#40808080" BorderThickness="0,1,0,0"
-            Padding="12,3">
-        <TextBlock Text="{Binding SummaryText}"
-                   FontSize="11"
-                   Foreground="Gray"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Center">
-            <ToolTip.Tip>
-                <ToolTip>
-                    <StackPanel Spacing="3" MinWidth="200">
-                        <TextBlock Text="Storage" FontWeight="SemiBold" />
-                        <ItemsControl ItemsSource="{Binding BreakdownItems}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:StorageBreakdownItem">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <TextBlock Grid.Column="0" Text="{Binding Label}" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Value}" FontWeight="SemiBold" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </ToolTip>
-            </ToolTip.Tip>
-        </TextBlock>
-    </Border>
+    <TextBlock Text="{Binding SummaryText}"
+               FontSize="11"
+               Foreground="Gray"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Center">
+        <ToolTip.Tip>
+            <ToolTip>
+                <StackPanel Spacing="3" MinWidth="200">
+                    <TextBlock Text="Storage" FontWeight="SemiBold" />
+                    <ItemsControl ItemsSource="{Binding BreakdownItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:StorageBreakdownItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Value}" FontWeight="SemiBold" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ToolTip>
+        </ToolTip.Tip>
+    </TextBlock>
 </UserControl>

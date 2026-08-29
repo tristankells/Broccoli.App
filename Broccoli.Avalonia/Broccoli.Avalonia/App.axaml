@@ -30,6 +30,12 @@
                 </Animation>
             </Style.Animations>
         </Style>
+        <!-- Keep tooltips readable in both themes: always pair an explicit background with a
+             contrasting foreground so text never ends up light-on-light. -->
+        <Style Selector="ToolTip">
+            <Setter Property="Background" Value="{DynamicResource ToolTipBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource ToolTipForegroundBrush}" />
+        </Style>
     </Application.Styles>
 
     <Application.Resources>
@@ -38,10 +44,18 @@
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="AppSidebarBackgroundBrush" Color="#F3F4F6" />
                     <SolidColorBrush x:Key="AppContentBackgroundBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ConflictCardBackgroundBrush" Color="#FFF4E5" />
+                    <SolidColorBrush x:Key="ConflictCardForegroundBrush" Color="#1E1E22" />
+                    <SolidColorBrush x:Key="ToolTipBackgroundBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="ToolTipForegroundBrush" Color="#1E1E22" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
                     <SolidColorBrush x:Key="AppSidebarBackgroundBrush" Color="#1E1E22" />
                     <SolidColorBrush x:Key="AppContentBackgroundBrush" Color="#2B2B30" />
+                    <SolidColorBrush x:Key="ConflictCardBackgroundBrush" Color="#4B3A1E" />
+                    <SolidColorBrush x:Key="ConflictCardForegroundBrush" Color="#F2EFE6" />
+                    <SolidColorBrush x:Key="ToolTipBackgroundBrush" Color="#3A3A40" />
+                    <SolidColorBrush x:Key="ToolTipForegroundBrush" Color="#F2F2F2" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

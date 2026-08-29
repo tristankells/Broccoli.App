@@ -54,12 +54,14 @@
                               IsVisible="{Binding HasConflicts}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="sync:SyncConflict">
-                            <Border Background="#FFF4E5" CornerRadius="4" Padding="8" Margin="0,0,0,6">
+                            <Border Background="{DynamicResource ConflictCardBackgroundBrush}" CornerRadius="4" Padding="8" Margin="0,0,0,6">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{Binding DisplayName, StringFormat='Conflict: {0}'}"
+                                               Foreground="{DynamicResource ConflictCardForegroundBrush}"
                                                FontWeight="SemiBold" TextWrapping="Wrap" FontSize="12" />
                                     <TextBlock Text="Changed on this device and in Drive since the last sync."
-                                               Foreground="Gray" FontSize="11" TextWrapping="Wrap" />
+                                               Foreground="{DynamicResource ConflictCardForegroundBrush}"
+                                               FontSize="11" TextWrapping="Wrap" />
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <Button Content="Keep mine"
                                                 Command="{Binding $parent[UserControl].((vm:SettingsViewModel)DataContext).KeepLocalCommand}"

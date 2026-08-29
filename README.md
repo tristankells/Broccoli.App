@@ -17,6 +17,25 @@ A cross-platform desktop app for recipe management, meal planning, and nutrition
 - **Food Database** — browseable/editable food table with USDA search and JSON import/export
 - **Google Drive Backup** — sync and backup via Google Drive
 
+## Google Drive Sync
+
+Two-way backup of recipes + app data to Google Drive. Sync is **on-demand only** — there is no periodic timer, file watcher, or background daemon. It runs in exactly four situations:
+
+| Trigger | Method | When |
+|---|---|---|
+| App startup (desktop) | `SyncAsync()` | Fire-and-forget after the first frame + DB migration (`App.axaml.cs`) — pulls remote changes, pushes local ones |
+| Drive connection | `SyncNowAsync()` | Immediately after the user connects their Google account in Settings > Sync |
+| Manual | `SyncNowAsync()` | The "Sync now" button in Settings > Sync |
+| App shutdown (desktop) | `PushOnlyAsync()` | Best-effort push of local-only changes, fire-and-forget so closing is never blocked (`App.axaml.cs` shutdown hook) |
+
+Notes:
+
+- Automatic sync only runs on the **desktop** host. Android/iOS/Browser never auto-sync — the sync service is resolved only on the `IClassicDesktopStyleApplicationLifetime` branch in `App.axaml.cs`.
+- All triggers share one singleton `IGoogleDriveSyncService` (registered in `ServiceCollectionExtensions`).
+- If Drive isn't connected, `SyncAsync`/`PushOnlyAsync` no-op with `SyncResult.NotConnected`.
+- There is no automatic sync while the app is open — local edits are pushed at the next trigger (shutdown or a manual "Sync now").
+- Progress is reported via `IProgress<SyncProgress>`; the service never throws — failures return `SyncResult { Success = false, ErrorMessage }`.
+
 ## Getting Started
 
 ### Prerequisites

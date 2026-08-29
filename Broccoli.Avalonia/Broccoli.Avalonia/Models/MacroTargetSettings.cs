@@ -116,6 +116,17 @@ public class MacroTargetSettings
     [JsonPropertyName("showCardCalorieMatch")]
     public bool ShowCardCalorieMatch { get; set; } = false;
 
+    /// <summary>When true, the Recipes page shows compact list rows instead of image cards.</summary>
+    [JsonPropertyName("showRecipesAsList")]
+    public bool ShowRecipesAsList { get; set; } = false;
+
+    /// <summary>
+    /// The list-view table columns, comma-separated enum names in display order. Only these
+    /// columns are shown, in this order.
+    /// </summary>
+    [JsonPropertyName("recipeListColumns")]
+    public string RecipeListColumns { get; set; } = "Name,CookingTime,Servings,Source,DateAdded,Calories,Protein,Carbs,Fat";
+
     /// <summary>When false, the Seasonality tab is hidden from the navigation drawer.</summary>
     [JsonPropertyName("showSeasonalityNavItem")]
     public bool ShowSeasonalityNavItem { get; set; } = true;

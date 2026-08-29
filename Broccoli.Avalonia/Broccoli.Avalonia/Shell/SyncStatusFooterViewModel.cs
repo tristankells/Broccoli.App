@@ -1,4 +1,5 @@
 using System.Globalization;
+using Avalonia.Threading;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
@@ -38,6 +39,12 @@ public partial class SyncStatusFooterViewModel : ViewModelBase
                 OnPropertyChanged(nameof(ShowEnableHint));
             }
         };
+
+        // The "synced X" relative time ages even while nothing changes, so re-evaluate the
+        // summary periodically to keep it fresh (e.g. "just now" -> "5m ago").
+        var refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+        refreshTimer.Tick += (_, _) => OnPropertyChanged(nameof(SummaryText));
+        refreshTimer.Start();
     }
 
     /// <summary>The shared, observable sync state this footer mirrors.</summary>

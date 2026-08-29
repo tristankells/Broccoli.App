@@ -2,8 +2,10 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Broccoli.Avalonia.Shell;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
+using Broccoli.Avalonia.Storage;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,6 +96,22 @@ public partial class App : Application
 
     private static async Task RunStartupAsync(MainViewModel mainViewModel, ISyncStatusService? syncStatusService)
     {
+        await TryInitializeAsync(mainViewModel);
+
+        // Best-effort: check Drive for changes made on other devices and auto-pull if safe.
+        // No-ops silently if Drive backup isn't connected.
+        if (syncStatusService is not null)
+        {
+            _ = syncStatusService.SyncNowAsync();
+        }
+    }
+
+    /// <summary>
+    /// Migrates the database and populates the initially-visible page (Recipes). If that fails the
+    /// user is shown a troubleshooting dialog with a Retry - the just-shown window is never crashed.
+    /// </summary>
+    private static async Task TryInitializeAsync(MainViewModel mainViewModel)
+    {
         try
         {
             await MigrateDatabaseAsync();
@@ -105,13 +123,66 @@ public partial class App : Application
         {
             // Startup data loading is best-effort; never let it crash the just-shown window.
             System.Diagnostics.Trace.TraceError($"Startup initialization failed: {ex}");
+            await ShowStartupErrorDialogAsync(mainViewModel, ex);
+        }
+    }
+
+    private static async Task ShowStartupErrorDialogAsync(MainViewModel mainViewModel, Exception failure)
+    {
+        // Non-desktop hosts (Android/iOS/browser) can't reliably show a Window from here; the
+        // failure was already traced above and the recipe page shows its own inline error.
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
+        {
+            return;
         }
 
-        // Best-effort: check Drive for changes made on other devices and auto-pull if safe.
-        // No-ops silently if Drive backup isn't connected.
-        if (syncStatusService is not null)
+        var viewModel = new StartupErrorDialogViewModel
         {
-            _ = syncStatusService.SyncNowAsync();
+            DatabasePath = AppPaths.DatabaseFilePath,
+            Details = failure.ToString(),
+            RetryAction = async () =>
+            {
+                try
+                {
+                    await MigrateDatabaseAsync();
+                    await mainViewModel.LoadAsync();
+                    return true;
+                }
+                catch (Exception retryEx)
+                {
+                    System.Diagnostics.Trace.TraceError($"Startup retry failed: {retryEx}");
+                    return false;
+                }
+            },
+            OpenDataFolderAction = OpenDataFolderInFileBrowser,
+        };
+
+        var dialog = new StartupErrorDialog { DataContext = viewModel };
+        await dialog.ShowDialog(window);
+    }
+
+    /// <summary>Opens the app-data folder in the platform's file browser, so the user can inspect the database file.</summary>
+    private static void OpenDataFolderInFileBrowser()
+    {
+        try
+        {
+            string folder = AppPaths.RootFolder;
+            if (OperatingSystem.IsWindows())
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", $"\"{folder}\"") { UseShellExecute = true });
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                System.Diagnostics.Process.Start("open", folder);
+            }
+            else
+            {
+                System.Diagnostics.Process.Start("xdg-open", folder);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.TraceError($"Couldn't open the data folder: {ex}");
         }
     }
 

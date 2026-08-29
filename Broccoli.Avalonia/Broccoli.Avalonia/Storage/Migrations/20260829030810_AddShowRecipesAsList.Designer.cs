@@ -3,6 +3,7 @@ using System;
 using Broccoli.Avalonia.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Broccoli.Avalonia.Storage.Migrations
 {
     [DbContext(typeof(BroccoliDbContext))]
-    partial class BroccoliDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260829030810_AddShowRecipesAsList")]
+    partial class AddShowRecipesAsList
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
@@ -273,11 +276,6 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     b.Property<int>("RecipeHistoryBackupCount")
                         .HasColumnType("INTEGER")
                         .HasJsonPropertyName("recipeHistoryBackupCount");
-
-                    b.Property<string>("RecipeListColumns")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasJsonPropertyName("recipeListColumns");
 
                     b.Property<bool>("RecipeMealComparisonEnabled")
                         .HasColumnType("INTEGER")

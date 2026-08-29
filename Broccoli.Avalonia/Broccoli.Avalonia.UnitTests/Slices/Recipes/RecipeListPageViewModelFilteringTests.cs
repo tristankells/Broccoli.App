@@ -174,6 +174,61 @@ public class RecipeListPageViewModelFilteringTests
         Assert.AreSame(recipe, edited);
     }
 
+    [TestMethod]
+    public void IsLoading_StartsTrueBeforeFirstLoad()
+    {
+        var recipeService = new Mock<IRecipeService>();
+        var viewModel = new RecipeListPageViewModel(recipeService.Object);
+
+        Assert.IsTrue(viewModel.IsLoading);
+        Assert.IsFalse(viewModel.HasLoaded);
+    }
+
+    [TestMethod]
+    public void Reload_OnCompletion_HasLoadedAndStopsLoading()
+    {
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"));
+
+        Assert.IsFalse(viewModel.IsLoading);
+        Assert.IsTrue(viewModel.HasLoaded);
+    }
+
+    [TestMethod]
+    public async Task ReloadAsync_OnCompletion_HasLoadedAndStopsLoading()
+    {
+        var recipeService = new Mock<IRecipeService>();
+        recipeService.Setup(service => service.GetAll()).Returns([MakeRecipe("Banana Bread")]);
+        var viewModel = new RecipeListPageViewModel(recipeService.Object);
+
+        Assert.IsTrue(viewModel.IsLoading);
+
+        await viewModel.ReloadAsync();
+
+        Assert.IsFalse(viewModel.IsLoading);
+        Assert.IsTrue(viewModel.HasLoaded);
+        Assert.HasCount(1, viewModel.FilteredRecipes);
+    }
+
+    [TestMethod]
+    public void EntranceAnimationPending_StartsTrueBeforeFirstLoad()
+    {
+        var recipeService = new Mock<IRecipeService>();
+        var viewModel = new RecipeListPageViewModel(recipeService.Object);
+
+        Assert.IsTrue(viewModel.EntranceAnimationPending);
+    }
+
+    [TestMethod]
+    public void EntranceAnimationPending_StaysTrueAcrossReloads_UntilViewPlaysIt()
+    {
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"));
+
+        viewModel.Reload();
+
+        Assert.IsTrue(viewModel.EntranceAnimationPending,
+            "Reloads shouldn't clear the pending entrance; the view clears it after the first batch plays.");
+    }
+
     private static RecipeListPageViewModel CreateViewModel(params Recipe[] recipes)
     {
         var recipeService = new Mock<IRecipeService>();

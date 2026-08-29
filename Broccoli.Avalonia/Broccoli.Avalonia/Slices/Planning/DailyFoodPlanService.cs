@@ -1,5 +1,7 @@
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
@@ -28,6 +30,7 @@ public class DailyFoodPlanService : IDailyFoodPlanService
         using var context = BroccoliDbContext.CreateForApp();
         context.DailyFoodPlans.Add(plan);
         context.SaveChanges();
+        NotifyStorageChanged();
         return plan;
     }
 
@@ -38,6 +41,7 @@ public class DailyFoodPlanService : IDailyFoodPlanService
         using var context = BroccoliDbContext.CreateForApp();
         context.DailyFoodPlans.Update(plan);
         context.SaveChanges();
+        NotifyStorageChanged();
         return plan;
     }
 
@@ -50,5 +54,10 @@ public class DailyFoodPlanService : IDailyFoodPlanService
             context.DailyFoodPlans.Remove(plan);
             context.SaveChanges();
         }
+
+        NotifyStorageChanged();
     }
+
+    private static void NotifyStorageChanged() =>
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
 }

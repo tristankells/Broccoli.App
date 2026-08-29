@@ -67,5 +67,6 @@ public class SeasonalityDataStore : ISeasonalityDataStore
     private static void NotifyChanged()
     {
         WeakReferenceMessenger.Default.Send(new SeasonalityDataChangedMessage());
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
     }
 }

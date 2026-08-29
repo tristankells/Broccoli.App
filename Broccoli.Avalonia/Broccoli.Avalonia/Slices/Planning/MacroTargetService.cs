@@ -1,5 +1,7 @@
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
@@ -24,6 +26,7 @@ public class MacroTargetService : IMacroTargetService
         using var context = BroccoliDbContext.CreateForApp();
         context.MacroTargets.Add(target);
         context.SaveChanges();
+        NotifyStorageChanged();
         return target;
     }
 
@@ -34,6 +37,7 @@ public class MacroTargetService : IMacroTargetService
         using var context = BroccoliDbContext.CreateForApp();
         context.MacroTargets.Update(target);
         context.SaveChanges();
+        NotifyStorageChanged();
         return target;
     }
 
@@ -46,6 +50,8 @@ public class MacroTargetService : IMacroTargetService
             context.MacroTargets.Remove(target);
             context.SaveChanges();
         }
+
+        NotifyStorageChanged();
     }
 
     public MacroTargetSettings GetSettings()
@@ -77,6 +83,10 @@ public class MacroTargetService : IMacroTargetService
         }
 
         context.SaveChanges();
+        NotifyStorageChanged();
         return settings;
     }
+
+    private static void NotifyStorageChanged() =>
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
 }

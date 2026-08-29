@@ -76,6 +76,12 @@ public partial class RecipesListViewModel : ViewModelBase
     public async Task LoadAsync()
     {
         await _listPage.ReloadAsync();
+        if (_listPage.ErrorMessage is not null)
+        {
+            // The page shows its own inline error + Retry; also throw so the app's startup path
+            // can surface the broader troubleshooting dialog.
+            throw new InvalidOperationException($"The Recipes page failed to load: {_listPage.ErrorMessage}");
+        }
     }
 
     private void ShowList()

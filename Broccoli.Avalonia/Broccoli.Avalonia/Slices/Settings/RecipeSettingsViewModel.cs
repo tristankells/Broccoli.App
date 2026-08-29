@@ -1,6 +1,8 @@
+using System.Collections.ObjectModel;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
+using Broccoli.Avalonia.Slices.Recipes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -35,6 +37,9 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     private int _historyBackupCount = 10;
     [ObservableProperty]
     private AutoBalanceStrategy _autoBalanceStrategy = AutoBalanceStrategy.IndependentSinglePass;
+
+    /// <summary>All list-view columns with their visibility and order, for the settings UI.</summary>
+    public ObservableCollection<RecipeListColumnOption> ListColumnOptions { get; } = new();
 
     public RecipeSettingsViewModel()
         : this(new MacroTargetService())
@@ -108,6 +113,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
         HistoryBackupCount = settings.RecipeHistoryBackupCount;
         AutoBalanceStrategy = settings.AutoBalanceStrategy;
+        LoadListColumnOptions(settings.RecipeListColumns);
 
         List<MacroTarget> targets = _macroService.GetAll();
         AvailableTargets.Clear();
@@ -124,6 +130,62 @@ public partial class RecipeSettingsViewModel : ViewModelBase
 
     partial void OnHistoryBackupCountChanged(int value) => OnPropertyChanged(nameof(BackupStorageHintText));
 
+    private void LoadListColumnOptions(string? serialized)
+    {
+        RecipeListColumn[] stored = RecipeListColumnDefinitions.Parse(serialized);
+        List<RecipeListColumn> remaining = Enum.GetValues<RecipeListColumn>()
+            .Except(stored)
+            .ToList();
+
+        ListColumnOptions.Clear();
+        foreach (RecipeListColumn column in stored)
+        {
+            ListColumnOptions.Add(new RecipeListColumnOption(column, isSelected: true));
+        }
+
+        foreach (RecipeListColumn column in remaining)
+        {
+            ListColumnOptions.Add(new RecipeListColumnOption(column, isSelected: false));
+        }
+
+        UpdateMoveState();
+    }
+
+    private void UpdateMoveState()
+    {
+        for (int i = 0; i < ListColumnOptions.Count; i++)
+        {
+            ListColumnOptions[i].CanMoveUp = i > 0;
+            ListColumnOptions[i].CanMoveDown = i < ListColumnOptions.Count - 1;
+        }
+    }
+
+    [RelayCommand]
+    private void MoveColumnUp(RecipeListColumnOption option)
+    {
+        int index = ListColumnOptions.IndexOf(option);
+        if (index <= 0)
+        {
+            return;
+        }
+
+        ListColumnOptions.Move(index, index - 1);
+        UpdateMoveState();
+    }
+
+    [RelayCommand]
+    private void MoveColumnDown(RecipeListColumnOption option)
+    {
+        int index = ListColumnOptions.IndexOf(option);
+        if (index < 0 || index >= ListColumnOptions.Count - 1)
+        {
+            return;
+        }
+
+        ListColumnOptions.Move(index, index + 1);
+        UpdateMoveState();
+    }
+
     [RelayCommand]
     private void Save()
     {
@@ -139,6 +201,8 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         settings.CalorieMatchTolerancePercent = CalorieMatchTolerancePercent;
         settings.RecipeHistoryBackupCount = HistoryBackupCount;
         settings.AutoBalanceStrategy = AutoBalanceStrategy;
+        settings.RecipeListColumns = RecipeListColumnDefinitions.Serialize(
+            ListColumnOptions.Where(option => option.IsSelected).Select(option => option.Column));
         _macroService.SaveSettings(settings);
         StatusMessage = "Saved.";
         WeakReferenceMessenger.Default.Send(new CardSettingsChangedMessage());

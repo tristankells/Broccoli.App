@@ -4,16 +4,32 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
              xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+             xmlns:shared="using:Broccoli.Avalonia.Shared"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeListPageView"
              x:DataType="vm:RecipeListPageViewModel">
 
     <DockPanel Margin="16">
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200,Auto,Auto,Auto,Auto" Margin="0,0,0,16">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,16">
             <TextBlock Grid.Column="0" Text="Recipes" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
             <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Search recipes..."
                      VerticalAlignment="Center" Margin="8,0" />
-            <Button Grid.Column="2" VerticalAlignment="Center" Margin="4,0,8,0">
+            <!-- Toggle between image cards and a compact no-image list. Persisted in settings. -->
+            <ToggleButton Grid.Column="2" VerticalAlignment="Center" Margin="4,0,8,0"
+                          IsChecked="{Binding IsListView}"
+                          ToolTip.Tip="Switch between cards and list view"
+                          AutomationProperties.Name="Toggle recipe view"
+                          AutomationProperties.AutomationId="toggleRecipeView">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon IsVisible="{Binding !IsListView}"
+                              Data="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"
+                              Width="16" Height="16" />
+                    <PathIcon IsVisible="{Binding IsListView}"
+                              Data="M3,3H11V11H3V3M13,3H21V11H13V3M3,13H11V21H3V13M13,13H21V21H13V13Z"
+                              Width="16" Height="16" />
+                </StackPanel>
+            </ToggleButton>
+            <Button Grid.Column="3" VerticalAlignment="Center" Margin="4,0,8,0">
                 <Button.Flyout>
                     <Flyout>
                         <StackPanel Spacing="6" Margin="8">
@@ -25,9 +41,9 @@
                 </Button.Flyout>
                 <PathIcon Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" Width="16" Height="16" />
             </Button>
-            <Button Grid.Column="3" Content="Import" Command="{Binding ImportRecipeCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="4" Content="Use up" Command="{Binding UseUpIngredientsCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="5" Command="{Binding AddRecipeCommand}"
+            <Button Grid.Column="4" Content="Import" Command="{Binding ImportRecipeCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="5" Content="Use up" Command="{Binding UseUpIngredientsCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="6" Command="{Binding AddRecipeCommand}"
                     AutomationProperties.Name="Add Recipe"
                     AutomationProperties.AutomationId="addRecipeButton">
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -37,26 +53,59 @@
             </Button>
         </Grid>
 
-        <TextBlock DockPanel.Dock="Top"
-                   Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
-                   IsVisible="{Binding !FilteredRecipes.Count}"
-                   Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" />
+        <!-- Load failure banner: shown instead of an endless spinner when the recipe list
+             can't load (e.g. the local database can't be read). -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,12" Padding="10" CornerRadius="4"
+                Background="{DynamicResource ConflictCardBackgroundBrush}"
+                IsVisible="{Binding HasError}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <PathIcon Data="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+                          Width="20" Height="20" Foreground="#E74C3C" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" VerticalAlignment="Center"
+                           Foreground="{DynamicResource ConflictCardForegroundBrush}" />
+                <Button Content="Retry" Command="{Binding RetryCommand}" Classes="accent"
+                        VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
 
-        <ScrollViewer>
-            <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
+        <Panel>
+            <!-- Empty state: only after the first load has completed -->
+            <TextBlock Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
+                       IsVisible="{Binding ShowEmptyState}"
+                       Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" />
+
+            <ScrollViewer IsVisible="{Binding !IsListView}">
+                <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
                 <ItemsRepeater.Layout>
                     <vm:ResponsiveGridLayout ItemWidth="220" ColumnSpacing="16" RowSpacing="16" />
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="vm:RecipeCardViewModel">
                         <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                Classes="recipeCard"
                                 Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
                                 CommandParameter="{Binding}"
                                 AutomationProperties.Name="{Binding Name}"
                                 AutomationProperties.AutomationId="recipeCard"
                                 ContextRequested="OnCardContextRequested">
+                            <Button.Transitions>
+                                <Transitions>
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18" />
+                                </Transitions>
+                            </Button.Transitions>
+                            <!-- Staggered entrance: cards start hidden/offset and fade + slide in on load. -->
                             <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                    CornerRadius="6" Padding="0" ClipToBounds="True">
+                                    CornerRadius="6" Padding="0" ClipToBounds="True"
+                                    Opacity="0" Loaded="OnCardLoaded">
+                                <Border.RenderTransform>
+                                    <TranslateTransform Y="20" />
+                                </Border.RenderTransform>
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+                                        <DoubleTransition Property="(TranslateTransform.Y)" Duration="0:0:0.3" />
+                                    </Transitions>
+                                </Border.Transitions>
                                 <StackPanel Height="180">
                                     <!-- Image with overlays -->
                                     <Panel IsVisible="{Binding HasImage}" Height="120">
@@ -136,5 +185,102 @@
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
         </ScrollViewer>
+
+        <!-- List view: table with sortable column headers. Columns are star-sized so the table
+             always fills the available width; the header and every row use the same grid column
+             definitions to stay aligned. -->
+        <ScrollViewer IsVisible="{Binding IsListView}">
+            <StackPanel>
+                <!-- Header row: one clickable, sortable column per visible column. -->
+                <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
+                        CornerRadius="4" Padding="12,6" Margin="0,0,0,4">
+                    <ItemsControl ItemsSource="{Binding ListColumns}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Grid shared:GridColumns.BoundColumnDefinitions="{Binding ListColumnDefinitions}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RecipeListColumnDefinition">
+                                <Button Classes="listHeader"
+                                        Background="Transparent" BorderThickness="0" Padding="0"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Stretch"
+                                        Command="{Binding $parent[ItemsControl].((vm:RecipeListPageViewModel)DataContext).SortCommand}"
+                                        CommandParameter="{Binding Column}"
+                                        AutomationProperties.Name="Sort by {Binding Title}">
+                                    <TextBlock Text="{Binding HeaderText}" FontWeight="SemiBold" FontSize="12"
+                                               TextAlignment="{Binding Alignment}"
+                                               TextTrimming="CharacterEllipsis" Margin="0,0,16,0" />
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.Styles>
+                            <Style Selector="ContentPresenter" x:DataType="vm:RecipeListColumnDefinition">
+                                <Setter Property="Grid.Column" Value="{Binding Index}" />
+                            </Style>
+                        </ItemsControl.Styles>
+                    </ItemsControl>
+                </Border>
+
+                <!-- Rows: one row per recipe, cells laid out to match the header. -->
+                <ItemsControl ItemsSource="{Binding SortedListItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RecipeListRowViewModel">
+                            <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding $parent[ItemsControl].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
+                                    CommandParameter="{Binding Card}"
+                                    AutomationProperties.Name="{Binding Card.Name}"
+                                    AutomationProperties.AutomationId="recipeListRow"
+                                    ContextRequested="OnCardContextRequested">
+                                <Border Classes="listRow"
+                                        Background="{DynamicResource AppSidebarBackgroundBrush}"
+                                        CornerRadius="4" Padding="12,7" Margin="0,1"
+                                        HorizontalAlignment="Stretch">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <BrushTransition Property="Background" Duration="0:0:0.15" />
+                                        </Transitions>
+                                    </Border.Transitions>
+                                    <ItemsControl ItemsSource="{Binding Cells}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <Grid x:DataType="vm:RecipeListRowViewModel"
+                                                      shared:GridColumns.BoundColumnDefinitions="{Binding ColumnDefinitions}" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:RecipeListCell">
+                                                <TextBlock Text="{Binding Text}"
+                                                           TextAlignment="{Binding Alignment}" FontSize="13"
+                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                                           Margin="0,0,16,0" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                        <ItemsControl.Styles>
+                                            <Style Selector="ContentPresenter" x:DataType="vm:RecipeListCell">
+                                                <Setter Property="Grid.Column" Value="{Binding Column}" />
+                                            </Style>
+                                        </ItemsControl.Styles>
+                                    </ItemsControl>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Loading overlay: shown until the first recipe load completes -->
+        <StackPanel IsVisible="{Binding IsLoading}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+            <PathIcon Data="M12,4V1L8,5L12,9V6C15.31,6 18,8.69 18,12C18,13.01 17.75,13.97 17.32,14.82L18.76,16.26C19.55,15.02 20,13.57 20,12C20,7.58 16.42,4 12,4M12,18C8.69,18 6,15.31 6,12C6,10.99 6.25,10.03 6.68,9.18L5.24,7.74C4.45,8.97 4,10.43 4,12C4,16.42 7.58,20 12,20V23L16,19L12,15V18Z"
+                      Width="32" Height="32" Foreground="Gray"
+                      HorizontalAlignment="Center"
+                      Classes.spinner="{Binding IsLoading}" />
+            <TextBlock Text="Loading recipes..." Foreground="Gray" HorizontalAlignment="Center" />
+        </StackPanel>
+        </Panel>
     </DockPanel>
 </UserControl>

@@ -1,5 +1,7 @@
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Planning;
 
@@ -23,6 +25,7 @@ public class MealPrepPlanService : IMealPrepPlanService
         using var context = BroccoliDbContext.CreateForApp();
         context.MealPrepPlans.Add(plan);
         context.SaveChanges();
+        NotifyStorageChanged();
         return plan;
     }
 
@@ -33,6 +36,7 @@ public class MealPrepPlanService : IMealPrepPlanService
         using var context = BroccoliDbContext.CreateForApp();
         context.MealPrepPlans.Update(plan);
         context.SaveChanges();
+        NotifyStorageChanged();
         return plan;
     }
 
@@ -45,6 +49,8 @@ public class MealPrepPlanService : IMealPrepPlanService
             context.MealPrepPlans.Remove(plan);
             context.SaveChanges();
         }
+
+        NotifyStorageChanged();
     }
 
     public void Reorder(List<string> orderedPlanIds)
@@ -61,5 +67,9 @@ public class MealPrepPlanService : IMealPrepPlanService
         }
 
         context.SaveChanges();
+        NotifyStorageChanged();
     }
+
+    private static void NotifyStorageChanged() =>
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
 }

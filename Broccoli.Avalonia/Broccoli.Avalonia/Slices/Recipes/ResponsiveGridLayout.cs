@@ -163,7 +163,7 @@ public class ResponsiveGridLayout : NonVirtualizingLayout
         else
         {
             itemsPerLine = (int)Math.Floor((width + columnSpacing) / (itemWidth + columnSpacing));
-            itemsPerLine = Math.Clamp(itemsPerLine, 1, Math.Min(maxColumns, itemCount));
+            itemsPerLine = Math.Clamp(itemsPerLine, 1, maxColumns);
         }
 
         double edgeGap;

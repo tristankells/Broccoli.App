@@ -97,6 +97,34 @@ public class ResponsiveGridLayoutTests
     }
 
     [TestMethod]
+    public void ComputeMetrics_FewerItemsThanColumns_KeepsWidthBasedColumns()
+    {
+        // 3 columns fit at 900px, even though only 2 items exist.
+        ResponsiveGridLayout.ColumnLayoutMetrics metrics = Compute(2, 900);
+
+        Assert.AreEqual(3, metrics.ItemsPerLine);
+    }
+
+    [TestMethod]
+    public void ComputeMetrics_FewItems_AreLeftAligned()
+    {
+        // 2 items in a 3-column grid must hug the left grid columns, not spread/centre.
+        ResponsiveGridLayout.ColumnLayoutMetrics metrics = Compute(2, 900);
+
+        Assert.IsTrue(ItemX(0, metrics) < metrics.ExtentWidth / 2);
+        Assert.IsTrue(ItemX(1, metrics) < metrics.ExtentWidth / 2);
+    }
+
+    [TestMethod]
+    public void ComputeMetrics_SingleItem_IsLeftAligned()
+    {
+        ResponsiveGridLayout.ColumnLayoutMetrics metrics = Compute(1, 900);
+
+        Assert.AreEqual(3, metrics.ItemsPerLine);
+        Assert.IsTrue(ItemX(0, metrics) < metrics.ExtentWidth / 2);
+    }
+
+    [TestMethod]
     public void ComputeMetrics_NarrowerThanItemWidth_ForcesSingleColumn()
     {
         ResponsiveGridLayout.ColumnLayoutMetrics metrics = Compute(4, 200);

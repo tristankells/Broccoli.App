@@ -38,21 +38,21 @@ internal static class RecipeListColumnDefinitions
     };
 
     /// <summary>
-    /// Fixed pixel width so the header and row cells line up. Name is widest; the rest are
-    /// sized for their short values.
+    /// Relative star weight for the column: the columns share the row width proportionally so the
+    /// table always fills the available space. Name is widest; numbers are narrow.
     /// </summary>
-    public static double Width(RecipeListColumn column) => column switch
+    public static double Weight(RecipeListColumn column) => column switch
     {
-        RecipeListColumn.Name => 220,
-        RecipeListColumn.CookingTime => 100,
-        RecipeListColumn.Servings => 80,
-        RecipeListColumn.Source => 160,
-        RecipeListColumn.DateAdded => 100,
-        RecipeListColumn.Calories => 80,
-        RecipeListColumn.Protein => 80,
-        RecipeListColumn.Carbs => 80,
-        RecipeListColumn.Fat => 80,
-        _ => 100,
+        RecipeListColumn.Name => 5,
+        RecipeListColumn.CookingTime => 2,
+        RecipeListColumn.Servings => 1.5,
+        RecipeListColumn.Source => 3,
+        RecipeListColumn.DateAdded => 2,
+        RecipeListColumn.Calories => 1.5,
+        RecipeListColumn.Protein => 1.5,
+        RecipeListColumn.Carbs => 1.5,
+        RecipeListColumn.Fat => 1.5,
+        _ => 2,
     };
 
     public static TextAlignment Alignment(RecipeListColumn column) =>

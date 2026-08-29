@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Broccoli.Avalonia.Slices.Recipes"
              xmlns:conv="using:Broccoli.Avalonia.Shared.Converters"
+             xmlns:shared="using:Broccoli.Avalonia.Shared"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Broccoli.Avalonia.Slices.Recipes.RecipeListPageView"
              x:DataType="vm:RecipeListPageViewModel">
@@ -185,8 +186,10 @@
             </ItemsRepeater>
         </ScrollViewer>
 
-        <!-- List view: table with sortable column headers. -->
-        <ScrollViewer IsVisible="{Binding IsListView}" HorizontalScrollBarVisibility="Auto">
+        <!-- List view: table with sortable column headers. Columns are star-sized so the table
+             always fills the available width; the header and every row use the same grid column
+             definitions to stay aligned. -->
+        <ScrollViewer IsVisible="{Binding IsListView}">
             <StackPanel>
                 <!-- Header row: one clickable, sortable column per visible column. -->
                 <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
@@ -194,23 +197,28 @@
                     <ItemsControl ItemsSource="{Binding ListColumns}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
+                                <Grid shared:GridColumns.BoundColumnDefinitions="{Binding ListColumnDefinitions}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:RecipeListColumnDefinition">
                                 <Button Classes="listHeader"
                                         Background="Transparent" BorderThickness="0" Padding="0"
-                                        Width="{Binding Width}"
                                         HorizontalContentAlignment="Stretch"
                                         Command="{Binding $parent[ItemsControl].((vm:RecipeListPageViewModel)DataContext).SortCommand}"
                                         CommandParameter="{Binding Column}"
                                         AutomationProperties.Name="Sort by {Binding Title}">
                                     <TextBlock Text="{Binding HeaderText}" FontWeight="SemiBold" FontSize="12"
-                                               TextAlignment="{Binding Alignment}" />
+                                               TextAlignment="{Binding Alignment}"
+                                               TextTrimming="CharacterEllipsis" />
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
+                        <ItemsControl.Styles>
+                            <Style Selector="ContentPresenter" x:DataType="vm:RecipeListColumnDefinition">
+                                <Setter Property="Grid.Column" Value="{Binding Index}" />
+                            </Style>
+                        </ItemsControl.Styles>
                     </ItemsControl>
                 </Border>
 
@@ -237,16 +245,22 @@
                                     <ItemsControl ItemsSource="{Binding Cells}">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal" />
+                                                <Grid x:DataType="vm:RecipeListRowViewModel"
+                                                      shared:GridColumns.BoundColumnDefinitions="{Binding ColumnDefinitions}" />
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:RecipeListCell">
-                                                <TextBlock Text="{Binding Text}" Width="{Binding Width}"
+                                                <TextBlock Text="{Binding Text}"
                                                            TextAlignment="{Binding Alignment}" FontSize="13"
                                                            TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
+                                        <ItemsControl.Styles>
+                                            <Style Selector="ContentPresenter" x:DataType="vm:RecipeListCell">
+                                                <Setter Property="Grid.Column" Value="{Binding Column}" />
+                                            </Style>
+                                        </ItemsControl.Styles>
                                     </ItemsControl>
                                 </Border>
                             </Button>

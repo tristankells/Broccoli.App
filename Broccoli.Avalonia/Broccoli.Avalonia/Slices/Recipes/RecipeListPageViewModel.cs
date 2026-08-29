@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Controls;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Seasonality;
@@ -96,6 +97,9 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     /// <summary>The visible list-view columns, in display order (loaded from settings).</summary>
     [ObservableProperty]
     private ObservableCollection<RecipeListColumnDefinition> _listColumns = new();
+
+    /// <summary>Star-sized grid definitions matching <see cref="ListColumns"/>, for the table header.</summary>
+    public ColumnDefinitions ListColumnDefinitions { get; } = new();
 
     /// <summary>The list-view rows, filtered and sorted by the active column.</summary>
     [ObservableProperty]
@@ -226,9 +230,12 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     {
         RecipeListColumn[] columns = RecipeListColumnDefinitions.Parse(serialized);
         ListColumns.Clear();
-        foreach (RecipeListColumn column in columns)
+        ListColumnDefinitions.Clear();
+        for (int i = 0; i < columns.Length; i++)
         {
-            ListColumns.Add(new RecipeListColumnDefinition(column));
+            RecipeListColumnDefinition definition = new(columns[i], i);
+            ListColumns.Add(definition);
+            ListColumnDefinitions.Add(new ColumnDefinition(definition.Width));
         }
 
         RebuildSortedList();

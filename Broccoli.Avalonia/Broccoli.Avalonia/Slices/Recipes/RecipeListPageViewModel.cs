@@ -93,6 +93,22 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isListView;
 
+    /// <summary>The visible list-view columns, in display order (loaded from settings).</summary>
+    [ObservableProperty]
+    private ObservableCollection<RecipeListColumnDefinition> _listColumns = new();
+
+    /// <summary>The list-view rows, filtered and sorted by the active column.</summary>
+    [ObservableProperty]
+    private ObservableCollection<RecipeListRowViewModel> _sortedListItems = new();
+
+    /// <summary>The column the list view is currently sorted by.</summary>
+    [ObservableProperty]
+    private RecipeListColumn _sortColumn = RecipeListColumn.Name;
+
+    /// <summary>Sort direction for <see cref="SortColumn"/>.</summary>
+    [ObservableProperty]
+    private bool _sortAscending = true;
+
     /// <summary>
     /// Set when the recipe list fails to load (e.g. the local database can't be read). The view
     /// shows an inline banner with a Retry button instead of leaving the loading spinner stuck.
@@ -135,7 +151,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         ErrorMessage = null;
         try
         {
-            LoadViewMode();
+            LoadListViewSettings();
             (List<Recipe> recipes, List<RecipeCardViewModel> cards) = BuildCards();
             ApplyResults(recipes, cards);
         }
@@ -162,7 +178,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         ErrorMessage = null;
         try
         {
-            LoadViewMode();
+            LoadListViewSettings();
             (List<Recipe> recipes, List<RecipeCardViewModel> cards) = await Task.Run(BuildCards);
             ApplyResults(recipes, cards);
         }
@@ -181,10 +197,11 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     private async Task Retry() => await ReloadAsync();
 
     /// <summary>
-    /// Restores the cards-vs-list choice from settings. Called on the UI thread (the view mode is
-    /// a display concern and must not be set from the background thread that builds cards).
+    /// Restores the list-view display settings (cards-vs-list choice and the visible columns).
+    /// Called on the UI thread (a display concern; must not run on the background card-building
+    /// thread).
     /// </summary>
-    private void LoadViewMode()
+    private void LoadListViewSettings()
     {
         if (_macroService is null)
         {
@@ -194,12 +211,27 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _suppressViewModePersistence = true;
         try
         {
-            IsListView = _macroService.GetSettings().ShowRecipesAsList;
+            MacroTargetSettings settings = _macroService.GetSettings();
+            IsListView = settings.ShowRecipesAsList;
+            LoadColumns(settings.RecipeListColumns);
         }
         finally
         {
             _suppressViewModePersistence = false;
         }
+    }
+
+    /// <summary>Rebuilds the visible list columns and the rows derived from them.</summary>
+    private void LoadColumns(string? serialized)
+    {
+        RecipeListColumn[] columns = RecipeListColumnDefinitions.Parse(serialized);
+        ListColumns.Clear();
+        foreach (RecipeListColumn column in columns)
+        {
+            ListColumns.Add(new RecipeListColumnDefinition(column));
+        }
+
+        RebuildSortedList();
     }
 
     /// <summary>Persists the cards-vs-list choice so it survives reloads and app restarts.</summary>
@@ -213,6 +245,77 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         MacroTargetSettings settings = _macroService.GetSettings();
         settings.ShowRecipesAsList = value;
         _macroService.SaveSettings(settings);
+    }
+
+    /// <summary>Sorts (or reverses) the list view by the active column.</summary>
+    [RelayCommand]
+    private void Sort(RecipeListColumn column)
+    {
+        if (SortColumn == column)
+        {
+            SortAscending = !SortAscending;
+        }
+        else
+        {
+            SortColumn = column;
+            SortAscending = true;
+        }
+
+        RebuildSortedList();
+    }
+
+    /// <summary>Rebuilds the list-view rows from the filtered cards using the active sort.</summary>
+    private void RebuildSortedList()
+    {
+        List<RecipeCardViewModel> sorted = SortCards(FilteredRecipes);
+        SortedListItems = new ObservableCollection<RecipeListRowViewModel>(
+            sorted.Select(card => new RecipeListRowViewModel(card, ListColumns)));
+        UpdateSortIndicators();
+    }
+
+    private List<RecipeCardViewModel> SortCards(IEnumerable<RecipeCardViewModel> cards)
+    {
+        List<RecipeCardViewModel> list = cards.ToList();
+        Comparison<RecipeCardViewModel> comparison = SortColumn switch
+        {
+            RecipeListColumn.Name => (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase),
+            RecipeListColumn.CookingTime => (a, b) => TotalMinutes(a).CompareTo(TotalMinutes(b)),
+            RecipeListColumn.Servings => (a, b) => (a.Recipe.Servings ?? int.MaxValue).CompareTo(b.Recipe.Servings ?? int.MaxValue),
+            RecipeListColumn.Source => (a, b) => string.Compare(a.Recipe.Source, b.Recipe.Source, StringComparison.OrdinalIgnoreCase),
+            RecipeListColumn.DateAdded => (a, b) => a.Recipe.CreatedAt.CompareTo(b.Recipe.CreatedAt),
+            RecipeListColumn.Calories => (a, b) => a.CaloriesPerServing.CompareTo(b.CaloriesPerServing),
+            RecipeListColumn.Protein => (a, b) => a.ProteinPerServingG.CompareTo(b.ProteinPerServingG),
+            RecipeListColumn.Carbs => (a, b) => a.CarbsPerServingG.CompareTo(b.CarbsPerServingG),
+            RecipeListColumn.Fat => (a, b) => a.FatPerServingG.CompareTo(b.FatPerServingG),
+            _ => (a, b) => 0,
+        };
+
+        list.Sort(comparison);
+        if (!SortAscending)
+        {
+            list.Reverse();
+        }
+
+        return list;
+    }
+
+    private static int TotalMinutes(RecipeCardViewModel card)
+    {
+        int prep = card.Recipe.PrepTimeMinutes ?? 0;
+        int cook = card.Recipe.CookTimeMinutes ?? 0;
+        return prep + cook;
+    }
+
+    private void UpdateSortIndicators()
+    {
+        foreach (RecipeListColumnDefinition definition in ListColumns)
+        {
+            definition.SortSuffix = definition.Column == SortColumn
+                ? SortAscending
+                    ? " ▲"
+                    : " ▼"
+                : string.Empty;
+        }
     }
 
     private (List<Recipe> Recipes, List<RecipeCardViewModel> Cards) BuildCards()
@@ -328,6 +431,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         if (string.IsNullOrEmpty(SearchText))
         {
             FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
+            RebuildSortedList();
             return;
         }
 
@@ -339,6 +443,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
         FilteredRecipes =
             new ObservableCollection<RecipeCardViewModel>(_allCards.Where(card => IsMatch(tokens, card.SearchWords)));
+        RebuildSortedList();
 
         SearchWordSource DetermineEnabledSearchSource()
         {

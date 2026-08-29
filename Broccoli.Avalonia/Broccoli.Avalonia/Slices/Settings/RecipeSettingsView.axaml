@@ -44,6 +44,32 @@
                 </StackPanel>
             </Border>
 
+            <!-- Recipe List Columns -->
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Recipe List Columns" FontWeight="SemiBold" />
+                    <TextBlock Text="Choose which columns the recipes list view shows, and their order. Click a header in the list to sort." FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+                    <ItemsControl ItemsSource="{Binding ListColumnOptions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RecipeListColumnOption">
+                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                    <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Title}" Width="100" VerticalAlignment="Center" FontSize="12" />
+                                    <Button Content="Up" FontSize="11" Padding="6,2"
+                                            IsEnabled="{Binding CanMoveUp}"
+                                            Command="{Binding $parent[ItemsControl].((vm:RecipeSettingsViewModel)DataContext).MoveColumnUpCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="Down" FontSize="11" Padding="6,2"
+                                            IsEnabled="{Binding CanMoveDown}"
+                                            Command="{Binding $parent[ItemsControl].((vm:RecipeSettingsViewModel)DataContext).MoveColumnDownCommand}"
+                                            CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
             <!-- Meal Comparison -->
             <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
                 <StackPanel Spacing="6">

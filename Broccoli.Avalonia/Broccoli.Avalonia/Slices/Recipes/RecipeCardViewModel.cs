@@ -29,6 +29,18 @@ internal partial class RecipeCardViewModel : ViewModelBase
     private bool _hasTags;
 
     [ObservableProperty]
+    private double _caloriesPerServing;
+
+    [ObservableProperty]
+    private double _proteinPerServingG;
+
+    [ObservableProperty]
+    private double _carbsPerServingG;
+
+    [ObservableProperty]
+    private double _fatPerServingG;
+
+    [ObservableProperty]
     private string _caloriesText = string.Empty;
 
     [ObservableProperty]
@@ -88,6 +100,21 @@ internal partial class RecipeCardViewModel : ViewModelBase
         ? string.Empty
         : Recipe.CreatedAt.ToLocalTime().ToString("d MMM yyyy", CultureInfo.InvariantCulture);
 
+    /// <summary>Formats the value shown for <paramref name="column"/> in the list view table.</summary>
+    public string ColumnText(RecipeListColumn column) => column switch
+    {
+        RecipeListColumn.Name => Name,
+        RecipeListColumn.CookingTime => CookingTimeText,
+        RecipeListColumn.Servings => ServingsText,
+        RecipeListColumn.Source => Recipe.Source ?? string.Empty,
+        RecipeListColumn.DateAdded => DateAddedText,
+        RecipeListColumn.Calories => CaloriesPerServing > 0 ? $"{CaloriesPerServing:0} kcal" : string.Empty,
+        RecipeListColumn.Protein => ProteinPerServingG > 0 ? $"{ProteinPerServingG:0.0} g" : string.Empty,
+        RecipeListColumn.Carbs => CarbsPerServingG > 0 ? $"{CarbsPerServingG:0.0} g" : string.Empty,
+        RecipeListColumn.Fat => FatPerServingG > 0 ? $"{FatPerServingG:0.0} g" : string.Empty,
+        _ => string.Empty,
+    };
+
     public static RecipeCardViewModel FromRecipe(
         Recipe recipe,
         string? imagePath,
@@ -117,6 +144,10 @@ internal partial class RecipeCardViewModel : ViewModelBase
             HasImage = hasImage,
             Tags = hasTags ? string.Join(", ", recipe.Tags) : string.Empty,
             HasTags = hasTags,
+            CaloriesPerServing = calPerServing,
+            ProteinPerServingG = proPerServing,
+            CarbsPerServingG = carbPerServing,
+            FatPerServingG = fatPerServing,
             CaloriesText = $"{calPerServing:0} kcal",
             ProteinText = $"P:{proPerServing:0.0}g",
             CarbsText = $"C:{carbPerServing:0.0}g",

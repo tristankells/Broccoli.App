@@ -84,6 +84,116 @@ public class RecipeListPageViewModelViewModeTests
         Assert.AreEqual("Chicken Curry", viewModel.FilteredRecipes.First().Name);
     }
 
+    [TestMethod]
+    public void SortedListItems_DefaultsToNameAscending()
+    {
+        Mock<IMacroTargetService> macroService = CreateMacroService(showRecipesAsList: false);
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            macroService,
+            new Recipe { Name = "Banana Bread" },
+            new Recipe { Name = "Chicken Curry" },
+            new Recipe { Name = "Apple Pie" });
+        viewModel.Reload();
+
+        Assert.AreEqual("Apple Pie", viewModel.SortedListItems[0].Card.Name);
+        Assert.AreEqual("Banana Bread", viewModel.SortedListItems[1].Card.Name);
+        Assert.AreEqual("Chicken Curry", viewModel.SortedListItems[2].Card.Name);
+    }
+
+    [TestMethod]
+    public void Sort_ByCookingTime_SortsByTotalMinutes()
+    {
+        Mock<IMacroTargetService> macroService = CreateMacroService(showRecipesAsList: false);
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            macroService,
+            new Recipe { Name = "Slow Stew", PrepTimeMinutes = 15, CookTimeMinutes = 120 },
+            new Recipe { Name = "Quick Salad", PrepTimeMinutes = 10, CookTimeMinutes = 0 },
+            new Recipe { Name = "Medium Bake", PrepTimeMinutes = 20, CookTimeMinutes = 30 });
+        viewModel.Reload();
+
+        viewModel.SortCommand.Execute(RecipeListColumn.CookingTime);
+
+        Assert.AreEqual("Quick Salad", viewModel.SortedListItems[0].Card.Name);
+        Assert.AreEqual("Medium Bake", viewModel.SortedListItems[1].Card.Name);
+        Assert.AreEqual("Slow Stew", viewModel.SortedListItems[2].Card.Name);
+    }
+
+    [TestMethod]
+    public void Sort_TogglingSameColumn_FlipsDirection()
+    {
+        Mock<IMacroTargetService> macroService = CreateMacroService(showRecipesAsList: false);
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            macroService,
+            new Recipe { Name = "Apple Pie" },
+            new Recipe { Name = "Banana Bread" });
+        viewModel.Reload();
+
+        Assert.AreEqual("Apple Pie", viewModel.SortedListItems[0].Card.Name, "Name ascending is the default.");
+        Assert.IsTrue(viewModel.SortAscending);
+
+        viewModel.SortCommand.Execute(RecipeListColumn.Name);
+
+        Assert.AreEqual("Banana Bread", viewModel.SortedListItems[0].Card.Name);
+        Assert.IsFalse(viewModel.SortAscending);
+
+        viewModel.SortCommand.Execute(RecipeListColumn.Name);
+
+        Assert.AreEqual("Apple Pie", viewModel.SortedListItems[0].Card.Name);
+        Assert.IsTrue(viewModel.SortAscending);
+    }
+
+    [TestMethod]
+    public void Sort_ByDateAdded_SortsNewestFirstWhenDescending()
+    {
+        Mock<IMacroTargetService> macroService = CreateMacroService(showRecipesAsList: false);
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            macroService,
+            new Recipe { Name = "Old", CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Recipe { Name = "New", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) });
+        viewModel.Reload();
+
+        viewModel.SortCommand.Execute(RecipeListColumn.DateAdded);
+        viewModel.SortCommand.Execute(RecipeListColumn.DateAdded);
+
+        Assert.AreEqual("New", viewModel.SortedListItems[0].Card.Name);
+    }
+
+    [TestMethod]
+    public void SortIndicator_SuffixReflectsActiveColumn()
+    {
+        Mock<IMacroTargetService> macroService = CreateMacroService(showRecipesAsList: false);
+        RecipeListPageViewModel viewModel = CreateViewModel(macroService, new Recipe { Name = "Banana Bread" });
+        viewModel.Reload();
+
+        RecipeListColumnDefinition nameDefinition = viewModel.ListColumns.First(d => d.Column == RecipeListColumn.Name);
+        RecipeListColumnDefinition caloriesDefinition = viewModel.ListColumns.First(d => d.Column == RecipeListColumn.Calories);
+        Assert.AreEqual(" ▲", nameDefinition.SortSuffix, "Name is the default ascending sort column.");
+
+        viewModel.SortCommand.Execute(RecipeListColumn.Calories);
+
+        Assert.AreEqual(string.Empty, nameDefinition.SortSuffix);
+        Assert.AreEqual(" ▲", caloriesDefinition.SortSuffix);
+    }
+
+    [TestMethod]
+    public void ListColumns_LoadFromSettings_RespectStoredOrder()
+    {
+        Mock<IMacroTargetService> macroService = CreateMacroService(showRecipesAsList: false);
+        macroService.Setup(s => s.GetSettings()).Returns(new MacroTargetSettings
+        {
+            ShowRecipesAsList = false,
+            RecipeListColumns = "Name,Fat,Calories",
+        });
+        RecipeListPageViewModel viewModel = CreateViewModel(macroService, new Recipe { Name = "Banana Bread" });
+
+        viewModel.Reload();
+
+        Assert.AreEqual(3, viewModel.ListColumns.Count);
+        Assert.AreEqual(RecipeListColumn.Name, viewModel.ListColumns[0].Column);
+        Assert.AreEqual(RecipeListColumn.Fat, viewModel.ListColumns[1].Column);
+        Assert.AreEqual(RecipeListColumn.Calories, viewModel.ListColumns[2].Column);
+    }
+
     private static Mock<IMacroTargetService> CreateMacroService(bool showRecipesAsList)
     {
         var settings = new MacroTargetSettings { ShowRecipesAsList = showRecipesAsList };

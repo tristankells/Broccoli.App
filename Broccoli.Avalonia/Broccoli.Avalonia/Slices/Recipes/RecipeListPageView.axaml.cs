@@ -89,7 +89,19 @@ public partial class RecipeListPageView : UserControl
 
     private void OnCardContextRequested(object? sender, ContextRequestedEventArgs e)
     {
-        if (sender is not Control control || control.DataContext is not RecipeCardViewModel card)
+        if (sender is not Control control)
+        {
+            return;
+        }
+
+        RecipeCardViewModel? card = control.DataContext switch
+        {
+            RecipeCardViewModel cardViewModel => cardViewModel,
+            RecipeListRowViewModel row => row.Card,
+            _ => null,
+        };
+
+        if (card is null)
         {
             return;
         }

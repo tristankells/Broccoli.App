@@ -185,45 +185,75 @@
             </ItemsRepeater>
         </ScrollViewer>
 
-        <!-- List view: compact rows with no images. -->
-        <ScrollViewer IsVisible="{Binding IsListView}">
-            <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="vm:RecipeCardViewModel">
-                        <Button Background="Transparent" BorderThickness="0" Padding="0"
-                                HorizontalAlignment="Stretch"
-                                Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
-                                CommandParameter="{Binding}"
-                                AutomationProperties.Name="{Binding Name}"
-                                AutomationProperties.AutomationId="recipeListRow"
-                                ContextRequested="OnCardContextRequested">
-                            <Border Classes="listRow"
-                                    Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                    CornerRadius="4" Padding="12,9" Margin="0,2"
-                                    HorizontalAlignment="Stretch">
-                                <Border.Transitions>
-                                    <Transitions>
-                                        <BrushTransition Property="Background" Duration="0:0:0.15" />
-                                    </Transitions>
-                                </Border.Transitions>
-                                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" VerticalAlignment="Center">
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontWeight="SemiBold"
-                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="{Binding CookingTimeText}" Foreground="Gray"
-                                               Margin="20,0,0,0" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="2" Text="{Binding ServingsText}" Foreground="Gray"
-                                               Margin="20,0,0,0" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="3" Text="{Binding Recipe.Source}" Foreground="Gray"
-                                               Margin="20,0,0,0" VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis" MaxWidth="200" />
-                                    <TextBlock Grid.Column="4" Text="{Binding DateAddedText}" Foreground="Gray"
-                                               Margin="20,0,0,0" VerticalAlignment="Center" />
-                                </Grid>
-                            </Border>
-                        </Button>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+        <!-- List view: table with sortable column headers. -->
+        <ScrollViewer IsVisible="{Binding IsListView}" HorizontalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Header row: one clickable, sortable column per visible column. -->
+                <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
+                        CornerRadius="4" Padding="12,6" Margin="0,0,0,4">
+                    <ItemsControl ItemsSource="{Binding ListColumns}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RecipeListColumnDefinition">
+                                <Button Classes="listHeader"
+                                        Background="Transparent" BorderThickness="0" Padding="0"
+                                        Width="{Binding Width}"
+                                        HorizontalContentAlignment="Stretch"
+                                        Command="{Binding $parent[ItemsControl].((vm:RecipeListPageViewModel)DataContext).SortCommand}"
+                                        CommandParameter="{Binding Column}"
+                                        AutomationProperties.Name="Sort by {Binding Title}">
+                                    <TextBlock Text="{Binding HeaderText}" FontWeight="SemiBold" FontSize="12"
+                                               TextAlignment="{Binding Alignment}" />
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- Rows: one row per recipe, cells laid out to match the header. -->
+                <ItemsControl ItemsSource="{Binding SortedListItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:RecipeListRowViewModel">
+                            <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding $parent[ItemsControl].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
+                                    CommandParameter="{Binding Card}"
+                                    AutomationProperties.Name="{Binding Card.Name}"
+                                    AutomationProperties.AutomationId="recipeListRow"
+                                    ContextRequested="OnCardContextRequested">
+                                <Border Classes="listRow"
+                                        Background="{DynamicResource AppSidebarBackgroundBrush}"
+                                        CornerRadius="4" Padding="12,7" Margin="0,1"
+                                        HorizontalAlignment="Stretch">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <BrushTransition Property="Background" Duration="0:0:0.15" />
+                                        </Transitions>
+                                    </Border.Transitions>
+                                    <ItemsControl ItemsSource="{Binding Cells}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:RecipeListCell">
+                                                <TextBlock Text="{Binding Text}" Width="{Binding Width}"
+                                                           TextAlignment="{Binding Alignment}" FontSize="13"
+                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </ScrollViewer>
 
         <!-- Loading overlay: shown until the first recipe load completes -->

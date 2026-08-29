@@ -125,7 +125,7 @@ public class MacroTargetSettings
     /// columns are shown, in this order.
     /// </summary>
     [JsonPropertyName("recipeListColumns")]
-    public string RecipeListColumns { get; set; } = "Name,CookingTime,Servings,Source,DateAdded,Calories,Protein,Carbs,Fat";
+    public string RecipeListColumns { get; set; } = "Name,CookingTime,Servings,Source,DateAdded,Calories,Protein,Carbs,Fat,Seasonality";
 
     /// <summary>When false, the Seasonality tab is hidden from the navigation drawer.</summary>
     [JsonPropertyName("showSeasonalityNavItem")]

@@ -163,6 +163,10 @@
                 <StackPanel Spacing="6">
                     <TextBlock Text="Seasonality" FontWeight="SemiBold" FontSize="13" />
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Background="{Binding SeasonScoreColor}" CornerRadius="3" Padding="6,2">
+                            <TextBlock Text="{Binding SeasonBandLabel}" FontSize="11" FontWeight="Bold"
+                                       Foreground="White" />
+                        </Border>
                         <TextBlock FontSize="11">
                             <Run Text="Score: " />
                             <Run Text="{Binding Seasonality.Score, StringFormat='{}{0:F0} / 100'}"
@@ -172,6 +176,8 @@
                                    Foreground="Gray" FontStyle="Italic" VerticalAlignment="Center"
                                    IsVisible="{Binding Seasonality.BestSeasons, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     </StackPanel>
+                    <TextBlock Text="{Binding SeasonalityCoverageText}" FontSize="10" Foreground="Gray"
+                               IsVisible="{Binding SeasonalityCoverageText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                     <ItemsControl ItemsSource="{Binding Seasonality.Breakdown}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:IngredientSeasonalityDetail">
@@ -190,6 +196,8 @@
                                                Text="{Binding WeightInGrams, StringFormat='{}{0:0}g'}" Width="50" />
                                     <TextBlock FontSize="10" Foreground="Gray"
                                                Text="{Binding ScarcityWeight, StringFormat='Scarcity: {0:0.0}'}" />
+                                    <TextBlock Text="Limited season" FontSize="9" Foreground="#8A6D3B"
+                                               IsVisible="{Binding IsLimitedSeason}" />
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

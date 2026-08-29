@@ -97,6 +97,22 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     [ObservableProperty]
     public partial DateTime? AsOfDate { get; set; } = DateTime.Today;
 
+    /// <summary>Which seasonality band to show (All = no filtering).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsAllFilterActive))]
+    [NotifyPropertyChangedFor(nameof(IsGreenFilterActive))]
+    [NotifyPropertyChangedFor(nameof(IsYellowFilterActive))]
+    [NotifyPropertyChangedFor(nameof(IsRedFilterActive))]
+    private SeasonalityFilter _seasonalityFilter = SeasonalityFilter.All;
+
+    public bool IsAllFilterActive => SeasonalityFilter == SeasonalityFilter.All;
+
+    public bool IsGreenFilterActive => SeasonalityFilter == SeasonalityFilter.Green;
+
+    public bool IsYellowFilterActive => SeasonalityFilter == SeasonalityFilter.Yellow;
+
+    public bool IsRedFilterActive => SeasonalityFilter == SeasonalityFilter.Red;
+
     /// <summary>True shows the compact list view (no images); false shows the image cards.</summary>
     [ObservableProperty]
     private bool _isListView;
@@ -301,6 +317,14 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             RecipeListColumn.Protein => (a, b) => a.ProteinPerServingG.CompareTo(b.ProteinPerServingG),
             RecipeListColumn.Carbs => (a, b) => a.CarbsPerServingG.CompareTo(b.CarbsPerServingG),
             RecipeListColumn.Fat => (a, b) => a.FatPerServingG.CompareTo(b.FatPerServingG),
+            RecipeListColumn.Seasonality => (a, b) =>
+            {
+                // Best first: Green > Yellow > Red > Unavailable, tie-broken by higher score.
+                int rank = BandRank(a.SeasonBand).CompareTo(BandRank(b.SeasonBand));
+                return rank != 0
+                    ? rank
+                    : (b.SeasonScoreValue ?? -1).CompareTo(a.SeasonScoreValue ?? -1);
+            },
             _ => (a, b) => 0,
         };
 
@@ -312,6 +336,14 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
         return list;
     }
+
+    private static int BandRank(SeasonalityBand band) => band switch
+    {
+        SeasonalityBand.Green => 0,
+        SeasonalityBand.Yellow => 1,
+        SeasonalityBand.Red => 2,
+        _ => 3,
+    };
 
     private static int TotalMinutes(RecipeCardViewModel card)
     {
@@ -447,6 +479,11 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     partial void OnAsOfDateChanged(DateTime? value) => _ = ReloadAsync();
 
+    partial void OnSeasonalityFilterChanged(SeasonalityFilter value) => ApplyFilter();
+
+    [RelayCommand]
+    private void SetSeasonalityFilter(SeasonalityFilter filter) => SeasonalityFilter = filter;
+
     partial void OnIsTitleSearchEnabledChanged(bool value) => ApplyFilter();
 
     partial void OnIsTagSearchEnabledChanged(bool value) => ApplyFilter();
@@ -455,53 +492,66 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     private void ApplyFilter()
     {
-        if (string.IsNullOrEmpty(SearchText))
+        IEnumerable<RecipeCardViewModel> query = _allCards;
+
+        if (SeasonalityFilter != SeasonalityFilter.All)
         {
-            FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
-            RebuildSortedList();
-            return;
+            SeasonalityBand? band = BandForFilter(SeasonalityFilter);
+            if (band is not null)
+            {
+                query = query.Where(card => card.SeasonBand == band.Value);
+            }
         }
 
-        SearchWordSource enabledSources = DetermineEnabledSearchSource();
+        if (!string.IsNullOrEmpty(SearchText))
+        {
+            SearchWordSource enabledSources = DetermineEnabledSearchSource();
 
-        string[] tokens = string.IsNullOrEmpty(SearchText) ?
-            [] :
-            SearchText.Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string[] tokens = SearchText.Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            query = query.Where(card => IsMatch(tokens, card.SearchWords));
 
-        FilteredRecipes =
-            new ObservableCollection<RecipeCardViewModel>(_allCards.Where(card => IsMatch(tokens, card.SearchWords)));
+            SearchWordSource DetermineEnabledSearchSource()
+            {
+                SearchWordSource enabledSources = SearchWordSource.None;
+                if (IsTitleSearchEnabled)
+                {
+                    enabledSources |= SearchWordSource.Title;
+                }
+
+                if (IsTagSearchEnabled)
+                {
+                    enabledSources |= SearchWordSource.Tags;
+                }
+
+                if (IsIngredientSearchEnabled)
+                {
+                    enabledSources |= SearchWordSource.Ingredients;
+                }
+
+                return enabledSources;
+            }
+
+            bool IsMatch(string[] searchTokens, HashSet<SearchWord> searchWords)
+            {
+                return searchTokens.All(
+                        token => searchWords.Any(
+                            searchWord =>
+                                searchWord.Word.Contains(token, StringComparison.OrdinalIgnoreCase)
+                                && enabledSources.HasFlag(searchWord.Source)));
+            }
+        }
+
+        FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(query);
         RebuildSortedList();
-
-        SearchWordSource DetermineEnabledSearchSource()
-        {
-            SearchWordSource enabledSources = SearchWordSource.None;
-            if (IsTitleSearchEnabled)
-            {
-                enabledSources |= SearchWordSource.Title;
-            }
-
-            if (IsTagSearchEnabled)
-            {
-                enabledSources |= SearchWordSource.Tags;
-            }
-
-            if (IsIngredientSearchEnabled)
-            {
-                enabledSources |= SearchWordSource.Ingredients;
-            }
-
-            return enabledSources;
-        }
-
-        bool IsMatch(string[] searchTokens, HashSet<SearchWord> searchWords)
-        {
-            return searchTokens.All(
-                    token => searchWords.Any(
-                        searchWord =>
-                            searchWord.Word.Contains(token, StringComparison.OrdinalIgnoreCase)
-                            && enabledSources.HasFlag(searchWord.Source)));
-        }
     }
+
+    private static SeasonalityBand? BandForFilter(SeasonalityFilter filter) => filter switch
+    {
+        SeasonalityFilter.Green => SeasonalityBand.Green,
+        SeasonalityFilter.Yellow => SeasonalityBand.Yellow,
+        SeasonalityFilter.Red => SeasonalityBand.Red,
+        _ => null,
+    };
 
     [RelayCommand]
     private void AddRecipe() => AddRecipeRequested?.Invoke();

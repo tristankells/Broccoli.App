@@ -53,6 +53,27 @@
             </Button>
         </Grid>
 
+        <!-- Seasonality filter chips: dim the inactive ones so the active band is obvious. -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,12"
+                    IsVisible="{Binding ShowSeasonality}">
+            <Button Content="All" Command="{Binding SetSeasonalityFilterCommand}"
+                    CommandParameter="{x:Static vm:SeasonalityFilter.All}"
+                    Opacity="{Binding IsAllFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
+                    Padding="12,4" />
+            <Button Content="Green" Command="{Binding SetSeasonalityFilterCommand}"
+                    CommandParameter="{x:Static vm:SeasonalityFilter.Green}"
+                    Opacity="{Binding IsGreenFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
+                    Padding="12,4" />
+            <Button Content="Yellow" Command="{Binding SetSeasonalityFilterCommand}"
+                    CommandParameter="{x:Static vm:SeasonalityFilter.Yellow}"
+                    Opacity="{Binding IsYellowFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
+                    Padding="12,4" />
+            <Button Content="Red" Command="{Binding SetSeasonalityFilterCommand}"
+                    CommandParameter="{x:Static vm:SeasonalityFilter.Red}"
+                    Opacity="{Binding IsRedFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
+                    Padding="12,4" />
+        </StackPanel>
+
         <!-- Load failure banner: shown instead of an endless spinner when the recipe list
              can't load (e.g. the local database can't be read). -->
         <Border DockPanel.Dock="Top" Margin="0,0,0,12" Padding="10" CornerRadius="4"
@@ -163,6 +184,11 @@
                                         <TextBlock Text="{Binding Tags}" Foreground="Gray" FontSize="10"
                                                    TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                                    IsVisible="{Binding HasTags}" />
+
+                                        <!-- Seasonality coverage, e.g. "3 of 12 ingredients matched" -->
+                                        <TextBlock Text="{Binding SeasonCoverageText}" Foreground="Gray"
+                                                   FontSize="9" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                                   IsVisible="{Binding HasSeasonality}" />
 
                                         <!-- Nutrition row -->
                                         <StackPanel Orientation="Horizontal" Spacing="4"

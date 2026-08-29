@@ -12,4 +12,5 @@ public enum RecipeListColumn
     Protein,
     Carbs,
     Fat,
+    Seasonality,
 }

@@ -21,6 +21,7 @@ internal static class RecipeListColumnDefinitions
         RecipeListColumn.Protein,
         RecipeListColumn.Carbs,
         RecipeListColumn.Fat,
+        RecipeListColumn.Seasonality,
     ];
 
     public static string Title(RecipeListColumn column) => column switch
@@ -34,6 +35,7 @@ internal static class RecipeListColumnDefinitions
         RecipeListColumn.Protein => "Protein",
         RecipeListColumn.Carbs => "Carbs",
         RecipeListColumn.Fat => "Fat",
+        RecipeListColumn.Seasonality => "Seasonality",
         _ => column.ToString(),
     };
 
@@ -52,6 +54,7 @@ internal static class RecipeListColumnDefinitions
         RecipeListColumn.Protein => 1.5,
         RecipeListColumn.Carbs => 1.5,
         RecipeListColumn.Fat => 1.5,
+        RecipeListColumn.Seasonality => 2,
         _ => 2,
     };
 

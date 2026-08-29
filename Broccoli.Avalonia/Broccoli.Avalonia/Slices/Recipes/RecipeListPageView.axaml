@@ -53,9 +53,14 @@
             </Button>
         </Grid>
 
-        <!-- Seasonality filter chips: dim the inactive ones so the active band is obvious. -->
+        <!-- Seasonality filter chips: dim the inactive ones so the active band is obvious.
+             The date picker rescopes seasonality to a chosen week for look-ahead planning. -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,12"
                     IsVisible="{Binding ShowSeasonality}">
+            <TextBlock Text="Score for:" FontSize="12" Foreground="Gray" VerticalAlignment="Center" />
+            <DatePicker SelectedDate="{Binding AsOfDate, Converter={x:Static conv:DateTimeOffsetConverter.Instance}}"
+                        Width="130" VerticalAlignment="Center" Margin="0,0,12,0"
+                        AutomationProperties.Name="Seasonality score date" />
             <Button Content="All" Command="{Binding SetSeasonalityFilterCommand}"
                     CommandParameter="{x:Static vm:SeasonalityFilter.All}"
                     Opacity="{Binding IsAllFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"

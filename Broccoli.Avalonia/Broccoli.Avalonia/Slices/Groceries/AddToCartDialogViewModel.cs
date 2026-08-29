@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Pantry;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,6 +17,7 @@ public partial class AddToCartDialogViewModel : ViewModelBase
 
     private readonly IngredientCartService _cartService;
     private readonly IPantryService _pantryService;
+    private readonly ISeasonalityService? _seasonality;
     private readonly List<string> _ingredientLines;
 
     [ObservableProperty]
@@ -25,10 +27,12 @@ public partial class AddToCartDialogViewModel : ViewModelBase
         IngredientCartService cartService,
         IPantryService pantryService,
         string recipeName,
-        List<string> ingredientLines)
+        List<string> ingredientLines,
+        ISeasonalityService? seasonality = null)
     {
         _cartService = cartService;
         _pantryService = pantryService;
+        _seasonality = seasonality;
         _recipeName = recipeName;
         _ingredientLines = ingredientLines;
 
@@ -56,6 +60,7 @@ public partial class AddToCartDialogViewModel : ViewModelBase
                 IsMerge = data.IsMerge,
                 IsChecked = !inPantry,
                 IsInPantry = inPantry,
+                IsOutOfSeason = _seasonality?.GetProduceStateForFood(data.FoodName) == SeasonalityState.OutOfSeason,
                 PantryCategoryLabel = categoryLabel,
                 PantryItemId = pantryItem?.Id ?? string.Empty,
             };

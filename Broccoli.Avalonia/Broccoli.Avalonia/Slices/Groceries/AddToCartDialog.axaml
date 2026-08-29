@@ -48,6 +48,8 @@
                                         <TextBlock Text="(merge with existing)"
                                                    FontSize="9" Foreground="Gray"
                                                    IsVisible="{Binding IsMerge}" />
+                                        <TextBlock Text="Not in season" FontSize="9" Foreground="#E74C3C"
+                                                   IsVisible="{Binding IsOutOfSeason}" />
                                     </StackPanel>
                                 </StackPanel>
                                 <Button Grid.Column="2" Content="Add to Pantry"

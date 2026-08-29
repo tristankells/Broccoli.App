@@ -24,6 +24,10 @@ public partial class CartPreviewItem : ObservableObject
     [ObservableProperty]
     private string _pantryItemId = string.Empty;
 
+    /// <summary>True when the item maps to a produce item that is currently out of season.</summary>
+    [ObservableProperty]
+    private bool _isOutOfSeason;
+
     public string DisplayName { get; init; } = string.Empty;
 
     public string FormattedLine { get; init; } = string.Empty;

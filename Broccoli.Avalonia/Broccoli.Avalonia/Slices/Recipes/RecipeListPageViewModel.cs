@@ -580,7 +580,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
 
-        var dialogViewModel = new AddToCartDialogViewModel(_cartService, _pantryService, card.Recipe.Name, ingredientLines);
+        var dialogViewModel = new AddToCartDialogViewModel(_cartService, _pantryService, card.Recipe.Name, ingredientLines, _seasonalityService);
         var dialog = new AddToCartDialog { DataContext = dialogViewModel };
         dialog.Show();
     }

@@ -101,6 +101,56 @@ public class RecipeSeasonalityTests
         Assert.AreEqual("Unavailable Curry", viewModel.SortedListItems[3].Card.Name);
     }
 
+    [TestMethod]
+    public void AsOfDate_ScopesSeasonalityToChosenMonth()
+    {
+        IngredientParserService parser = CreateFeijoaParser();
+        ISeasonalityService seasonality = CreateFeijoaSeasonality();
+
+        // January: feijoa is in season -> Green.
+        RecipeListPageViewModel january = CreateRealViewModel(parser, seasonality);
+        january.AsOfDate = new DateTime(2000, 1, 15);
+        january.Reload();
+        Assert.AreEqual(SeasonalityBand.Green, january.FilteredRecipes.First().SeasonBand);
+
+        // July: feijoa is out of season -> Red.
+        RecipeListPageViewModel july = CreateRealViewModel(parser, seasonality);
+        july.AsOfDate = new DateTime(2000, 7, 15);
+        july.Reload();
+        Assert.AreEqual(SeasonalityBand.Red, july.FilteredRecipes.First().SeasonBand);
+    }
+
+    private static IngredientParserService CreateFeijoaParser()
+    {
+        var foodService = new Mock<IFoodService>();
+        foodService.Setup(s => s.FindBestMatch(It.IsAny<string>()))
+            .Returns(new FoodMatchResult { Score = 0, Method = "None" });
+        foodService.Setup(s => s.FindBestMatch("feijoa"))
+            .Returns(new FoodMatchResult { Food = new Food { Name = "Feijoa" }, Score = 1, Method = "Exact" });
+        return new IngredientParserService(foodService.Object);
+    }
+
+    private static ISeasonalityService CreateFeijoaSeasonality()
+    {
+        var store = new Mock<ISeasonalityDataStore>();
+        store.Setup(s => s.GetAll()).Returns(new List<ProduceItem>
+        {
+            new() { Id = "feijoa", Name = "Feijoa", Type = "fruit", Months = new Dictionary<int, SeasonalityState> { [1] = SeasonalityState.InSeason } },
+        });
+        return new SeasonalityService(store.Object);
+    }
+
+    private static RecipeListPageViewModel CreateRealViewModel(IngredientParserService parser, ISeasonalityService seasonality)
+    {
+        var recipeService = new Mock<IRecipeService>();
+        recipeService.Setup(s => s.GetAll()).Returns(new List<Recipe> { new() { Name = "Feijoa Salad", Ingredients = "100 g feijoa" } });
+
+        var macroService = new Mock<IMacroTargetService>();
+        macroService.Setup(s => s.GetSettings()).Returns(new MacroTargetSettings());
+
+        return new RecipeListPageViewModel(recipeService.Object, parser, seasonality, macroService.Object);
+    }
+
     private static RecipeListPageViewModel CreateViewModel(params (string Name, SeasonalityBand Band, double? Score)[] recipes)
     {
         // BuildCards sorts recipes by name, so align the mocked score results with that order.

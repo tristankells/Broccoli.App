@@ -219,15 +219,14 @@ public class RecipeListPageViewModelFilteringTests
     }
 
     [TestMethod]
-    public void EntranceAnimationPending_FirstLoadKeepsPending_SecondLoadClearsIt()
+    public void EntranceAnimationPending_StaysTrueAcrossReloads_UntilViewPlaysIt()
     {
         RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"));
 
-        Assert.IsTrue(viewModel.EntranceAnimationPending, "Pending stays true until a later load starts.");
-
         viewModel.Reload();
 
-        Assert.IsFalse(viewModel.EntranceAnimationPending, "A subsequent load should clear the pending entrance.");
+        Assert.IsTrue(viewModel.EntranceAnimationPending,
+            "Reloads shouldn't clear the pending entrance; the view clears it after the first batch plays.");
     }
 
     private static RecipeListPageViewModel CreateViewModel(params Recipe[] recipes)

@@ -53,6 +53,25 @@ public enum AutoBalanceStrategy
     LinearSolve = 1,
 }
 
+/// <summary>
+/// How much a short-season ingredient counts toward the seasonality score relative to a year-round
+/// staple. Controls the scarcity influence curve.
+/// </summary>
+public enum SeasonalityInfluenceMode
+{
+    /// <summary>No scarcity weighting - every ingredient counts by its weight only.</summary>
+    None = 0,
+
+    /// <summary>Gentle curve: a ~3-month item counts ~2x a year-round staple.</summary>
+    Gentle = 1,
+
+    /// <summary>Moderate curve: a ~3-month item counts ~4x a year-round staple.</summary>
+    Moderate = 2,
+
+    /// <summary>Strong curve: a ~3-month item counts ~8x. Out-of-season rare produce dominates.</summary>
+    Strong = 3,
+}
+
 public class MacroTargetSettings
 {
     [JsonPropertyName("id")]
@@ -149,6 +168,26 @@ public class MacroTargetSettings
     /// <summary>Scores at/below this value are always Red, no matter how the library scores.</summary>
     [JsonPropertyName("seasonalityRedAlwaysLow")]
     public double SeasonalityRedAlwaysLow { get; set; } = 25;
+
+    /// <summary>
+    /// How much short-season ingredients count toward the score relative to year-round staples.
+    /// </summary>
+    [JsonPropertyName("seasonalityInfluenceMode")]
+    public SeasonalityInfluenceMode SeasonalityInfluenceMode { get; set; } = SeasonalityInfluenceMode.Gentle;
+
+    /// <summary>
+    /// Fraction of the recipe library above which a score ranks as top (Green), e.g. 0.67 = top
+    /// third. The Green floor/ceiling guards still apply.
+    /// </summary>
+    [JsonPropertyName("seasonalityTopPercentile")]
+    public double SeasonalityTopPercentile { get; set; } = 0.67;
+
+    /// <summary>
+    /// Fraction of the recipe library below which a score ranks as bottom (Red), e.g. 0.33 = bottom
+    /// third. The Red ceiling/floor guards still apply.
+    /// </summary>
+    [JsonPropertyName("seasonalityBottomPercentile")]
+    public double SeasonalityBottomPercentile { get; set; } = 0.33;
 
     [JsonPropertyName("calorieMatchTolerancePercent")]
     public double CalorieMatchTolerancePercent { get; set; } = 15;

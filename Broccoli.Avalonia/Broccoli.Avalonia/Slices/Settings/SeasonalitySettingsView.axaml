@@ -54,6 +54,48 @@
                 </StackPanel>
             </Border>
 
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Ingredient influence" FontWeight="SemiBold" FontSize="13" />
+                    <TextBlock Text="How much a short-season ingredient counts toward the score compared to a year-round staple (carrot, garlic, onion). A higher influence makes a scarce out-of-season ingredient pull the score down more."
+                               FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+
+                    <ComboBox ItemsSource="{Binding InfluenceModeOptions}"
+                              SelectedItem="{Binding SelectedInfluenceOption}"
+                              HorizontalAlignment="Left" MinWidth="280">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:InfluenceModeOption">
+                                <StackPanel Margin="0,2">
+                                    <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="Gray" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Library ranking" FontWeight="SemiBold" FontSize="13" />
+                    <TextBlock Text="Which slices of your recipe library are Green (top) and Red (bottom) relative to each other for the scored date. Lower Green % means more recipes rank as Green."
+                               FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Green ranks in top:" Width="150" FontSize="12" VerticalAlignment="Center" />
+                        <NumericUpDown Value="{Binding TopThirdPercent}" Minimum="1" Maximum="99" Increment="1"
+                                       Width="100" VerticalAlignment="Center" />
+                        <TextBlock Text="%" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Red ranks in bottom:" Width="150" FontSize="12" VerticalAlignment="Center" />
+                        <NumericUpDown Value="{Binding BottomThirdPercent}" Minimum="1" Maximum="99" Increment="1"
+                                       Width="100" VerticalAlignment="Center" />
+                        <TextBlock Text="%" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="Gray"
                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 

@@ -195,7 +195,7 @@
                                     <TextBlock FontSize="10" Foreground="Gray"
                                                Text="{Binding WeightInGrams, StringFormat='{}{0:0}g'}" Width="50" />
                                     <TextBlock FontSize="10" Foreground="Gray"
-                                               Text="{Binding ScarcityWeight, StringFormat='Scarcity: {0:0.0}'}" />
+                                               Text="{Binding ScarcityWeight, StringFormat='Scarcity: {0:0.0}x'}" />
                                     <TextBlock Text="Limited season" FontSize="9" Foreground="#8A6D3B"
                                                IsVisible="{Binding IsLimitedSeason}" />
                                 </StackPanel>

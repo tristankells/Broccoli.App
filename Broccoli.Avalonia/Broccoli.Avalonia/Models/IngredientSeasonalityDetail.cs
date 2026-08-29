@@ -12,8 +12,8 @@ public class IngredientSeasonalityDetail
     public SeasonalityState State { get; init; }
 
     /// <summary>
-    /// Scarcity weight derived from the number of in-season months: lower when the ingredient is
-    /// available for most of the year.
+    /// Scarcity weight for this ingredient: how much it counts toward the score relative to a
+    /// year-round staple. 1.0 = available most of the year; up to ~3.5 = very short-season (rare).
     /// </summary>
     public double ScarcityWeight { get; init; }
 
@@ -30,9 +30,9 @@ public class IngredientSeasonalityDetail
     public bool IsOutOfSeason => State == SeasonalityState.OutOfSeason;
 
     /// <summary>
-    /// True when the ingredient has a short in-season window (scarce) AND is currently in season -
-    /// i.e. a rare treat worth making the most of while it lasts. Surface this as a small
-    /// "Limited season" callout rather than a warning.
+    /// True when the ingredient has a short in-season window (scarcity &gt;= 2.0x, i.e. available
+    /// roughly 3 months or fewer) AND is currently in season - i.e. a rare treat worth making the
+    /// most of while it lasts. Surface this as a small "Limited season" callout rather than a warning.
     /// </summary>
-    public bool IsLimitedSeason => ScarcityWeight >= 0.75 && IsInSeason;
+    public bool IsLimitedSeason => ScarcityWeight >= 2.0 && IsInSeason;
 }

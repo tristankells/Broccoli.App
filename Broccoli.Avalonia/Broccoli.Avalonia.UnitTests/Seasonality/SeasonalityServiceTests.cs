@@ -162,11 +162,12 @@ public class SeasonalityServiceTests
     }
 
     [TestMethod]
-    public void Score_Scarcity_DoesNotScaleTheScore()
+    public void Score_Scarcity_WeightsShortSeasonItemsMore()
     {
-        // The score must be the grams-weighted in-season fraction, not re-weighted by scarcity:
-        // 100g of a scarce out-of-season item + 400g of a common in-season item = 80% (400/500),
-        // regardless of the scarcity weights involved.
+        // The score is a scarcity-weighted in-season fraction: a scarce out-of-season item counts
+        // more than a year-round staple (gentle curve: ~3.5x for a 1-month item, 2x for a 3-month
+        // item, 1x year-round), so 100g of out-of-season strawberry plus 400g of in-season onion
+        // scores 400/(3.46*100 + 400) ~= 54%, not the 80% a pure grams average would give.
         Mock<ISeasonalityDataStore> store = CreateStoreWithProduce(
             new ProduceItem { Id = "strawberry", Name = "Strawberry", Type = "fruit", Months = OnlyInSeason([1]) },
             new ProduceItem { Id = "onion", Name = "Onion", Type = "vegetable", Months = AllInSeason() });
@@ -189,15 +190,95 @@ public class SeasonalityServiceTests
         SeasonalityResult result = service.Score([strawberry, onion], new DateTime(2000, 7, 15));
 
         Assert.IsNotNull(result.Score);
+        Assert.AreEqual(54, Math.Round(result.Score!.Value), 0.001);
+        Assert.AreEqual(Math.Sqrt(12.0), result.Breakdown[0].ScarcityWeight, 0.001);
+        Assert.AreEqual(1, result.Breakdown[1].ScarcityWeight, 0.001);
+    }
+
+    [TestMethod]
+    public void GetScarcityWeight_ReflectsYearRoundAvailability()
+    {
+        Assert.AreEqual(1.0, SeasonHelper.GetScarcityWeight(Item(AllInSeason())), 0.001);
+        Assert.AreEqual(Math.Sqrt(2.0), SeasonHelper.GetScarcityWeight(Item(OnlyInSeason([1, 2, 3, 4, 5, 6]))), 0.001);
+        Assert.AreEqual(2.0, SeasonHelper.GetScarcityWeight(Item(OnlyInSeason([1, 2, 3]))), 0.001);
+        // A 1-month item would be sqrt(12) ~= 3.46x.
+        Assert.AreEqual(Math.Sqrt(12.0), SeasonHelper.GetScarcityWeight(Item(OnlyInSeason([1]))), 0.001);
+    }
+
+    [TestMethod]
+    public void GetScarcityWeight_HonorsInfluenceMode()
+    {
+        ProduceItem shortSeason = Item(OnlyInSeason([1, 2, 3])); // ~3 months/year
+        ProduceItem yearRound = Item(AllInSeason());
+
+        Assert.AreEqual(1.0, SeasonHelper.GetScarcityWeight(shortSeason, SeasonalityInfluenceMode.None), 0.001);
+        Assert.AreEqual(1.0, SeasonHelper.GetScarcityWeight(yearRound, SeasonalityInfluenceMode.None), 0.001);
+
+        Assert.AreEqual(2.0, SeasonHelper.GetScarcityWeight(shortSeason, SeasonalityInfluenceMode.Gentle), 0.001);
+        Assert.AreEqual(4.0, SeasonHelper.GetScarcityWeight(shortSeason, SeasonalityInfluenceMode.Moderate), 0.001);
+        Assert.AreEqual(8.0, SeasonHelper.GetScarcityWeight(shortSeason, SeasonalityInfluenceMode.Strong), 0.001);
+
+        Assert.AreEqual(1.0, SeasonHelper.GetScarcityWeight(yearRound, SeasonalityInfluenceMode.Strong), 0.001);
+    }
+
+    [TestMethod]
+    public void Score_InfluenceModeNone_UsesPlainGramsAverage()
+    {
+        // Same strawberry + onion recipe as the weighting test, but with influence Off the score
+        // is the plain grams-weighted average (80%), confirming the mode is honoured.
+        Mock<ISeasonalityDataStore> store = CreateStoreWithProduce(
+            new ProduceItem { Id = "strawberry", Name = "Strawberry", Type = "fruit", Months = OnlyInSeason([1]) },
+            new ProduceItem { Id = "onion", Name = "Onion", Type = "vegetable", Months = AllInSeason() });
+        SeasonalityService service = new(store.Object);
+        var thresholds = new SeasonalityThresholds(80, 55, 45, 25, SeasonalityInfluenceMode.None);
+
+        SeasonalityResult result = service.Score([MakeMatch("Strawberry", 100), MakeMatch("Onion", 400)], new DateTime(2000, 7, 15), thresholds);
+
+        Assert.IsNotNull(result.Score);
         Assert.AreEqual(80, Math.Round(result.Score!.Value), 0.001);
+        Assert.AreEqual(1, result.Breakdown[0].ScarcityWeight, 0.001);
+        Assert.AreEqual(1, result.Breakdown[1].ScarcityWeight, 0.001);
+    }
+
+    [TestMethod]
+    public void Classify_UsesConfigurableRankingPercentiles()
+    {
+        // Top 60th / bottom 40th instead of the default top/bottom third.
+        var thresholds = new SeasonalityThresholds(80, 55, 45, 25, SeasonalityInfluenceMode.Gentle, TopPercentile: 0.6, BottomPercentile: 0.4);
+        List<double> library = [10, 20, 30, 40, 50, 60, 70, 80, 90];
+
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(60, thresholds, library)); // 62.5th percentile >= 60th
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(70, thresholds, library));
+        Assert.AreEqual(SeasonalityBand.Yellow, SeasonalityService.Classify(50, thresholds, library)); // between the cutoffs
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(40, thresholds, library)); // 37.5th percentile <= 40th
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(30, thresholds, library));
+    }
+
+    [TestMethod]
+    public void Thresholds_FromSettings_ReadsInfluenceAndRanking()
+    {
+        var settings = new MacroTargetSettings
+        {
+            SeasonalityInfluenceMode = SeasonalityInfluenceMode.Strong,
+            SeasonalityTopPercentile = 0.5,
+            SeasonalityBottomPercentile = 0.2,
+        };
+
+        SeasonalityThresholds thresholds = SeasonalityThresholds.FromSettings(settings);
+
+        Assert.AreEqual(SeasonalityInfluenceMode.Strong, thresholds.InfluenceMode);
+        Assert.AreEqual(0.5, thresholds.TopPercentile, 0.001);
+        Assert.AreEqual(0.2, thresholds.BottomPercentile, 0.001);
+        Assert.AreEqual(80, thresholds.GreenAlwaysHigh);
+        Assert.AreEqual(25, thresholds.RedAlwaysLow);
     }
 
     [TestMethod]
     public void IsLimitedSeason_OnlyWhenScarceAndInSeason()
     {
-        var scarceInSeason = new IngredientSeasonalityDetail { State = SeasonalityState.InSeason, ScarcityWeight = 1.0 };
-        var scarceOutOfSeason = new IngredientSeasonalityDetail { State = SeasonalityState.OutOfSeason, ScarcityWeight = 1.0 };
-        var commonInSeason = new IngredientSeasonalityDetail { State = SeasonalityState.InSeason, ScarcityWeight = 0.25 };
+        var scarceInSeason = new IngredientSeasonalityDetail { State = SeasonalityState.InSeason, ScarcityWeight = 4.0 };
+        var scarceOutOfSeason = new IngredientSeasonalityDetail { State = SeasonalityState.OutOfSeason, ScarcityWeight = 4.0 };
+        var commonInSeason = new IngredientSeasonalityDetail { State = SeasonalityState.InSeason, ScarcityWeight = 1.0 };
 
         Assert.IsTrue(scarceInSeason.IsLimitedSeason);
         Assert.IsFalse(scarceOutOfSeason.IsLimitedSeason);
@@ -279,8 +360,9 @@ public class SeasonalityServiceTests
         SeasonalityService service = new(store.Object);
         DateTime july = new(2000, 7, 15);
 
-        // Six recipes with onion (in season in July) and feijoa (out of season): scores
-        // [100, 100, 60, 50, 40, 0] -> top third green, bottom third red, middle yellow.
+        // Feijoa is short-season (weight sqrt(12) ~= 3.5x) and out of season in July; onion is
+        // year-round (weight 1x) and in season. Scores work out to [100, 100, 30, 22, 16, 0] ->
+        // top third green, middle yellow, bottom third red.
         List<SeasonalityResult> results = service.ScoreAll(
             [
                 [MakeMatch("Onion", 100)],
@@ -295,9 +377,9 @@ public class SeasonalityServiceTests
         Assert.AreEqual(6, results.Count);
         Assert.AreEqual(SeasonalityBand.Green, results[0].Band); // 100, top third
         Assert.AreEqual(SeasonalityBand.Green, results[1].Band); // 100, top third
-        Assert.AreEqual(SeasonalityBand.Yellow, results[2].Band); // 60, middle
-        Assert.AreEqual(SeasonalityBand.Yellow, results[3].Band); // 50, middle
-        Assert.AreEqual(SeasonalityBand.Red, results[4].Band); // 40, bottom third
+        Assert.AreEqual(SeasonalityBand.Yellow, results[2].Band); // 30, middle
+        Assert.AreEqual(SeasonalityBand.Red, results[3].Band); // 22, at/below Always-Red
+        Assert.AreEqual(SeasonalityBand.Red, results[4].Band); // 16, bottom third
         Assert.AreEqual(SeasonalityBand.Red, results[5].Band); // 0, bottom third
     }
 
@@ -331,6 +413,14 @@ public class SeasonalityServiceTests
     }
 
     private static Dictionary<int, SeasonalityState> AllInSeason() => OnlyInSeason([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+
+    private static ProduceItem Item(Dictionary<int, SeasonalityState> months) => new()
+    {
+        Id = "item",
+        Name = "Item",
+        Type = "fruit",
+        Months = months,
+    };
 
     private static Dictionary<int, SeasonalityState> OnlyInSeason(int[] months)
     {

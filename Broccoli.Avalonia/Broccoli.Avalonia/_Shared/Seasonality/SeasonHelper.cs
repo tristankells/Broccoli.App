@@ -26,11 +26,15 @@ public static class SeasonHelper
     };
 
     /// <summary>
-    /// Scarcity weight derived from how many effective in-season months the item has across the
-    /// year (a partially-in-season month counts as half). Items available for most of the year are
-    /// common (low weight); short-season items are scarce (high weight).
+    /// Scarcity weight used as the per-ingredient influence multiplier in the seasonality score,
+    /// using the user's chosen influence mode (defaults to the gentle curve). Derived from how
+    /// many effective in-season months the item has across the year (a partially-in-season month
+    /// counts as half), so year-round staples count 1x and short-season items count more - meaning
+    /// a scarce ingredient that is out of season has a bigger effect on the score.
     /// </summary>
-    public static double GetScarcityWeight(ProduceItem item)
+    public static double GetScarcityWeight(ProduceItem item) => GetScarcityWeight(item, SeasonalityInfluenceMode.Gentle);
+
+    public static double GetScarcityWeight(ProduceItem item, SeasonalityInfluenceMode mode)
     {
         double effectiveMonths = 0;
         for (int month = 1; month <= 12; month++)
@@ -43,12 +47,14 @@ public static class SeasonHelper
             };
         }
 
-        return effectiveMonths switch
+        effectiveMonths = Math.Max(effectiveMonths, 1.0);
+
+        return mode switch
         {
-            < 4 => 1.00,
-            < 7 => 0.75,
-            < 10 => 0.50,
-            _ => 0.25,
+            SeasonalityInfluenceMode.None => 1.0,
+            SeasonalityInfluenceMode.Moderate => Math.Min(12.0 / effectiveMonths, 4.0),
+            SeasonalityInfluenceMode.Strong => Math.Min(Math.Pow(12.0 / effectiveMonths, 1.5), 8.0),
+            _ => Math.Min(Math.Sqrt(12.0 / effectiveMonths), 4.0),
         };
     }
 }

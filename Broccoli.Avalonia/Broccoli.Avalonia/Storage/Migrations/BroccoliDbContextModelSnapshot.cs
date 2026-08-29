@@ -288,6 +288,10 @@ namespace Broccoli.Avalonia.Storage.Migrations
                         .HasColumnType("TEXT")
                         .HasJsonPropertyName("recipeMealComparisonPersonId");
 
+                    b.Property<double>("SeasonalityBottomPercentile")
+                        .HasColumnType("REAL")
+                        .HasJsonPropertyName("seasonalityBottomPercentile");
+
                     b.Property<double>("SeasonalityGreenAlwaysHigh")
                         .HasColumnType("REAL")
                         .HasJsonPropertyName("seasonalityGreenAlwaysHigh");
@@ -296,6 +300,10 @@ namespace Broccoli.Avalonia.Storage.Migrations
                         .HasColumnType("REAL")
                         .HasJsonPropertyName("seasonalityGreenFloor");
 
+                    b.Property<int>("SeasonalityInfluenceMode")
+                        .HasColumnType("INTEGER")
+                        .HasJsonPropertyName("seasonalityInfluenceMode");
+
                     b.Property<double>("SeasonalityRedAlwaysLow")
                         .HasColumnType("REAL")
                         .HasJsonPropertyName("seasonalityRedAlwaysLow");
@@ -303,6 +311,10 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     b.Property<double>("SeasonalityRedCeiling")
                         .HasColumnType("REAL")
                         .HasJsonPropertyName("seasonalityRedCeiling");
+
+                    b.Property<double>("SeasonalityTopPercentile")
+                        .HasColumnType("REAL")
+                        .HasJsonPropertyName("seasonalityTopPercentile");
 
                     b.Property<bool>("ShowCardCalorieMatch")
                         .HasColumnType("INTEGER")

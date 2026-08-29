@@ -28,6 +28,33 @@ public class GoogleDriveSyncService : IGoogleDriveSyncService
 
     public DateTime? LastSyncedAtUtc => LoadState().LastSyncedAtUtc;
 
+    public bool HasPendingChanges()
+    {
+        // Same baseline the sync passes use: anything changed after the last successful sync is
+        // "new". A never-synced device treats everything as pending (LastSyncedAtUtc is null and
+        // the sync passes fall back to DateTime.MinValue).
+        DateTime sinceUtc = LoadState().LastSyncedAtUtc ?? DateTime.MinValue;
+
+        if (Directory.Exists(AppPaths.RecipesFolder))
+        {
+            foreach (string folder in Directory.EnumerateDirectories(AppPaths.RecipesFolder))
+            {
+                string mdPath = Path.Combine(folder, RecipeMarkdownFileName);
+                if (File.Exists(mdPath) && File.GetLastWriteTimeUtc(mdPath) > sinceUtc)
+                {
+                    return true;
+                }
+            }
+        }
+
+        if (File.Exists(AppPaths.DatabaseFilePath) && File.GetLastWriteTimeUtc(AppPaths.DatabaseFilePath) > sinceUtc)
+        {
+            return true;
+        }
+
+        return File.Exists(AppPaths.TombstonesFilePath) && File.GetLastWriteTimeUtc(AppPaths.TombstonesFilePath) > sinceUtc;
+    }
+
     private static string ConflictsIndexPath => Path.Combine(AppPaths.ConflictsFolder, "conflicts-index.json");
 
     public IReadOnlyList<SyncConflict> GetPendingConflicts() => LoadConflicts();

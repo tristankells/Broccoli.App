@@ -37,13 +37,14 @@
             </Button>
         </Grid>
 
-        <TextBlock DockPanel.Dock="Top"
-                   Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
-                   IsVisible="{Binding !FilteredRecipes.Count}"
-                   Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" />
+        <Panel>
+            <!-- Empty state: only after the first load has completed -->
+            <TextBlock Text="No recipes yet. Click &quot;Add Recipe&quot; to create your first one."
+                       IsVisible="{Binding ShowEmptyState}"
+                       Foreground="Gray" Margin="0,24,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" />
 
-        <ScrollViewer>
-            <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
+            <ScrollViewer>
+                <ItemsRepeater ItemsSource="{Binding FilteredRecipes}">
                 <ItemsRepeater.Layout>
                     <vm:ResponsiveGridLayout ItemWidth="220" ColumnSpacing="16" RowSpacing="16" />
                 </ItemsRepeater.Layout>
@@ -136,5 +137,16 @@
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
         </ScrollViewer>
+
+        <!-- Loading overlay: shown until the first recipe load completes -->
+        <StackPanel IsVisible="{Binding IsLoading}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+            <PathIcon Data="M12,4V1L8,5L12,9V6C15.31,6 18,8.69 18,12C18,13.01 17.75,13.97 17.32,14.82L18.76,16.26C19.55,15.02 20,13.57 20,12C20,7.58 16.42,4 12,4M12,18C8.69,18 6,15.31 6,12C6,10.99 6.25,10.03 6.68,9.18L5.24,7.74C4.45,8.97 4,10.43 4,12C4,16.42 7.58,20 12,20V23L16,19L12,15V18Z"
+                      Width="32" Height="32" Foreground="Gray"
+                      HorizontalAlignment="Center"
+                      Classes.spinner="{Binding IsLoading}" />
+            <TextBlock Text="Loading recipes..." Foreground="Gray" HorizontalAlignment="Center" />
+        </StackPanel>
+        </Panel>
     </DockPanel>
 </UserControl>

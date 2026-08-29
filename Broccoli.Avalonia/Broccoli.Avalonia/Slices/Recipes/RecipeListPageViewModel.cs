@@ -62,7 +62,20 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     public Action<Recipe>? EditRecipeRequested { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
     private ObservableCollection<RecipeCardViewModel> _filteredRecipes = new();
+
+    /// <summary>
+    /// True until the first recipe load completes. Starts true because this page is the initial
+    /// shell page, shown before <see cref="ReloadAsync"/> runs on startup.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isLoading = true;
+
+    /// <summary>True after the first load completes, so the empty state isn't shown while loading.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyState))]
+    private bool _hasLoaded;
 
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
@@ -75,6 +88,9 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     [ObservableProperty]
     public partial bool IsIngredientSearchEnabled { get; set; } = true;
+
+    /// <summary>True only after the first load finished and there are no recipes to show.</summary>
+    public bool ShowEmptyState => HasLoaded && FilteredRecipes.Count == 0;
 
     public bool ShowImages { get; set; } = true;
 
@@ -92,8 +108,16 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     public void Reload()
     {
-        (List<Recipe> recipes, List<RecipeCardViewModel> cards) = BuildCards();
-        ApplyResults(recipes, cards);
+        IsLoading = true;
+        try
+        {
+            (List<Recipe> recipes, List<RecipeCardViewModel> cards) = BuildCards();
+            ApplyResults(recipes, cards);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     /// <summary>
@@ -102,8 +126,16 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     /// </summary>
     public async Task ReloadAsync()
     {
-        (List<Recipe> recipes, List<RecipeCardViewModel> cards) = await Task.Run(BuildCards);
-        ApplyResults(recipes, cards);
+        IsLoading = true;
+        try
+        {
+            (List<Recipe> recipes, List<RecipeCardViewModel> cards) = await Task.Run(BuildCards);
+            ApplyResults(recipes, cards);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private (List<Recipe> Recipes, List<RecipeCardViewModel> Cards) BuildCards()
@@ -175,6 +207,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _allRecipes = recipes;
         _allCards.Clear();
         _allCards.AddRange(cards);
+        HasLoaded = true;
         ApplyFilter();
     }
 

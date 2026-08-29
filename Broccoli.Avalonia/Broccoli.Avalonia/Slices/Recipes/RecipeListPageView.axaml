@@ -51,13 +51,35 @@
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="vm:RecipeCardViewModel">
                         <Button Background="Transparent" BorderThickness="0" Padding="0"
+                                Classes="recipeCard"
+                                RenderTransformOrigin="50%,100%"
                                 Command="{Binding $parent[ItemsRepeater].((vm:RecipeListPageViewModel)DataContext).SelectRecipeCommand}"
                                 CommandParameter="{Binding}"
                                 AutomationProperties.Name="{Binding Name}"
                                 AutomationProperties.AutomationId="recipeCard"
                                 ContextRequested="OnCardContextRequested">
+                            <Button.RenderTransform>
+                                <ScaleTransform />
+                            </Button.RenderTransform>
+                            <Button.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="(ScaleTransform.ScaleX)" Duration="0:0:0.18" />
+                                    <DoubleTransition Property="(ScaleTransform.ScaleY)" Duration="0:0:0.18" />
+                                </Transitions>
+                            </Button.Transitions>
+                            <!-- Staggered entrance: cards start hidden/offset and fade + slide in on load. -->
                             <Border Background="{DynamicResource AppSidebarBackgroundBrush}"
-                                    CornerRadius="6" Padding="0" ClipToBounds="True">
+                                    CornerRadius="6" Padding="0" ClipToBounds="True"
+                                    Opacity="0" Loaded="OnCardLoaded">
+                                <Border.RenderTransform>
+                                    <TranslateTransform Y="20" />
+                                </Border.RenderTransform>
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Opacity" Duration="0:0:0.3" />
+                                        <DoubleTransition Property="(TranslateTransform.Y)" Duration="0:0:0.3" />
+                                    </Transitions>
+                                </Border.Transitions>
                                 <StackPanel Height="180">
                                     <!-- Image with overlays -->
                                     <Panel IsVisible="{Binding HasImage}" Height="120">

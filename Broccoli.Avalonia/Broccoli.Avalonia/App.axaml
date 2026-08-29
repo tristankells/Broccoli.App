@@ -30,6 +30,29 @@
                 </Animation>
             </Style.Animations>
         </Style>
+        <!-- Recipe card hover: scale up for a "lift" feel. Cards supply the ScaleTransform
+             + RenderTransformOrigin + Transitions in their template; this just drives the value. -->
+        <Style Selector="Button.recipeCard:pointerover">
+            <Setter Property="Panel.ZIndex" Value="10" />
+            <Setter Property="(ScaleTransform.ScaleX)" Value="1.05" />
+            <Setter Property="(ScaleTransform.ScaleY)" Value="1.05" />
+        </Style>
+        <!-- Gentle opacity pulse for attention states (e.g. the unsynced-changes glyph). -->
+        <Style Selector="PathIcon.pulse">
+            <Style.Animations>
+                <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="Opacity" Value="0.35" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
         <!-- Keep tooltips readable in both themes: always pair an explicit background with a
              contrasting foreground so text never ends up light-on-light. -->
         <Style Selector="ToolTip">

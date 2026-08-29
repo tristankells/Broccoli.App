@@ -71,6 +71,23 @@ internal partial class RecipeCardViewModel : ViewModelBase
 
     public Action<RecipeCardViewModel>? EditRequested { get; set; }
 
+    /// <summary>Combined prep + cook time for the list view, e.g. "35 min".</summary>
+    public string CookingTimeText
+    {
+        get
+        {
+            int prep = Recipe.PrepTimeMinutes ?? 0;
+            int cook = Recipe.CookTimeMinutes ?? 0;
+            return prep + cook > 0 ? $"{prep + cook} min" : string.Empty;
+        }
+    }
+
+    public string ServingsText => Recipe.Servings is > 0 ? $"Serves {Recipe.Servings}" : string.Empty;
+
+    public string DateAddedText => Recipe.CreatedAt == default
+        ? string.Empty
+        : Recipe.CreatedAt.ToLocalTime().ToString("d MMM yyyy", CultureInfo.InvariantCulture);
+
     public static RecipeCardViewModel FromRecipe(
         Recipe recipe,
         string? imagePath,

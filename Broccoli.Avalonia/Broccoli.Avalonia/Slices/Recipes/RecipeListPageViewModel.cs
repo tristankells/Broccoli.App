@@ -89,6 +89,12 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsIngredientSearchEnabled { get; set; } = true;
 
+    /// <summary>True shows the compact list view (no images); false shows the image cards.</summary>
+    [ObservableProperty]
+    private bool _isListView;
+
+    private bool _suppressViewModePersistence;
+
     /// <summary>True only after the first load finished and there are no recipes to show.</summary>
     public bool ShowEmptyState => HasLoaded && FilteredRecipes.Count == 0;
 
@@ -114,6 +120,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     public void Reload()
     {
+        LoadViewMode();
         IsLoading = true;
         try
         {
@@ -132,6 +139,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     /// </summary>
     public async Task ReloadAsync()
     {
+        LoadViewMode();
         IsLoading = true;
         try
         {
@@ -142,6 +150,41 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         {
             IsLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Restores the cards-vs-list choice from settings. Called on the UI thread (the view mode is
+    /// a display concern and must not be set from the background thread that builds cards).
+    /// </summary>
+    private void LoadViewMode()
+    {
+        if (_macroService is null)
+        {
+            return;
+        }
+
+        _suppressViewModePersistence = true;
+        try
+        {
+            IsListView = _macroService.GetSettings().ShowRecipesAsList;
+        }
+        finally
+        {
+            _suppressViewModePersistence = false;
+        }
+    }
+
+    /// <summary>Persists the cards-vs-list choice so it survives reloads and app restarts.</summary>
+    partial void OnIsListViewChanged(bool value)
+    {
+        if (_suppressViewModePersistence || _macroService is null)
+        {
+            return;
+        }
+
+        MacroTargetSettings settings = _macroService.GetSettings();
+        settings.ShowRecipesAsList = value;
+        _macroService.SaveSettings(settings);
     }
 
     private (List<Recipe> Recipes, List<RecipeCardViewModel> Cards) BuildCards()

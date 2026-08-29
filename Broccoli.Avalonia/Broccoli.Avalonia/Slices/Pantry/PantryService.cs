@@ -25,6 +25,7 @@ public class PantryService : IPantryService
         context.SaveChanges();
 
         WeakReferenceMessenger.Default.Send(new PantryListChangedMessage());
+        NotifyStorageChanged();
         return item;
     }
 
@@ -35,6 +36,7 @@ public class PantryService : IPantryService
         context.SaveChanges();
 
         WeakReferenceMessenger.Default.Send(new PantryListChangedMessage());
+        NotifyStorageChanged();
         return item;
     }
 
@@ -49,7 +51,11 @@ public class PantryService : IPantryService
         }
 
         WeakReferenceMessenger.Default.Send(new PantryListChangedMessage());
+        NotifyStorageChanged();
     }
+
+    private static void NotifyStorageChanged() =>
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
 
     public PantryItem? FindByName(string itemName)
     {

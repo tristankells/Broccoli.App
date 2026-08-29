@@ -15,10 +15,10 @@ public partial class RecipeListPageView : UserControl
     }
 
     /// <summary>
-    /// Staggered entrance for recipe cards. Each freshly-created card starts at
-    /// <c>Opacity="0"</c> offset down 20px (set in the template) and fades/slides in with a small
-    /// per-index delay. Recycled containers keep <c>Opacity="1"</c> and are skipped, so searching
-    /// or revisiting the list never replays the whole stagger.
+    /// Staggered entrance for recipe cards. Only plays for the very first population of the page
+    /// (<see cref="RecipeListPageViewModel.EntranceAnimationPending"/>); cards start at
+    /// <c>Opacity="0"</c> offset down 20px (set in the template) and fade/slide in with a small
+    /// per-index delay. Recycled containers keep <c>Opacity="1"</c> and are skipped.
     /// </summary>
     private void OnCardLoaded(object? sender, RoutedEventArgs e)
     {
@@ -26,7 +26,8 @@ public partial class RecipeListPageView : UserControl
             || border.DataContext is not RecipeCardViewModel card
             || border.Opacity > 0
             || border.FindAncestorOfType<ItemsRepeater>() is not { } repeater
-            || repeater.DataContext is not RecipeListPageViewModel viewModel)
+            || repeater.DataContext is not RecipeListPageViewModel viewModel
+            || !viewModel.EntranceAnimationPending)
         {
             return;
         }

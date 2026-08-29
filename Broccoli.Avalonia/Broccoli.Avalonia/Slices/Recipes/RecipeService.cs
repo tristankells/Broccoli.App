@@ -1,6 +1,8 @@
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Recipes;
 
@@ -38,6 +40,7 @@ public class RecipeService : IRecipeService
         recipe.CreatedAt = DateTime.UtcNow;
         recipe.UpdatedAt = null;
         _store.Save(recipe);
+        NotifyStorageChanged();
         return recipe;
     }
 
@@ -52,6 +55,7 @@ public class RecipeService : IRecipeService
 
         recipe.UpdatedAt = DateTime.UtcNow;
         _store.Save(recipe);
+        NotifyStorageChanged();
         return recipe;
     }
 
@@ -59,6 +63,7 @@ public class RecipeService : IRecipeService
     {
         _historyStore.DeleteAll(recipeId);
         _store.Delete(recipeId);
+        NotifyStorageChanged();
     }
 
     public IReadOnlyList<RecipeSnapshot> GetHistory(string recipeId) => _historyStore.List(recipeId);
@@ -69,6 +74,7 @@ public class RecipeService : IRecipeService
     {
         _historyStore.Delete(recipeId, snapshotId);
         TombstoneStore.RecordSnapshotDeletion(recipeId, snapshotId);
+        NotifyStorageChanged();
     }
 
     public Recipe? Restore(string recipeId, string snapshotId)
@@ -114,6 +120,9 @@ public class RecipeService : IRecipeService
 
     public string GetImagePath(string recipeId, string fileName) =>
         Path.Combine(AppPaths.RecipeFolder(recipeId), fileName);
+
+    private static void NotifyStorageChanged() =>
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
 
     private static bool ContentChanged(Recipe existing, Recipe updated) =>
         !string.Equals(existing.Name, updated.Name, StringComparison.Ordinal) ||

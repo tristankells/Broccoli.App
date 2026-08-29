@@ -92,6 +92,14 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     /// <summary>True only after the first load finished and there are no recipes to show.</summary>
     public bool ShowEmptyState => HasLoaded && FilteredRecipes.Count == 0;
 
+    /// <summary>
+    /// True until the initial recipe list has been populated. The view uses this to play the
+    /// staggered entrance animation exactly once (on first load), not on later revisits.
+    /// </summary>
+    public bool EntranceAnimationPending { get; private set; } = true;
+
+    private bool _hasCompletedFirstLoad;
+
     public bool ShowImages { get; set; } = true;
 
     public bool ShowTags { get; set; } = true;
@@ -108,6 +116,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     public void Reload()
     {
+        PrepareForReload();
         IsLoading = true;
         try
         {
@@ -126,6 +135,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     /// </summary>
     public async Task ReloadAsync()
     {
+        PrepareForReload();
         IsLoading = true;
         try
         {
@@ -135,6 +145,19 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// The stagger entrance is only for the very first population of the page; once any load has
+    /// completed, later reloads (e.g. returning from detail/edit) skip it. Cards realize after
+    /// this method returns, so the pending flag stays true through the first batch.
+    /// </summary>
+    private void PrepareForReload()
+    {
+        if (_hasCompletedFirstLoad)
+        {
+            EntranceAnimationPending = false;
         }
     }
 
@@ -208,6 +231,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _allCards.Clear();
         _allCards.AddRange(cards);
         HasLoaded = true;
+        _hasCompletedFirstLoad = true;
         ApplyFilter();
     }
 

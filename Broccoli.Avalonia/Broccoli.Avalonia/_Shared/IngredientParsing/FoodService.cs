@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 using FuzzySharp;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +36,9 @@ public class FoodService : IFoodService
         : this(BroccoliDbContext.CreateForApp)
     {
     }
+
+    private static void NotifyStorageChanged() =>
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
 
     public FoodService(Func<BroccoliDbContext> contextFactory)
     {
@@ -90,6 +95,7 @@ public class FoodService : IFoodService
             context.SaveChanges();
 
             _foodByName[food.Name] = food;
+            NotifyStorageChanged();
             return food;
         }
     }
@@ -110,6 +116,8 @@ public class FoodService : IFoodService
             using BroccoliDbContext context = _contextFactory();
             context.Foods.Update(food);
             context.SaveChanges();
+
+            NotifyStorageChanged();
         }
     }
 
@@ -131,6 +139,8 @@ public class FoodService : IFoodService
                 context.Foods.Remove(toDelete);
                 context.SaveChanges();
             }
+
+            NotifyStorageChanged();
         }
     }
 
@@ -148,6 +158,7 @@ public class FoodService : IFoodService
             }
 
             _loaded = true;
+            NotifyStorageChanged();
         }
     }
 

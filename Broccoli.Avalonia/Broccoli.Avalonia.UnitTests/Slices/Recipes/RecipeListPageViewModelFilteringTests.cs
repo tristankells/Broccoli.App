@@ -209,6 +209,27 @@ public class RecipeListPageViewModelFilteringTests
         Assert.HasCount(1, viewModel.FilteredRecipes);
     }
 
+    [TestMethod]
+    public void EntranceAnimationPending_StartsTrueBeforeFirstLoad()
+    {
+        var recipeService = new Mock<IRecipeService>();
+        var viewModel = new RecipeListPageViewModel(recipeService.Object);
+
+        Assert.IsTrue(viewModel.EntranceAnimationPending);
+    }
+
+    [TestMethod]
+    public void EntranceAnimationPending_FirstLoadKeepsPending_SecondLoadClearsIt()
+    {
+        RecipeListPageViewModel viewModel = CreateViewModel(MakeRecipe("Banana Bread"));
+
+        Assert.IsTrue(viewModel.EntranceAnimationPending, "Pending stays true until a later load starts.");
+
+        viewModel.Reload();
+
+        Assert.IsFalse(viewModel.EntranceAnimationPending, "A subsequent load should clear the pending entrance.");
+    }
+
     private static RecipeListPageViewModel CreateViewModel(params Recipe[] recipes)
     {
         var recipeService = new Mock<IRecipeService>();

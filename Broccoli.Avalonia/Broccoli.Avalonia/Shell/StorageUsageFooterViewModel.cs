@@ -17,6 +17,7 @@ public partial class StorageUsageFooterViewModel : ViewModelBase
 {
     private readonly IStorageUsageService _storageUsageService;
     private readonly IGoogleDriveAuthService _authService;
+    private CancellationTokenSource? _refreshCts;
 
     [ObservableProperty]
     private string _summaryText = string.Empty;
@@ -41,10 +42,35 @@ public partial class StorageUsageFooterViewModel : ViewModelBase
         _storageUsageService = storageUsageService;
         _authService = authService;
 
-        WeakReferenceMessenger.Default.Register<StorageChangedMessage>(this, (_, _) => _ = RefreshAsync());
+        WeakReferenceMessenger.Default.Register<StorageChangedMessage>(this, (_, _) => ScheduleRefresh());
     }
 
     public ObservableCollection<StorageBreakdownItem> BreakdownItems { get; } = new();
+
+    /// <summary>
+    /// Debounces <see cref="RefreshAsync"/>: StorageChangedMessage now fires on every local data
+    /// change (grocery toggles, recipe saves, ...), so consecutive changes collapse into one
+    /// refresh shortly after the last one instead of scanning the store per change.
+    /// </summary>
+    private void ScheduleRefresh()
+    {
+        _refreshCts?.Cancel();
+        _refreshCts = new CancellationTokenSource();
+        _ = DebouncedRefreshAsync(_refreshCts.Token);
+    }
+
+    private async Task DebouncedRefreshAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(800), token);
+            await RefreshAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer storage change superseded this refresh.
+        }
+    }
 
     public async Task RefreshAsync()
     {

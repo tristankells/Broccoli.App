@@ -30,12 +30,15 @@
                 </Animation>
             </Style.Animations>
         </Style>
-        <!-- Recipe card hover: scale up for a "lift" feel. Cards supply the ScaleTransform
-             + RenderTransformOrigin + Transitions in their template; this just drives the value. -->
+        <!-- Recipe card hover: scale up for a "lift" feel. Driven by the control's own
+             RenderTransform so a TransformOperationsTransition (set locally per card) animates it. -->
+        <Style Selector="Button.recipeCard">
+            <Setter Property="RenderTransformOrigin" Value="50%,100%" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
+        </Style>
         <Style Selector="Button.recipeCard:pointerover">
             <Setter Property="Panel.ZIndex" Value="10" />
-            <Setter Property="(ScaleTransform.ScaleX)" Value="1.05" />
-            <Setter Property="(ScaleTransform.ScaleY)" Value="1.05" />
+            <Setter Property="RenderTransform" Value="scale(1.05)" />
         </Style>
         <!-- Gentle opacity pulse for attention states (e.g. the unsynced-changes glyph). -->
         <Style Selector="PathIcon.pulse">

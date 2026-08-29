@@ -1,5 +1,7 @@
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
@@ -21,6 +23,7 @@ public class GroceryListService : IGroceryListService
         using var context = BroccoliDbContext.CreateForApp();
         context.GroceryListItems.Add(item);
         context.SaveChanges();
+        NotifyStorageChanged();
         return item;
     }
 
@@ -35,6 +38,7 @@ public class GroceryListService : IGroceryListService
         }
 
         context.SaveChanges();
+        NotifyStorageChanged();
     }
 
     public GroceryListItem Update(GroceryListItem item)
@@ -42,6 +46,7 @@ public class GroceryListService : IGroceryListService
         using var context = BroccoliDbContext.CreateForApp();
         context.GroceryListItems.Update(item);
         context.SaveChanges();
+        NotifyStorageChanged();
         return item;
     }
 
@@ -54,6 +59,8 @@ public class GroceryListService : IGroceryListService
             context.GroceryListItems.Remove(item);
             context.SaveChanges();
         }
+
+        NotifyStorageChanged();
     }
 
     public void Reset()
@@ -62,5 +69,9 @@ public class GroceryListService : IGroceryListService
         var all = context.GroceryListItems.ToList();
         context.GroceryListItems.RemoveRange(all);
         context.SaveChanges();
+        NotifyStorageChanged();
     }
+
+    private static void NotifyStorageChanged() =>
+        WeakReferenceMessenger.Default.Send(new StorageChangedMessage());
 }

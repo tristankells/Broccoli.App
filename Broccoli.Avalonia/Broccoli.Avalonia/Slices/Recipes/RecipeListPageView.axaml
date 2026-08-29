@@ -211,7 +211,7 @@
                                         AutomationProperties.Name="Sort by {Binding Title}">
                                     <TextBlock Text="{Binding HeaderText}" FontWeight="SemiBold" FontSize="12"
                                                TextAlignment="{Binding Alignment}"
-                                               TextTrimming="CharacterEllipsis" />
+                                               TextTrimming="CharacterEllipsis" Margin="0,0,16,0" />
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -254,7 +254,8 @@
                                             <DataTemplate x:DataType="vm:RecipeListCell">
                                                 <TextBlock Text="{Binding Text}"
                                                            TextAlignment="{Binding Alignment}" FontSize="13"
-                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                                           Margin="0,0,16,0" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                         <ItemsControl.Styles>

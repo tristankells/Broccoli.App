@@ -55,15 +55,8 @@ internal static class RecipeListColumnDefinitions
         _ => 2,
     };
 
-    public static TextAlignment Alignment(RecipeListColumn column) =>
-        column is RecipeListColumn.Calories
-            or RecipeListColumn.Protein
-            or RecipeListColumn.Carbs
-            or RecipeListColumn.Fat
-            or RecipeListColumn.CookingTime
-            or RecipeListColumn.Servings
-            ? TextAlignment.Right
-            : TextAlignment.Left;
+    /// <summary>Every column's text is left-aligned, matching the row values underneath.</summary>
+    public static TextAlignment Alignment(RecipeListColumn column) => TextAlignment.Left;
 
     /// <summary>Serializes columns as their enum names joined by commas (their order = display order).</summary>
     public static string Serialize(IEnumerable<RecipeListColumn> columns) =>

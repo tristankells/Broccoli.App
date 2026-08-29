@@ -90,6 +90,13 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     [ObservableProperty]
     public partial bool IsIngredientSearchEnabled { get; set; } = true;
 
+    /// <summary>
+    /// The date seasonality is scored against (defaults to today). Picking a future date previews
+    /// which recipes will be seasonal for that week, so meal planning can look ahead.
+    /// </summary>
+    [ObservableProperty]
+    public partial DateTime? AsOfDate { get; set; } = DateTime.Today;
+
     /// <summary>True shows the compact list view (no images); false shows the image cards.</summary>
     [ObservableProperty]
     private bool _isListView;
@@ -333,22 +340,21 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var cards = new List<RecipeCardViewModel>(recipes.Count);
+        DateTime? asOf = AsOfDate ?? DateTime.Today;
+        SeasonalityThresholds? thresholds = _macroService is null
+            ? null
+            : SeasonalityThresholds.FromSettings(_macroService.GetSettings());
 
+        // Parse every recipe once, collecting nutrition alongside the seasonality match-sets so
+        // the whole library can be scored together (bands are relative to the library).
+        var parsed = new List<(Recipe Recipe, List<ParsedIngredientMatch> Matches, double Cal, double Pro, double Carb, double Fat)>();
         foreach (Recipe recipe in recipes)
         {
             double cal = 0, pro = 0, carb = 0, fat = 0;
-            SeasonalityResult? seasonality = null;
-            string? imagePath = null;
-
-            if (ShowImages && recipe.Images.Count > 0)
-            {
-                imagePath = _recipeService.GetImagePath(recipe.Id, recipe.Images[0]);
-            }
-
+            List<ParsedIngredientMatch> matches = [];
             if (_parser is not null && !string.IsNullOrWhiteSpace(recipe.Ingredients))
             {
-                List<ParsedIngredientMatch> matches = _parser.ParseAndMatchIngredients(recipe.Ingredients);
+                matches = _parser.ParseAndMatchIngredients(recipe.Ingredients);
                 foreach (ParsedIngredientMatch match in matches)
                 {
                     if (match.IsMatched)
@@ -359,11 +365,23 @@ internal partial class RecipeListPageViewModel : ViewModelBase
                         fat += match.GetFat();
                     }
                 }
+            }
 
-                if (_seasonalityService is not null)
-                {
-                    seasonality = _seasonalityService.Score(matches);
-                }
+            parsed.Add((recipe, matches, cal, pro, carb, fat));
+        }
+
+        List<SeasonalityResult>? seasonalities = _seasonalityService is null
+            ? null
+            : _seasonalityService.ScoreAll(parsed.Select(p => p.Matches), asOf, thresholds);
+
+        var cards = new List<RecipeCardViewModel>(recipes.Count);
+        for (int i = 0; i < parsed.Count; i++)
+        {
+            (Recipe recipe, _, double cal, double pro, double carb, double fat) = parsed[i];
+            string? imagePath = null;
+            if (ShowImages && recipe.Images.Count > 0)
+            {
+                imagePath = _recipeService.GetImagePath(recipe.Id, recipe.Images[0]);
             }
 
             double servings = recipe.Servings > 0 ? recipe.Servings.Value : 1;
@@ -374,7 +392,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
                 pro / servings,
                 carb / servings,
                 fat / servings,
-                seasonality,
+                seasonalities?[i],
                 CompareTargetCaloriesPerMeal,
                 CalorieMatchTolerancePercent,
                 ShowImages,
@@ -426,6 +444,8 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
+
+    partial void OnAsOfDateChanged(DateTime? value) => _ = ReloadAsync();
 
     partial void OnIsTitleSearchEnabledChanged(bool value) => ApplyFilter();
 

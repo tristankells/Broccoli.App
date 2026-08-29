@@ -83,11 +83,49 @@ public class SeasonalityService : ISeasonalityService
         return string.Join(" ", tokens).Trim();
     }
 
-    public SeasonalityResult Score(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf = null)
+    public SeasonalityResult Score(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf = null, SeasonalityThresholds? thresholds = null)
+    {
+        SeasonalityResult result = ScoreCore(matches, asOf);
+        result.Band = Classify(result.Score, thresholds ?? SeasonalityThresholds.Default);
+        return result;
+    }
+
+    /// <inheritdoc />
+    public List<SeasonalityResult> ScoreAll(
+        IEnumerable<IReadOnlyList<ParsedIngredientMatch>> matchSets,
+        DateTime? asOf = null,
+        SeasonalityThresholds? thresholds = null)
+    {
+        SeasonalityThresholds t = thresholds ?? SeasonalityThresholds.Default;
+        List<SeasonalityResult> results = matchSets.Select(set => ScoreCore(set, asOf)).ToList();
+        List<double> libraryScores = results.Where(r => r.Score.HasValue).Select(r => r.Score!.Value).ToList();
+        foreach (SeasonalityResult result in results)
+        {
+            result.Band = Classify(result.Score, t, libraryScores);
+        }
+
+        return results;
+    }
+
+    /// <inheritdoc />
+    public SeasonalityState? GetProduceStateForFood(string foodName, DateTime? asOf = null)
+    {
+        Dictionary<string, ProduceItem> lookup = GetLookup();
+        ProduceItem? produce = LookupProduce(foodName, lookup);
+        if (produce is null)
+        {
+            return null;
+        }
+
+        return produce.GetStateForMonth((asOf ?? DateTime.Now).Month);
+    }
+
+    private SeasonalityResult ScoreCore(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf)
     {
         int month = (asOf ?? DateTime.Now).Month;
         Dictionary<string, ProduceItem> lookup = GetLookup();
 
+        int totalIngredientCount = 0;
         var matched = new List<(ProduceItem Produce, double Grams)>();
         foreach (ParsedIngredientMatch m in matches)
         {
@@ -95,6 +133,8 @@ public class SeasonalityService : ISeasonalityService
             {
                 continue;
             }
+
+            totalIngredientCount++;
 
             double grams = m.GetWeightInGrams();
             if (grams < MinGrams)
@@ -113,19 +153,78 @@ public class SeasonalityService : ISeasonalityService
 
         if (matched.Count == 0)
         {
-            return new SeasonalityResult { Score = null, Label = SeasonalityLabel.Unavailable, Breakdown = new List<IngredientSeasonalityDetail>(), BestSeasons = string.Empty };
+            return new SeasonalityResult { Score = null, Breakdown = new List<IngredientSeasonalityDetail>(), BestSeasons = string.Empty, TotalIngredientCount = totalIngredientCount };
         }
 
         (List<IngredientSeasonalityDetail>? breakdown, double totalWeighted, double totalPossible) = ComputeForMonth(matched, month);
 
         double score = totalPossible > 0 ? (totalWeighted / totalPossible) * 100.0 : 0;
-        SeasonalityLabel label = score >= 75 ? SeasonalityLabel.PeakSeason
-                               : score >= 40 ? SeasonalityLabel.PartiallyInSeason
-                               : SeasonalityLabel.OffSeason;
 
         string bestSeasons = ComputeBestSeasons(matched);
 
-        return new SeasonalityResult { Score = score, Label = label, Breakdown = breakdown, BestSeasons = bestSeasons };
+        return new SeasonalityResult { Score = score, Breakdown = breakdown, BestSeasons = bestSeasons, MatchedProduceCount = breakdown.Count, TotalIngredientCount = totalIngredientCount };
+    }
+
+    /// <summary>
+    /// Classifies a score into a band. With a library of scores the top third is green and the
+    /// bottom third red, guarded by absolute thresholds: a score at/above
+    /// <see cref="SeasonalityThresholds.GreenAlwaysHigh"/> is always green, one below
+    /// <see cref="SeasonalityThresholds.GreenFloor"/> is never green; a score at/below
+    /// <see cref="SeasonalityThresholds.RedAlwaysLow"/> is always red, one above
+    /// <see cref="SeasonalityThresholds.RedCeiling"/> is never red. With too few library scores
+    /// (or no library context) only the absolute thresholds apply.
+    /// </summary>
+    public static SeasonalityBand Classify(double? score, SeasonalityThresholds thresholds, IReadOnlyList<double>? libraryScores = null)
+    {
+        if (score is not double s)
+        {
+            return SeasonalityBand.Unavailable;
+        }
+
+        if (libraryScores is null || libraryScores.Count < 5)
+        {
+            return s >= thresholds.GreenFloor ? SeasonalityBand.Green
+                 : s <= thresholds.RedCeiling ? SeasonalityBand.Red
+                 : SeasonalityBand.Yellow;
+        }
+
+        double percentile = ComputePercentile(s, libraryScores);
+
+        if (s >= thresholds.GreenAlwaysHigh)
+        {
+            return SeasonalityBand.Green;
+        }
+
+        if (s <= thresholds.RedAlwaysLow)
+        {
+            return SeasonalityBand.Red;
+        }
+
+        if (s >= thresholds.GreenFloor && percentile >= 0.67)
+        {
+            return SeasonalityBand.Green;
+        }
+
+        if (s <= thresholds.RedCeiling && percentile <= 0.33)
+        {
+            return SeasonalityBand.Red;
+        }
+
+        return SeasonalityBand.Yellow;
+    }
+
+    private static double ComputePercentile(double score, IReadOnlyList<double> scores)
+    {
+        int countLess = 0;
+        foreach (double s in scores)
+        {
+            if (s < score)
+            {
+                countLess++;
+            }
+        }
+
+        return scores.Count <= 1 ? 0.5 : countLess / (double)(scores.Count - 1);
     }
 
     private void Reload()

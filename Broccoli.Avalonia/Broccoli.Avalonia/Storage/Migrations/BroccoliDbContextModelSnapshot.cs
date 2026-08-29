@@ -288,6 +288,22 @@ namespace Broccoli.Avalonia.Storage.Migrations
                         .HasColumnType("TEXT")
                         .HasJsonPropertyName("recipeMealComparisonPersonId");
 
+                    b.Property<double>("SeasonalityGreenAlwaysHigh")
+                        .HasColumnType("REAL")
+                        .HasJsonPropertyName("seasonalityGreenAlwaysHigh");
+
+                    b.Property<double>("SeasonalityGreenFloor")
+                        .HasColumnType("REAL")
+                        .HasJsonPropertyName("seasonalityGreenFloor");
+
+                    b.Property<double>("SeasonalityRedAlwaysLow")
+                        .HasColumnType("REAL")
+                        .HasJsonPropertyName("seasonalityRedAlwaysLow");
+
+                    b.Property<double>("SeasonalityRedCeiling")
+                        .HasColumnType("REAL")
+                        .HasJsonPropertyName("seasonalityRedCeiling");
+
                     b.Property<bool>("ShowCardCalorieMatch")
                         .HasColumnType("INTEGER")
                         .HasJsonPropertyName("showCardCalorieMatch");

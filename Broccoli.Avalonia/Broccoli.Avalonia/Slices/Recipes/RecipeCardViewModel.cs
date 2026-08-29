@@ -1,5 +1,6 @@
 using System.Globalization;
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -58,8 +59,11 @@ internal partial class RecipeCardViewModel : ViewModelBase
     [ObservableProperty]
     private string _seasonScore = string.Empty;
 
+    /// <summary>Traffic-light band for this recipe's current seasonality.</summary>
+    public SeasonalityBand SeasonBand { get; set; } = SeasonalityBand.Unavailable;
+
     [ObservableProperty]
-    private string _seasonLabel = string.Empty;
+    private string _seasonBandLabel = string.Empty;
 
     [ObservableProperty]
     private string _seasonColor = "Gray";
@@ -133,7 +137,7 @@ internal partial class RecipeCardViewModel : ViewModelBase
         bool hasImage = showImages && !string.IsNullOrEmpty(imagePath);
         bool hasTags = showTags && recipe.Tags.Count > 0;
         bool hasNutrition = showNutrition && (calPerServing > 0 || proPerServing > 0 || carbPerServing > 0 || fatPerServing > 0);
-        bool hasSeason = showSeasonality && seasonality?.Label != SeasonalityLabel.Unavailable && seasonality?.Score != null;
+        bool hasSeason = showSeasonality && seasonality?.Band != SeasonalityBand.Unavailable && seasonality?.Score != null;
 
         return new RecipeCardViewModel
         {
@@ -154,14 +158,11 @@ internal partial class RecipeCardViewModel : ViewModelBase
             FatText = $"F:{fatPerServing:0.0}g",
             HasNutrition = hasNutrition,
             SeasonScore = seasonality?.Score is double score ? $"{score:0}" : string.Empty,
-            SeasonLabel = seasonality?.Label.ToString() ?? string.Empty,
-            SeasonColor = seasonality?.Label switch
-            {
-                SeasonalityLabel.PeakSeason => "#2ECC71",
-                SeasonalityLabel.PartiallyInSeason => "#F39C12",
-                SeasonalityLabel.OffSeason => "#E74C3C",
-                _ => "Gray",
-            },
+            SeasonBand = seasonality?.Band ?? SeasonalityBand.Unavailable,
+            SeasonBandLabel = seasonality?.Band is SeasonalityBand band && band != SeasonalityBand.Unavailable
+                ? SeasonalityBandVisuals.Label(band)
+                : string.Empty,
+            SeasonColor = SeasonalityBandVisuals.Color(seasonality?.Band ?? SeasonalityBand.Unavailable),
             HasSeasonality = hasSeason,
             HasCalorieMatch = targetMealCalories.HasValue && targetMealCalories > 0 && hasNutrition,
             CalorieMatchInRange = targetMealCalories.HasValue && targetMealCalories > 0 && hasNutrition

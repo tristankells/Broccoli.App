@@ -131,6 +131,25 @@ public class MacroTargetSettings
     [JsonPropertyName("showSeasonalityNavItem")]
     public bool ShowSeasonalityNavItem { get; set; } = true;
 
+    /// <summary>
+    /// Seasonality traffic-light threshold: scores at/above this value are always Green, no matter
+    /// how the rest of the recipe library scores.
+    /// </summary>
+    [JsonPropertyName("seasonalityGreenAlwaysHigh")]
+    public double SeasonalityGreenAlwaysHigh { get; set; } = 80;
+
+    /// <summary>Scores below this are never Green (regardless of percentile).</summary>
+    [JsonPropertyName("seasonalityGreenFloor")]
+    public double SeasonalityGreenFloor { get; set; } = 55;
+
+    /// <summary>Scores above this are never Red (regardless of percentile).</summary>
+    [JsonPropertyName("seasonalityRedCeiling")]
+    public double SeasonalityRedCeiling { get; set; } = 45;
+
+    /// <summary>Scores at/below this value are always Red, no matter how the library scores.</summary>
+    [JsonPropertyName("seasonalityRedAlwaysLow")]
+    public double SeasonalityRedAlwaysLow { get; set; } = 25;
+
     [JsonPropertyName("calorieMatchTolerancePercent")]
     public double CalorieMatchTolerancePercent { get; set; } = 15;
 

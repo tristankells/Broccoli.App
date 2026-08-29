@@ -19,7 +19,7 @@ public class SeasonalityServiceTests
 
         Assert.IsNotNull(result.Score);
         Assert.AreEqual(100, result.Score!.Value);
-        Assert.AreEqual(SeasonalityLabel.PeakSeason, result.Label);
+        Assert.AreEqual(SeasonalityBand.Green, result.Band);
         Assert.AreEqual(1, result.Breakdown.Count);
         Assert.AreEqual(SeasonalityState.InSeason, result.Breakdown[0].State);
     }
@@ -33,7 +33,7 @@ public class SeasonalityServiceTests
         SeasonalityResult result = service.Score([MakeFeijoaMatch()], new DateTime(2000, 7, 15));
 
         Assert.AreEqual(0, result.Score);
-        Assert.AreEqual(SeasonalityLabel.OffSeason, result.Label);
+        Assert.AreEqual(SeasonalityBand.Red, result.Band);
         Assert.AreEqual(SeasonalityState.OutOfSeason, result.Breakdown[0].State);
     }
 
@@ -46,7 +46,7 @@ public class SeasonalityServiceTests
         SeasonalityResult result = service.Score([MakeFeijoaMatch()], new DateTime(2000, 4, 15));
 
         Assert.AreEqual(50, result.Score);
-        Assert.AreEqual(SeasonalityLabel.PartiallyInSeason, result.Label);
+        Assert.AreEqual(SeasonalityBand.Yellow, result.Band);
         Assert.AreEqual(SeasonalityState.PartiallyInSeason, result.Breakdown[0].State);
     }
 
@@ -69,7 +69,7 @@ public class SeasonalityServiceTests
         SeasonalityResult result = service.Score([match], new DateTime(2000, 1, 15));
 
         Assert.IsNull(result.Score);
-        Assert.AreEqual(SeasonalityLabel.Unavailable, result.Label);
+        Assert.AreEqual(SeasonalityBand.Unavailable, result.Band);
         Assert.AreEqual(0, result.Breakdown.Count);
     }
 
@@ -131,7 +131,7 @@ public class SeasonalityServiceTests
         SeasonalityResult result = service.Score([MakeMatch("Butter")], new DateTime(2000, 1, 15));
 
         Assert.IsNull(result.Score);
-        Assert.AreEqual(SeasonalityLabel.Unavailable, result.Label);
+        Assert.AreEqual(SeasonalityBand.Unavailable, result.Band);
     }
 
     [TestMethod]
@@ -204,6 +204,132 @@ public class SeasonalityServiceTests
         Assert.IsFalse(commonInSeason.IsLimitedSeason);
     }
 
+    // ── Band classification ──────────────────────────────────────────────────
+
+    [TestMethod]
+    public void Classify_WithoutLibrary_UsesAbsoluteThresholds()
+    {
+        SeasonalityThresholds t = SeasonalityThresholds.Default;
+
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(100, t));
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(80, t));
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(60, t));
+        Assert.AreEqual(SeasonalityBand.Yellow, SeasonalityService.Classify(50, t));
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(40, t));
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(25, t));
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(0, t));
+        Assert.AreEqual(SeasonalityBand.Unavailable, SeasonalityService.Classify(null, t));
+    }
+
+    [TestMethod]
+    public void Classify_SmallLibrary_UsesAbsoluteThresholdsOnly()
+    {
+        // A library of 3 recipes isn't enough for meaningful percentiles.
+        SeasonalityThresholds t = SeasonalityThresholds.Default;
+
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(60, t, [10, 50, 60]));
+        Assert.AreEqual(SeasonalityBand.Yellow, SeasonalityService.Classify(50, t, [10, 50, 60]));
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(40, t, [10, 50, 60]));
+    }
+
+    [TestMethod]
+    public void Classify_TopThirdGreen_BottomThirdRed_WithLibrary()
+    {
+        SeasonalityThresholds t = SeasonalityThresholds.Default;
+        List<double> library = [10, 20, 30, 40, 50, 60, 70, 80, 90];
+
+        // Top third (>= 66.7th percentile) green, bottom third red, middle yellow.
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(90, t, library));
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(80, t, library));
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(70, t, library));
+        Assert.AreEqual(SeasonalityBand.Yellow, SeasonalityService.Classify(60, t, library));
+        Assert.AreEqual(SeasonalityBand.Yellow, SeasonalityService.Classify(50, t, library));
+        Assert.AreEqual(SeasonalityBand.Yellow, SeasonalityService.Classify(40, t, library));
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(30, t, library));
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(20, t, library));
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(10, t, library));
+    }
+
+    [TestMethod]
+    public void Classify_AbsoluteGuards_OverridePercentile()
+    {
+        SeasonalityThresholds t = SeasonalityThresholds.Default;
+
+        // Above Always-Green: green even if the whole library scores similarly high.
+        List<double> highLibrary = [85, 86, 87, 88, 89, 90, 91, 92, 93];
+        Assert.AreEqual(SeasonalityBand.Green, SeasonalityService.Classify(85, t, highLibrary));
+
+        // Below Always-Red: red even if the whole library scores similarly low.
+        List<double> lowLibrary = [5, 6, 7, 8, 9, 10, 11, 12, 13];
+        Assert.AreEqual(SeasonalityBand.Red, SeasonalityService.Classify(13, t, lowLibrary));
+
+        // Bottom third but above the Red ceiling: the absolute guard wins, so it's not red.
+        List<double> lowWithHighCeiling = [1, 46, 47, 48, 49, 50, 51, 52, 53];
+        Assert.AreEqual(SeasonalityBand.Yellow, SeasonalityService.Classify(46, t, lowWithHighCeiling));
+    }
+
+    // ── ScoreAll + coverage ──────────────────────────────────────────────────
+
+    [TestMethod]
+    public void ScoreAll_ClassifiesRelativeToLibrary()
+    {
+        Mock<ISeasonalityDataStore> store = CreateStoreWithProduce(
+            new ProduceItem { Id = "feijoa", Name = "Feijoa", Type = "fruit", Months = OnlyInSeason([1]) },
+            new ProduceItem { Id = "onion", Name = "Onion", Type = "vegetable", Months = AllInSeason() });
+        SeasonalityService service = new(store.Object);
+        DateTime july = new(2000, 7, 15);
+
+        // Six recipes with onion (in season in July) and feijoa (out of season): scores
+        // [100, 100, 60, 50, 40, 0] -> top third green, bottom third red, middle yellow.
+        List<SeasonalityResult> results = service.ScoreAll(
+            [
+                [MakeMatch("Onion", 100)],
+                [MakeMatch("Onion", 100)],
+                [MakeMatch("Onion", 60), MakeMatch("Feijoa", 40)],
+                [MakeMatch("Onion", 50), MakeMatch("Feijoa", 50)],
+                [MakeMatch("Onion", 40), MakeMatch("Feijoa", 60)],
+                [MakeMatch("Feijoa", 100)],
+            ],
+            july);
+
+        Assert.AreEqual(6, results.Count);
+        Assert.AreEqual(SeasonalityBand.Green, results[0].Band); // 100, top third
+        Assert.AreEqual(SeasonalityBand.Green, results[1].Band); // 100, top third
+        Assert.AreEqual(SeasonalityBand.Yellow, results[2].Band); // 60, middle
+        Assert.AreEqual(SeasonalityBand.Yellow, results[3].Band); // 50, middle
+        Assert.AreEqual(SeasonalityBand.Red, results[4].Band); // 40, bottom third
+        Assert.AreEqual(SeasonalityBand.Red, results[5].Band); // 0, bottom third
+    }
+
+    [TestMethod]
+    public void Score_ReportsCoverageCounts()
+    {
+        Mock<ISeasonalityDataStore> store = CreateStoreWithProduce(
+            new ProduceItem { Id = "onion", Name = "Onion", Type = "vegetable", Months = AllInSeason() });
+        SeasonalityService service = new(store.Object);
+
+        // Two ingredients, but only onion maps to produce.
+        ParsedIngredientMatch onion = MakeMatch("Onion");
+        ParsedIngredientMatch chicken = MakeMatch("Chicken");
+        SeasonalityResult result = service.Score([onion, chicken], new DateTime(2000, 1, 15));
+
+        Assert.AreEqual(1, result.MatchedProduceCount);
+        Assert.AreEqual(2, result.TotalIngredientCount);
+        Assert.AreEqual("1 of 2 ingredients matched", result.CoverageText);
+    }
+
+    [TestMethod]
+    public void GetProduceStateForFood_ReturnsStateOrNull()
+    {
+        Mock<ISeasonalityDataStore> store = CreateStoreWithProduce(
+            new ProduceItem { Id = "feijoa", Name = "Feijoa", Type = "fruit", Months = OnlyInSeason([1]) });
+        SeasonalityService service = new(store.Object);
+
+        Assert.AreEqual(SeasonalityState.InSeason, service.GetProduceStateForFood("Feijoa", new DateTime(2000, 1, 15)));
+        Assert.AreEqual(SeasonalityState.OutOfSeason, service.GetProduceStateForFood("Feijoa", new DateTime(2000, 7, 15)));
+        Assert.IsNull(service.GetProduceStateForFood("Chicken", new DateTime(2000, 7, 15)));
+    }
+
     private static Dictionary<int, SeasonalityState> AllInSeason() => OnlyInSeason([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
     private static Dictionary<int, SeasonalityState> OnlyInSeason(int[] months)
@@ -248,11 +374,11 @@ public class SeasonalityServiceTests
 
     private static ParsedIngredientMatch MakeFeijoaMatch() => MakeMatch("Feijoa");
 
-    private static ParsedIngredientMatch MakeMatch(string name)
+    private static ParsedIngredientMatch MakeMatch(string name, double grams = 100)
     {
         return new ParsedIngredientMatch
         {
-            ParsedIngredient = new ParsedIngredient { RawLine = $"100 g {name.ToLowerInvariant()}", Quantity = 100, Unit = "g", CanonicalUnit = "g", FoodDescription = name.ToLowerInvariant() },
+            ParsedIngredient = new ParsedIngredient { RawLine = $"{grams:0} g {name.ToLowerInvariant()}", Quantity = grams, Unit = "g", CanonicalUnit = "g", FoodDescription = name.ToLowerInvariant() },
             MatchedFood = new Food { Name = name },
             MatchScore = 1,
             MatchDistance = 0,

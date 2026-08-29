@@ -127,13 +127,15 @@ public partial class RecipeDetailViewModel : ViewModelBase
 
     public bool HasSeasonality => Seasonality?.Breakdown.Count > 0;
 
-    public string SeasonScoreColor => Seasonality?.Label switch
-    {
-        SeasonalityLabel.PeakSeason => "#2ECC71",
-        SeasonalityLabel.PartiallyInSeason => "#F39C12",
-        SeasonalityLabel.OffSeason => "#E74C3C",
-        _ => "Gray",
-    };
+    /// <summary>Traffic-light label ("Green"/"Yellow"/"Red") for the detail's seasonality score.</summary>
+    public string SeasonBandLabel => Seasonality is { Score: not null } && Seasonality.Band != SeasonalityBand.Unavailable
+        ? SeasonalityBandVisuals.Label(Seasonality.Band)
+        : string.Empty;
+
+    public string SeasonScoreColor => SeasonalityBandVisuals.Color(Seasonality?.Band ?? SeasonalityBand.Unavailable);
+
+    /// <summary>Coverage label such as "3 of 12 ingredients matched".</summary>
+    public string SeasonalityCoverageText => Seasonality?.CoverageText ?? string.Empty;
 
     private static string DeviationColor(double pct) => pct <= 15 ? "#2ECC71" : pct <= 25 ? "#F39C12" : "#E74C3C";
 
@@ -204,10 +206,13 @@ public partial class RecipeDetailViewModel : ViewModelBase
             return;
         }
 
-        Seasonality = _seasonalityService.Score(matches);
+        SeasonalityThresholds? thresholds = _macroService is null ? null : SeasonalityThresholds.FromSettings(_macroService.GetSettings());
+        Seasonality = _seasonalityService.Score(matches, asOf: null, thresholds);
         OnPropertyChanged(nameof(Seasonality));
         OnPropertyChanged(nameof(HasSeasonality));
+        OnPropertyChanged(nameof(SeasonBandLabel));
         OnPropertyChanged(nameof(SeasonScoreColor));
+        OnPropertyChanged(nameof(SeasonalityCoverageText));
     }
 
     private void RefreshNutrition()

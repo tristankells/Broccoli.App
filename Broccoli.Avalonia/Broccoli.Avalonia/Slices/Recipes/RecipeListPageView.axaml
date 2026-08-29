@@ -204,6 +204,7 @@
                             <DataTemplate x:DataType="vm:RecipeListColumnDefinition">
                                 <Button Classes="listHeader"
                                         Background="Transparent" BorderThickness="0" Padding="0"
+                                        HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Stretch"
                                         Command="{Binding $parent[ItemsControl].((vm:RecipeListPageViewModel)DataContext).SortCommand}"
                                         CommandParameter="{Binding Column}"

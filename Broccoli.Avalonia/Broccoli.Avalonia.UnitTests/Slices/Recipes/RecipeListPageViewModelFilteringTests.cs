@@ -160,6 +160,20 @@ public class RecipeListPageViewModelFilteringTests
         Assert.IsEmpty(viewModel.FilteredRecipes);
     }
 
+    [TestMethod]
+    public void CardEditRequested_InvokesEditRecipeRequestedWithRecipe()
+    {
+        Recipe recipe = MakeRecipe("Banana Bread");
+        RecipeListPageViewModel viewModel = CreateViewModel(recipe);
+        Recipe? edited = null;
+        viewModel.EditRecipeRequested = r => edited = r;
+
+        RecipeCardViewModel card = viewModel.FilteredRecipes.First();
+        card.EditRequested?.Invoke(card);
+
+        Assert.AreSame(recipe, edited);
+    }
+
     private static RecipeListPageViewModel CreateViewModel(params Recipe[] recipes)
     {
         var recipeService = new Mock<IRecipeService>();

@@ -19,9 +19,6 @@ public partial class RecipeDetailViewModel : ViewModelBase
     [ObservableProperty]
     private Recipe _recipe;
 
-    [ObservableProperty]
-    private bool _isConfirmingDelete;
-
     public RecipeDetailViewModel(IRecipeService recipeService, Recipe recipe)
         : this(recipeService, null, null, null, recipe)
     {
@@ -257,12 +254,19 @@ public partial class RecipeDetailViewModel : ViewModelBase
     private void OpenHistory() => HistoryRequested?.Invoke(Recipe);
 
     [RelayCommand]
-    private void RequestDelete() => IsConfirmingDelete = true;
+    private void RequestDelete()
+    {
+        var dialogViewModel = new ConfirmDialogViewModel
+        {
+            Title = "Delete Recipe",
+            Message = $"Delete \"{Recipe.Name}\"? This cannot be undone.",
+            ConfirmText = "Delete",
+            ConfirmAction = ConfirmDelete,
+        };
+        var dialog = new ConfirmDialog { DataContext = dialogViewModel };
+        dialog.Show();
+    }
 
-    [RelayCommand]
-    private void CancelDelete() => IsConfirmingDelete = false;
-
-    [RelayCommand]
     private void ConfirmDelete()
     {
         try
@@ -271,14 +275,12 @@ public partial class RecipeDetailViewModel : ViewModelBase
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            IsConfirmingDelete = false;
             ErrorDialog.Show(
                 "Delete Failed",
                 $"Couldn't delete \"{Recipe.Name}\" because one of its files is locked by another application.\n\nPlease close the application using the file and try again.\n\n{ex.Message}");
             return;
         }
 
-        IsConfirmingDelete = false;
         RecipeDeleted?.Invoke();
     }
 }

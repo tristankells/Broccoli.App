@@ -69,6 +69,8 @@ internal partial class RecipeCardViewModel : ViewModelBase
 
     public Action<RecipeCardViewModel>? AddToCartRequested { get; set; }
 
+    public Action<RecipeCardViewModel>? EditRequested { get; set; }
+
     public static RecipeCardViewModel FromRecipe(
         Recipe recipe,
         string? imagePath,

@@ -46,17 +46,6 @@
                 </Button>
             </StackPanel>
 
-            <!-- Inline delete confirmation -->
-            <Border IsVisible="{Binding IsConfirmingDelete}" Background="#FFF4E5" CornerRadius="4" Padding="12">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Delete this recipe? This cannot be undone." TextWrapping="Wrap" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Content="Delete" Command="{Binding ConfirmDeleteCommand}" Background="IndianRed" Foreground="White" />
-                        <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
             <StackPanel Orientation="Horizontal" Spacing="16">
                 <TextBlock Text="{Binding Recipe.Servings, StringFormat='Servings: {0}'}"
                            IsVisible="{Binding Recipe.Servings, Converter={x:Static ObjectConverters.IsNotNull}}" />

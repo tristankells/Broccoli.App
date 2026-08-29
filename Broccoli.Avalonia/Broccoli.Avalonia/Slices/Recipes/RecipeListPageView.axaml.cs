@@ -20,6 +20,16 @@ public partial class RecipeListPageView : UserControl
         e.Handled = true;
 
         var content = new StackPanel();
+
+        var editItem = new Button
+        {
+            Content = "Edit",
+            HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = global::Avalonia.Layout.HorizontalAlignment.Left,
+        };
+        editItem.Click += (_, _) => card.EditRequested?.Invoke(card);
+        content.Children.Add(editItem);
+
         var menuItem = new Button
         {
             Content = "Add to shopping cart",

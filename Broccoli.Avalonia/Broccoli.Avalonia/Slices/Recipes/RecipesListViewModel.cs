@@ -64,6 +64,7 @@ public partial class RecipesListViewModel : ViewModelBase
             ImportRecipeRequested = ShowImport,
             UseUpIngredientsRequested = ShowUseUpIngredients,
             RecipeSelected = ShowDetail,
+            EditRecipeRequested = ShowEdit,
         };
         _currentPage = _listPage;
     }

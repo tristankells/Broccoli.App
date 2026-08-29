@@ -59,7 +59,10 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     public Action<Recipe>? RecipeSelected { get; set; }
 
-    public ObservableCollection<RecipeCardViewModel> FilteredRecipes { get; set; } = [];
+    public Action<Recipe>? EditRecipeRequested { get; set; }
+
+    [ObservableProperty]
+    private ObservableCollection<RecipeCardViewModel> _filteredRecipes = new();
 
     [ObservableProperty]
     public partial string SearchText { get; set; } = string.Empty;
@@ -160,6 +163,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
                 ShowSeasonality,
                 ShowNutrition);
             card.AddToCartRequested = AddToCart;
+            card.EditRequested = EditRecipe;
             cards.Add(card);
         }
 
@@ -211,21 +215,20 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     private void ApplyFilter()
     {
-        SearchWordSource enabledSources = DetermineEnabledSearchSource();
+        if (string.IsNullOrEmpty(SearchText))
+        {
+            FilteredRecipes = new ObservableCollection<RecipeCardViewModel>(_allCards);
+            return;
+        }
 
-        FilteredRecipes.Clear();
+        SearchWordSource enabledSources = DetermineEnabledSearchSource();
 
         string[] tokens = string.IsNullOrEmpty(SearchText) ?
             [] :
-            SearchText.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            SearchText.Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        foreach (RecipeCardViewModel card in _allCards)
-        {
-            if (tokens.Length <= 0 || IsMatch(tokens, card.SearchWords))
-            {
-                FilteredRecipes.Add(card);
-            }
-        }
+        FilteredRecipes =
+            new ObservableCollection<RecipeCardViewModel>(_allCards.Where(card => IsMatch(tokens, card.SearchWords)));
 
         SearchWordSource DetermineEnabledSearchSource()
         {
@@ -269,6 +272,9 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     [RelayCommand]
     private void SelectRecipe(RecipeCardViewModel card) => RecipeSelected?.Invoke(card.Recipe);
+
+    [RelayCommand]
+    private void EditRecipe(RecipeCardViewModel card) => EditRecipeRequested?.Invoke(card.Recipe);
 
     [RelayCommand]
     private void AddToCart(RecipeCardViewModel card)

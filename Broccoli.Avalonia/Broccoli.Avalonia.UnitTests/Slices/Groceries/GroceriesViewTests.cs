@@ -94,6 +94,33 @@ public class GroceriesViewTests
             });
     }
 
+    [TestMethod]
+    public void CheckingCheckbox_UpdatesItemAndAppliesCheckedClass()
+    {
+        Mock<IGroceryListService> service = new();
+        var item = new GroceryListItem { Id = "a", Name = "Milk" };
+        service.Setup(s => s.GetAll()).Returns(new List<GroceryListItem> { item });
+        var viewModel = new GroceriesViewModel(service.Object);
+
+        HeadlessUiHost.Run(
+            () => new GroceriesView { DataContext = viewModel },
+            window =>
+            {
+                CheckBox checkbox = HeadlessUiHost.FindVisualChildren<CheckBox>(window)[0];
+                checkbox.IsChecked = true;
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+
+                Assert.IsTrue(item.IsChecked, "Checking the box should persist to the item.");
+                service.Verify(s => s.Update(It.IsAny<GroceryListItem>()), Times.Once);
+
+                TextBlock nameBlock = HeadlessUiHost.FindVisualChildren<TextBlock>(window)
+                    .First(t => t.Text == "Milk");
+                Assert.IsTrue(nameBlock.Classes.Contains("checked"),
+                    "Checked rows should get the strikethrough class.");
+            });
+    }
+
     private static TextBox FindInput(Window window) =>
         HeadlessUiHost.FindVisualChildren<TextBox>(window)
             .First(t => t.IsEffectivelyVisible);

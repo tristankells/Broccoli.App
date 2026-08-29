@@ -13,13 +13,15 @@
     </Design.DataContext>
 
     <DockPanel Margin="16">
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,240,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
             <TextBlock Grid.Column="0" Text="Food Database" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Search USDA" Command="{Binding OpenUsdaSearchCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="2" Content="Import" Command="{Binding ImportCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="3" Content="Export" Command="{Binding ExportCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="4" Content="Add Food" Command="{Binding AddFoodCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="5" Content="Reset" Command="{Binding RequestResetCommand}" />
+            <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Search foods..."
+                     VerticalAlignment="Center" Margin="8,0,0,0" />
+            <Button Grid.Column="2" Content="Search USDA" Command="{Binding OpenUsdaSearchCommand}" Margin="8,0,8,0" />
+            <Button Grid.Column="3" Content="Import" Command="{Binding ImportCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="4" Content="Export" Command="{Binding ExportCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="5" Content="Add Food" Command="{Binding AddFoodCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="6" Content="Reset" Command="{Binding RequestResetCommand}" />
         </Grid>
 
         <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red"
@@ -120,7 +122,7 @@
                 <TextBlock Grid.Column="8" Text="Actions" FontWeight="Bold" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Grid>
             <ScrollViewer Grid.Row="1">
-                <ItemsControl ItemsSource="{Binding Foods}">
+                <ItemsControl ItemsSource="{Binding FilteredFoods}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:Food">
                             <Border Margin="0,1" Padding="4,2" CornerRadius="2"

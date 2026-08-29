@@ -21,20 +21,47 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Center">
         <StackPanel Orientation="Horizontal" Spacing="6">
-            <ProgressRing Width="12" Height="12"
-                          IsIndeterminate="{Binding SyncStatus.IsSyncing}"
-                          IsVisible="{Binding SyncStatus.IsSyncing}" />
-            <PathIcon Data="M19.35,10.04C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.04C2.34,8.36 0,10.91 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.04M14,13V17H10V13H7L12,8L17,13H14Z"
+            <!-- Rotating spinner shown while a sync is in progress. -->
+            <Grid Width="14" Height="14"
+                  VerticalAlignment="Center"
+                  RenderTransformOrigin="50%,50%"
+                  IsVisible="{Binding SyncStatus.IsSyncing}"
+                  Classes.spinning="{Binding SyncStatus.IsSyncing}">
+                <Grid.RenderTransform>
+                    <RotateTransform />
+                </Grid.RenderTransform>
+                <Grid.Styles>
+                    <Style Selector="Grid.spinning">
+                        <Style.Animations>
+                            <Animation Duration="0:0:1" IterationCount="Infinite">
+                                <KeyFrame Cue="0%">
+                                    <Setter Property="(RotateTransform.Angle)" Value="0" />
+                                </KeyFrame>
+                                <KeyFrame Cue="100%">
+                                    <Setter Property="(RotateTransform.Angle)" Value="360" />
+                                </KeyFrame>
+                            </Animation>
+                        </Style.Animations>
+                    </Style>
+                </Grid.Styles>
+                <PathIcon Data="M12,4V1L8,5L12,9V6C15.31,6 18,8.69 18,12C18,13.01 17.75,13.97 17.32,14.82L18.76,16.26C19.55,15.02 20,13.57 20,12C20,7.58 16.42,4 12,4M12,18C8.69,18 6,15.31 6,12C6,10.99 6.25,10.03 6.68,9.18L5.24,7.74C4.45,8.97 4,10.43 4,12C4,16.42 7.58,20 12,20V23L16,19L12,15V18Z"
+                          Width="13" Height="13"
+                          Foreground="Gray" />
+            </Grid>
+
+            <!-- Static sync glyph shown while connected and idle; doubles as a "click to sync" affordance. -->
+            <PathIcon Data="M12,4V1L8,5L12,9V6C15.31,6 18,8.69 18,12C18,13.01 17.75,13.97 17.32,14.82L18.76,16.26C19.55,15.02 20,13.57 20,12C20,7.58 16.42,4 12,4M12,18C8.69,18 6,15.31 6,12C6,10.99 6.25,10.03 6.68,9.18L5.24,7.74C4.45,8.97 4,10.43 4,12C4,16.42 7.58,20 12,20V23L16,19L12,15V18Z"
                       Width="13" Height="13"
                       Foreground="Gray"
                       VerticalAlignment="Center"
-                      IsVisible="{Binding ShowCloudIcon}" />
+                      IsVisible="{Binding ShowSyncIcon}" />
+
             <TextBlock Text="{Binding SummaryText}"
                        FontSize="11"
                        Foreground="Gray"
                        VerticalAlignment="Center" />
         </StackPanel>
-        <Button.ToolTip.Tip>
+        <ToolTip.Tip>
             <ToolTip>
                 <StackPanel Spacing="3" MinWidth="200">
                     <TextBlock Text="Google Drive backup" FontWeight="SemiBold" />
@@ -46,10 +73,10 @@
                                IsVisible="{Binding SyncStatus.IsConnected}"
                                Opacity="0.7" />
                     <TextBlock Text="Enable backup in Settings"
-                               IsVisible="{Binding SyncStatus.IsConnected, Converter={x:Static BoolConverters.Not}}"
+                               IsVisible="{Binding ShowEnableHint}"
                                Opacity="0.7" />
                 </StackPanel>
             </ToolTip>
-        </Button.ToolTip.Tip>
+        </ToolTip.Tip>
     </Button>
 </UserControl>

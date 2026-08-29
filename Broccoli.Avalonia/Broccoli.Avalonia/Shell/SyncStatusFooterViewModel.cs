@@ -1,3 +1,5 @@
+using System.Globalization;
+using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Settings;
 using Broccoli.Avalonia.Slices.Settings.Sync;
 using CommunityToolkit.Mvvm.Input;
@@ -32,7 +34,8 @@ public partial class SyncStatusFooterViewModel : ViewModelBase
                 or nameof(ISyncStatusService.HasUnsyncedChanges))
             {
                 OnPropertyChanged(nameof(SummaryText));
-                OnPropertyChanged(nameof(ShowCloudIcon));
+                OnPropertyChanged(nameof(ShowSyncIcon));
+                OnPropertyChanged(nameof(ShowEnableHint));
             }
         };
     }
@@ -40,8 +43,11 @@ public partial class SyncStatusFooterViewModel : ViewModelBase
     /// <summary>The shared, observable sync state this footer mirrors.</summary>
     public ISyncStatusService SyncStatus => _syncStatusService;
 
-    /// <summary>True to show the static cloud glyph instead of the in-progress spinner.</summary>
-    public bool ShowCloudIcon => _syncStatusService.IsConnected && !_syncStatusService.IsSyncing;
+    /// <summary>True to show the static sync glyph instead of the in-progress spinner.</summary>
+    public bool ShowSyncIcon => _syncStatusService.IsConnected && !_syncStatusService.IsSyncing;
+
+    /// <summary>True when Drive isn't connected — used to hint at enabling backup in Settings.</summary>
+    public bool ShowEnableHint => !_syncStatusService.IsConnected;
 
     /// <summary>Human-readable one-liner shown in the footer.</summary>
     public string SummaryText => _syncStatusService.IsSyncing
@@ -64,13 +70,26 @@ public partial class SyncStatusFooterViewModel : ViewModelBase
         }
 
         TimeSpan elapsed = DateTime.UtcNow - lastSyncedUtc.Value;
-        return elapsed switch
+        if (elapsed < TimeSpan.FromMinutes(1))
         {
-            < TimeSpan.FromMinutes(1) => "just now",
-            < TimeSpan.FromHours(1) => $"{(int)elapsed.TotalMinutes}m ago",
-            < TimeSpan.FromDays(1) => $"{(int)elapsed.TotalHours}h ago",
-            < TimeSpan.FromDays(7) => $"{(int)elapsed.TotalDays}d ago",
-            _ => lastSyncedUtc.Value.ToLocalTime().ToString("d MMM yyyy"),
-        };
+            return "just now";
+        }
+
+        if (elapsed < TimeSpan.FromHours(1))
+        {
+            return $"{(int)elapsed.TotalMinutes}m ago";
+        }
+
+        if (elapsed < TimeSpan.FromDays(1))
+        {
+            return $"{(int)elapsed.TotalHours}h ago";
+        }
+
+        if (elapsed < TimeSpan.FromDays(7))
+        {
+            return $"{(int)elapsed.TotalDays}d ago";
+        }
+
+        return lastSyncedUtc.Value.ToLocalTime().ToString("d MMM yyyy", CultureInfo.InvariantCulture);
     }
 }

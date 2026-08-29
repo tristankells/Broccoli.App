@@ -104,4 +104,12 @@ public partial class SyncStatusService : ObservableObject, ISyncStatusService
             RefreshStatus();
         }
     }
+
+    public IReadOnlyList<SyncConflict> GetPendingConflicts() => _syncService.GetPendingConflicts();
+
+    public Task ResolveConflictKeepLocalAsync(SyncConflict conflict, CancellationToken cancellationToken = default)
+        => _syncService.ResolveConflictKeepLocalAsync(conflict, cancellationToken);
+
+    public Task ResolveConflictUseDriveAsync(SyncConflict conflict, CancellationToken cancellationToken = default)
+        => _syncService.ResolveConflictUseDriveAsync(conflict, cancellationToken);
 }

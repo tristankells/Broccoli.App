@@ -50,7 +50,7 @@ public partial class App : Application
         Ioc.Default.ConfigureServices(provider);
 
         MainViewModel mainViewModel = provider.GetRequiredService<MainViewModel>();
-        IGoogleDriveSyncService? syncService = null;
+        ISyncStatusService? syncStatusService = null;
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -62,14 +62,14 @@ public partial class App : Application
             // Resolved directly (not via MainViewModel.SettingsViewModel) so background sync
             // works at startup/shutdown regardless of whether the user ever opens the settings
             // flyout - that lazily-constructed view model is purely a presentation concern.
-            syncService = provider.GetRequiredService<IGoogleDriveSyncService>();
+            syncStatusService = provider.GetRequiredService<ISyncStatusService>();
 
             desktop.ShutdownRequested += (_, _) =>
             {
                 // Best-effort push of local changes; intentionally fire-and-forget so app close
                 // is never blocked/delayed waiting on network. If it doesn't finish in time, the
                 // next startup's sync will simply pick these changes up then.
-                _ = syncService.PushOnlyAsync();
+                _ = syncStatusService.PushOnlyAsync();
             };
         }
         else if (ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
@@ -89,10 +89,10 @@ public partial class App : Application
         // and the UI is filled in as data becomes ready.
         base.OnFrameworkInitializationCompleted();
 
-        _ = RunStartupAsync(mainViewModel, syncService);
+        _ = RunStartupAsync(mainViewModel, syncStatusService);
     }
 
-    private static async Task RunStartupAsync(MainViewModel mainViewModel, IGoogleDriveSyncService? syncService)
+    private static async Task RunStartupAsync(MainViewModel mainViewModel, ISyncStatusService? syncStatusService)
     {
         try
         {
@@ -109,9 +109,9 @@ public partial class App : Application
 
         // Best-effort: check Drive for changes made on other devices and auto-pull if safe.
         // No-ops silently if Drive backup isn't connected.
-        if (syncService is not null)
+        if (syncStatusService is not null)
         {
-            _ = syncService.SyncAsync();
+            _ = syncStatusService.SyncNowAsync();
         }
     }
 

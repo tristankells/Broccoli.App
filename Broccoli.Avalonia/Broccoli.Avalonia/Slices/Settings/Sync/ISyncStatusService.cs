@@ -36,4 +36,13 @@ public interface ISyncStatusService : INotifyPropertyChanged
 
     /// <summary>Best-effort push-only pass (used at shutdown). Re-entrancy-safe.</summary>
     Task<SyncResult> PushOnlyAsync(IProgress<SyncProgress>? progress = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Conflicts detected by a previous sync that still need the user to pick a side.</summary>
+    IReadOnlyList<SyncConflict> GetPendingConflicts();
+
+    /// <summary>Keeps the local version of a conflicted recipe/database and pushes it to Drive, clearing the conflict.</summary>
+    Task ResolveConflictKeepLocalAsync(SyncConflict conflict, CancellationToken cancellationToken = default);
+
+    /// <summary>Replaces the local version of a conflicted recipe/database with the Drive version, clearing the conflict.</summary>
+    Task ResolveConflictUseDriveAsync(SyncConflict conflict, CancellationToken cancellationToken = default);
 }

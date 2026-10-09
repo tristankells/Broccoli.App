@@ -1,6 +1,7 @@
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Slices.Groceries;
+using Broccoli.Avalonia.Slices.Planning;
 using Moq;
 
 namespace Broccoli.Avalonia.Tests.Slices.Groceries;
@@ -148,6 +149,58 @@ public class GroceriesViewModelTests
 
         Assert.AreEqual(1, vm.Items.Count);
         Assert.AreEqual("Granny Smith Apple (87% match, Fuzzy)", vm.Items[0].MatchedFoodInfo);
+    }
+
+    [TestMethod]
+    public void AddItem_GramsMode_NormalizesMatchedItemNameAndHint()
+    {
+        Food onion = MakeFood(7, "Onion", "Medium Onion", 110);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "onion", onion } }),
+            CreateMacroService(GroceryUnitNormalization.Grams).Object);
+        AddReturnsItem();
+
+        vm.NewItemText = "1 onion";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("110g Onion", vm.Items[0].Name);
+        Assert.AreEqual("(~1 medium onion)", vm.Items[0].QuantityHint);
+        Assert.AreEqual("Onion (100% match, Exact)", vm.Items[0].MatchedFoodInfo);
+    }
+
+    [TestMethod]
+    public void AddItem_GramsMode_UnmatchedItem_KeepsOriginalName()
+    {
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food>()),
+            CreateMacroService(GroceryUnitNormalization.Grams).Object);
+        AddReturnsItem();
+
+        vm.NewItemText = "2 packs tortillas";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("2 packs tortillas", vm.Items[0].Name);
+    }
+
+    [TestMethod]
+    public void AddItem_OffMode_KeepsOriginalName()
+    {
+        Food onion = MakeFood(7, "Onion", "Medium Onion", 110);
+        GroceriesViewModel vm = CreateViewModel(
+            null,
+            CreateParser(new Dictionary<string, Food> { { "onion", onion } }));
+        AddReturnsItem();
+
+        vm.NewItemText = "1 onion";
+        vm.AddItemCommand.Execute(null);
+
+        Assert.AreEqual(1, vm.Items.Count);
+        Assert.AreEqual("1 onion", vm.Items[0].Name);
+        Assert.AreEqual("(~110g)", vm.Items[0].QuantityHint);
     }
 
     [TestMethod]
@@ -384,14 +437,25 @@ public class GroceriesViewModelTests
         return new IngredientParserService(foodService.Object);
     }
 
+    private static Mock<IMacroTargetService> CreateMacroService(GroceryUnitNormalization mode)
+    {
+        var macroService = new Mock<IMacroTargetService>();
+        macroService.Setup(s => s.GetSettings())
+            .Returns(new MacroTargetSettings { GroceryUnitNormalization = mode });
+        return macroService;
+    }
+
     private void AddReturnsItem() =>
         _serviceMock.Setup(s => s.Add(It.IsAny<GroceryListItem>()))
             .Returns((GroceryListItem item) => item);
 
-    private GroceriesViewModel CreateViewModel(List<GroceryListItem>? existingItems = null, IngredientParserService? parser = null)
+    private GroceriesViewModel CreateViewModel(
+        List<GroceryListItem>? existingItems = null,
+        IngredientParserService? parser = null,
+        IMacroTargetService? macroTargetService = null)
     {
         List<GroceryListItem> items = existingItems ?? new List<GroceryListItem>();
         _serviceMock.Setup(s => s.GetAll()).Returns(items);
-        return new GroceriesViewModel(_serviceMock.Object, parser);
+        return new GroceriesViewModel(_serviceMock.Object, parser, macroTargetService);
     }
 }

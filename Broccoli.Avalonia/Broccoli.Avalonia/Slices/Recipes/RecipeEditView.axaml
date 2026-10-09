@@ -132,11 +132,30 @@
                         <TextBlock Text="Parsed Ingredients" FontWeight="SemiBold" FontSize="14"
                                    IsVisible="{Binding ParsedMatches.Count}" />
 
+                        <!-- Recipe-level seasonality summary -->
+                        <Border Padding="10" CornerRadius="4"
+                                Background="{DynamicResource AppContentBackgroundBrush}"
+                                IsVisible="{Binding HasSeasonality}">
+                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <Border Background="{Binding SeasonScoreColor}" CornerRadius="3" Padding="6,2">
+                                    <TextBlock Text="{Binding SeasonalityBandLabel}" FontSize="11" FontWeight="Bold"
+                                               Foreground="White" />
+                                </Border>
+                                <TextBlock FontSize="11">
+                                    <Run Text="Score: " />
+                                    <Run Text="{Binding SeasonScoreText}" FontWeight="Bold" FontSize="13"
+                                         Foreground="{Binding SeasonScoreColor}" />
+                                </TextBlock>
+                                <TextBlock Text="{Binding SeasonalityMonthLabel}" FontSize="11" Foreground="Gray"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+
                         <ItemsControl ItemsSource="{Binding ParsedMatches}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:ParsedIngredientRow">
                                     <Border Margin="0,1" Padding="6,3" CornerRadius="2"
-                                            ToolTip.Tip="{Binding OriginalLine}">
+                                            ToolTip.Tip="{Binding TooltipText}">
                                         <DockPanel>
                                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6"
                                                         VerticalAlignment="Center">
@@ -174,6 +193,10 @@
                                                            Foreground="Gray" Margin="16,0,0,0"
                                                            TextTrimming="CharacterEllipsis"
                                                            IsVisible="{Binding ShowOriginalLine}" />
+                                                <TextBlock Text="{Binding SeasonalityHint}" FontSize="10"
+                                                           Foreground="{Binding SeasonalityColor}"
+                                                           Margin="16,0,0,0"
+                                                           IsVisible="{Binding HasSeasonality}" />
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>

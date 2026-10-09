@@ -28,6 +28,9 @@
                     <CheckBox IsChecked="{Binding ShowCardSeasonality}">
                         <TextBlock Text="Show seasonality badge" />
                     </CheckBox>
+                    <CheckBox IsChecked="{Binding ShowEditorSeasonality}">
+                        <TextBlock Text="Show seasonality hints in the recipe editor" TextWrapping="Wrap" />
+                    </CheckBox>
                     <CheckBox IsChecked="{Binding ShowCardNutrition}">
                         <TextBlock Text="Show nutrition (per serving)" />
                     </CheckBox>

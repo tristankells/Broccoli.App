@@ -68,6 +68,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<FoodDatabaseViewModel>();
         services.AddSingleton<RecipeSettingsViewModel>();
         services.AddSingleton<SeasonalitySettingsViewModel>();
+        services.AddSingleton<GroceriesSettingsViewModel>();
         services.AddSingleton<SettingsPageViewModel>();
         services.AddSingleton(serviceProvider => new Lazy<SettingsViewModel>(() => serviceProvider.GetRequiredService<SettingsViewModel>()));
 

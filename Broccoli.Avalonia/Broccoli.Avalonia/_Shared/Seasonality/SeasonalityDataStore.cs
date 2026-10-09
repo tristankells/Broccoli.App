@@ -2,6 +2,7 @@ using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Storage;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Broccoli.Avalonia.Seasonality;
 
@@ -55,6 +56,15 @@ public class SeasonalityDataStore : ISeasonalityDataStore
             context.SaveChanges();
             NotifyChanged();
         }
+    }
+
+    public void ReplaceAll(IReadOnlyList<ProduceItem> items)
+    {
+        using var context = BroccoliDbContext.CreateForApp();
+        context.ProduceItems.ExecuteDelete();
+        context.ProduceItems.AddRange(items);
+        context.SaveChanges();
+        NotifyChanged();
     }
 
     public void Reset()

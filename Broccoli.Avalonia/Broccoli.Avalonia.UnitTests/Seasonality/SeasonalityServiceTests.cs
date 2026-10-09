@@ -412,6 +412,23 @@ public class SeasonalityServiceTests
         Assert.IsNull(service.GetProduceStateForFood("Chicken", new DateTime(2000, 7, 15)));
     }
 
+    [TestMethod]
+    public void GetProduceDetailForFood_ReturnsDetailOrNull()
+    {
+        Mock<ISeasonalityDataStore> store = CreateStoreWithProduce(
+            new ProduceItem { Id = "feijoa", Name = "Feijoa", Type = "fruit", Months = OnlyInSeason([1]) });
+        SeasonalityService service = new(store.Object);
+
+        IngredientSeasonalityDetail? detail = service.GetProduceDetailForFood("Feijoa", new DateTime(2000, 1, 15));
+
+        Assert.IsNotNull(detail);
+        Assert.AreEqual("Feijoa", detail.Name);
+        Assert.AreEqual(SeasonalityState.InSeason, detail.State);
+        Assert.AreEqual(1, detail.EffectiveMonths, 0.001);
+        Assert.AreEqual(Math.Sqrt(12.0), detail.ScarcityWeight, 0.001); // gentle curve
+        Assert.IsNull(service.GetProduceDetailForFood("Chicken", new DateTime(2000, 1, 15)));
+    }
+
     private static Dictionary<int, SeasonalityState> AllInSeason() => OnlyInSeason([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
     private static ProduceItem Item(Dictionary<int, SeasonalityState> months) => new()

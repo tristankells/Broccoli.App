@@ -147,7 +147,7 @@ public partial class RecipesListViewModel : ViewModelBase
 
     private void ShowEdit(Recipe? existingRecipe)
     {
-        var edit = new RecipeEditViewModel(_recipeService, existingRecipe, _parser, _foodService, _macroService)
+        var edit = new RecipeEditViewModel(_recipeService, existingRecipe, _parser, _foodService, _macroService, _seasonalityService)
         {
             Saved = ShowList,
             Cancelled = ShowList,

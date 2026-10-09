@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Broccoli.Avalonia.Slices.Settings"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+             x:Class="Broccoli.Avalonia.Slices.Settings.GroceriesSettingsView"
+             x:DataType="vm:GroceriesSettingsViewModel">
+    <Design.DataContext>
+        <vm:GroceriesSettingsViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16" MaxWidth="500">
+            <TextBlock Text="Groceries" FontWeight="Bold" FontSize="16" />
+
+            <Border Padding="12" CornerRadius="4" Background="{DynamicResource AppSidebarBackgroundBrush}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Normalize units when adding" FontWeight="SemiBold" FontSize="13" />
+                    <TextBlock Text="When a grocery item matches a food with a known weight, it can be converted to a single weight unit at the moment it is added to the list. This keeps the list consistent to shop from regardless of how each recipe words its ingredients."
+                               FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+
+                    <ComboBox ItemsSource="{Binding UnitNormalizationOptions}"
+                              SelectedItem="{Binding SelectedUnitNormalizationOption}"
+                              HorizontalAlignment="Left" MinWidth="280">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:UnitNormalizationOption">
+                                <StackPanel Margin="0,2">
+                                    <TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="Gray" TextWrapping="Wrap" MaxWidth="440" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <TextBlock Text="For example, &quot;2 carrots&quot; becomes &quot;122g Carrot&quot; with a &quot;(~2 medium carrot)&quot; hint, and &quot;1 onion&quot; becomes &quot;110g Onion&quot; with a &quot;(~1 medium onion)&quot; hint. Items that cannot be matched to a known weight (e.g. &quot;2 packs tortillas&quot;) are left as-is."
+                               FontSize="11" Foreground="Gray" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="Gray"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <Button Content="Save Settings" Command="{Binding SaveCommand}" Classes="accent"
+                    HorizontalAlignment="Left" Padding="12,6" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,11 +1,13 @@
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Slices.Planning;
 
 namespace Broccoli.Avalonia.Slices.Groceries;
 
 public class IngredientCartService(
     IngredientParserService parser,
-    IGroceryListService groceryListService)
+    IGroceryListService groceryListService,
+    IMacroTargetService? macroTargetService = null)
 {
     private static readonly HashSet<string> s_ignoredFoods = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -37,7 +39,7 @@ public class IngredientCartService(
 
     public void AddToCart(IEnumerable<string> selectedLines)
     {
-        List<CartChange> changes = ComputeCartChanges(selectedLines);
+        List<CartChange> changes = ComputeCartChanges(selectedLines, GetNormalizationMode());
 
         foreach (CartChange change in changes.Where(c => c.IsUpdate))
         {
@@ -55,7 +57,7 @@ public class IngredientCartService(
 
     public List<CartPreviewData> PreviewAddToCart(IEnumerable<string> selectedLines)
     {
-        List<CartChange> changes = ComputeCartChanges(selectedLines);
+        List<CartChange> changes = ComputeCartChanges(selectedLines, GetNormalizationMode());
 
         List<CartPreviewData> preview = [];
 
@@ -63,10 +65,12 @@ public class IngredientCartService(
         {
             preview.Add(new CartPreviewData
             {
-                DisplayName = change.OriginalLine,
+                DisplayName = change.IsNormalized ? change.ResultName : change.OriginalLine,
                 FormattedLine = change.ResultName,
                 FoodName = ExtractFoodName(change.ResultName),
-                FoodMatchHint = change.FoodMatchHint,
+                FoodMatchHint = change.IsNormalized && change.ResultQuantityHint is not null
+                    ? change.ResultQuantityHint
+                    : change.FoodMatchHint,
                 OriginalLine = change.OriginalLine,
                 IsMerge = change.IsUpdate,
             });
@@ -137,7 +141,7 @@ public class IngredientCartService(
         return line;
     }
 
-    private List<CartChange> ComputeCartChanges(IEnumerable<string> selectedLines)
+    private List<CartChange> ComputeCartChanges(IEnumerable<string> selectedLines, GroceryUnitNormalization mode)
     {
         var lines = selectedLines
             .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -161,7 +165,7 @@ public class IngredientCartService(
         foreach (ParsedIngredientMatch newMatch in newMatches)
         {
             string originalLine = newMatch.ParsedIngredient.RawLine;
-            (GroceryListItem? existingItem, double existingQty, string? effectiveUnit) = FindMatch(newMatch, existingItems, claimedIds);
+            (GroceryListItem? existingItem, double existingQty, string? effectiveUnit) = FindMatch(newMatch, existingItems, claimedIds, mode);
 
             if (existingItem is not null)
             {
@@ -182,15 +186,19 @@ public class IngredientCartService(
                     ComputeHint(resultName, parser),
                     BuildFoodMatchHint(newMatch),
                     originalLine,
-                    true));
+                    true)
+                {
+                    IsNormalized = mode != GroceryUnitNormalization.Off && effectiveUnit == "g",
+                });
             }
             else
             {
+                (string name, string? hint, bool normalized) = BuildItem(newMatch, mode);
                 var newItem = new GroceryListItem
                 {
-                    Name = Format(newMatch),
+                    Name = name,
                     IsChecked = false,
-                    QuantityHint = newMatch.GetQuantityHint(),
+                    QuantityHint = hint ?? string.Empty,
                 };
                 changes.Add(new CartChange(
                     newItem,
@@ -198,11 +206,28 @@ public class IngredientCartService(
                     newItem.QuantityHint,
                     BuildFoodMatchHint(newMatch),
                     originalLine,
-                    false));
+                    false)
+                {
+                    IsNormalized = normalized,
+                });
             }
         }
 
         return changes;
+    }
+
+    private GroceryUnitNormalization GetNormalizationMode() =>
+        macroTargetService?.GetSettings().GroceryUnitNormalization ?? GroceryUnitNormalization.Off;
+
+    private static (string Name, string? Hint, bool IsNormalized) BuildItem(ParsedIngredientMatch match, GroceryUnitNormalization mode)
+    {
+        if (mode == GroceryUnitNormalization.Off)
+        {
+            return (Format(match), match.GetQuantityHint(), false);
+        }
+
+        (string name, string? hint) = GroceryUnitNormalizer.Normalize(match, mode);
+        return (name, hint, !string.Equals(name, Format(match), StringComparison.Ordinal));
     }
 
     private static string? BuildFoodMatchHint(ParsedIngredientMatch match)
@@ -225,7 +250,8 @@ public class IngredientCartService(
     private (GroceryListItem? Item, double ExistingQty, string EffectiveUnit) FindMatch(
         ParsedIngredientMatch newMatch,
         IEnumerable<GroceryListItem> existingItems,
-        HashSet<string> claimedIds)
+        HashSet<string> claimedIds,
+        GroceryUnitNormalization mode)
     {
         string newFood = NormalizeFood(newMatch.IsMatched
             ? newMatch.MatchedFood!.Name
@@ -274,6 +300,17 @@ public class IngredientCartService(
 
             if (newUnit == existingUnit)
             {
+                if (mode != GroceryUnitNormalization.Off)
+                {
+                    // Keep the merged item in a single weight unit so the list stays normalized.
+                    double itemGrams = existingMatch.GetWeightInGrams();
+                    double addedGrams = newMatch.GetWeightInGrams();
+                    if (itemGrams > 0 && addedGrams > 0)
+                    {
+                        return (item, itemGrams, "g");
+                    }
+                }
+
                 return (item, existingMatch.ParsedIngredient.Quantity, newUnit);
             }
 
@@ -294,5 +331,9 @@ public class IngredientCartService(
         string? ResultQuantityHint,
         string? FoodMatchHint,
         string OriginalLine,
-        bool IsUpdate);
+        bool IsUpdate)
+    {
+        /// <summary>True when the item was rewritten to a normalized weight line (grams/pounds).</summary>
+        public bool IsNormalized { get; init; }
+    }
 }

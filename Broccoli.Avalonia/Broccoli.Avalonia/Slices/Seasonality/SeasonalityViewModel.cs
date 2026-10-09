@@ -53,6 +53,9 @@ public partial class SeasonalityViewModel : ViewModelBase
     private string? _errorMessage;
 
     [ObservableProperty]
+    private string? _statusMessage;
+
+    [ObservableProperty]
     private int _inSeasonCount;
 
     [ObservableProperty]
@@ -81,6 +84,12 @@ public partial class SeasonalityViewModel : ViewModelBase
     }
 
     public string CurrentMonthName => MonthNames[SelectedMonthIndex];
+
+    /// <summary>Returns a local path to pick a JSON file to import, wired by the view to the platform file picker.</summary>
+    public Func<Task<string?>>? PickImportFilePath { get; set; }
+
+    /// <summary>Returns a local path to write the exported JSON to, wired by the view to the platform file picker.</summary>
+    public Func<Task<string?>>? PickExportFilePath { get; set; }
 
     public string CurrentSeasonName => Capitalise(SeasonHelper.GetCurrentSeason(SelectedMonthDate));
 
@@ -148,6 +157,86 @@ public partial class SeasonalityViewModel : ViewModelBase
         catch (Exception ex)
         {
             ErrorMessage = $"Failed to reset: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportProduce()
+    {
+        if (PickExportFilePath is null)
+        {
+            return;
+        }
+
+        try
+        {
+            string? path = await PickExportFilePath();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            List<ProduceItem> items = _store.GetAll();
+            await File.WriteAllTextAsync(path, SeasonalityFileSerializer.Serialize(items));
+            ErrorMessage = null;
+            StatusMessage = $"Exported {items.Count} produce items.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Export failed: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportProduce()
+    {
+        if (PickImportFilePath is null)
+        {
+            return;
+        }
+
+        try
+        {
+            string? path = await PickImportFilePath();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            string json = await File.ReadAllTextAsync(path);
+            if (!SeasonalityFileSerializer.TryParse(json, out List<ProduceItem> items, out List<string> errors))
+            {
+                ErrorMessage = errors.Count > 0 ? errors[0] : "Import failed: the file couldn't be read.";
+                return;
+            }
+
+            var dialogViewModel = new SeasonalityImportPreviewViewModel(
+                items.Select(i => i.Name).ToList(),
+                errors)
+            {
+                ConfirmAction = () => ApplyImport(items, path),
+            };
+            var dialog = new SeasonalityImportPreviewDialog { DataContext = dialogViewModel };
+            dialog.Show();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Import failed: {ex.Message}";
+        }
+    }
+
+    private void ApplyImport(List<ProduceItem> items, string path)
+    {
+        try
+        {
+            RunSuppressed(() => _store.ReplaceAll(items));
+            ErrorMessage = null;
+            Load();
+            StatusMessage = $"Imported {items.Count} produce items from {Path.GetFileName(path)}.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Import failed: {ex.Message}";
         }
     }
 

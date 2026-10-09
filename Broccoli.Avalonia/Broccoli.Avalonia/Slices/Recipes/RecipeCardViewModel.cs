@@ -65,10 +65,6 @@ internal partial class RecipeCardViewModel : ViewModelBase
     /// <summary>Numeric seasonality score (0-100), or null when unavailable. Used for sorting.</summary>
     public double? SeasonScoreValue { get; set; }
 
-    /// <summary>Coverage label such as "3 of 12 ingredients matched".</summary>
-    [ObservableProperty]
-    private string _seasonCoverageText = string.Empty;
-
     [ObservableProperty]
     private string _seasonBandLabel = string.Empty;
 
@@ -168,7 +164,6 @@ internal partial class RecipeCardViewModel : ViewModelBase
             SeasonScore = seasonality?.Score is double score ? $"{score:0}" : string.Empty,
             SeasonBand = seasonality?.Band ?? SeasonalityBand.Unavailable,
             SeasonScoreValue = seasonality?.Score,
-            SeasonCoverageText = seasonality?.CoverageText ?? string.Empty,
             SeasonBandLabel = seasonality?.Band is SeasonalityBand band && band != SeasonalityBand.Unavailable
                 ? SeasonalityBandVisuals.Label(band)
                 : string.Empty,

@@ -9,16 +9,17 @@ public partial class SettingsPageViewModel : ViewModelBase
     private int _currentTabIndex;
 
     public SettingsPageViewModel()
-        : this(new SettingsViewModel(), new FoodDatabaseViewModel(), new RecipeSettingsViewModel(), new SeasonalitySettingsViewModel())
+        : this(new SettingsViewModel(), new FoodDatabaseViewModel(), new RecipeSettingsViewModel(), new SeasonalitySettingsViewModel(), new GroceriesSettingsViewModel())
     {
     }
 
-    public SettingsPageViewModel(SettingsViewModel sync, FoodDatabaseViewModel foodDatabase, RecipeSettingsViewModel recipeSettings, SeasonalitySettingsViewModel seasonalitySettings)
+    public SettingsPageViewModel(SettingsViewModel sync, FoodDatabaseViewModel foodDatabase, RecipeSettingsViewModel recipeSettings, SeasonalitySettingsViewModel seasonalitySettings, GroceriesSettingsViewModel groceriesSettings)
     {
         Sync = sync;
         FoodDatabase = foodDatabase;
         RecipeSettings = recipeSettings;
         SeasonalitySettings = seasonalitySettings;
+        GroceriesSettings = groceriesSettings;
     }
 
     public SettingsViewModel Sync { get; }
@@ -28,4 +29,6 @@ public partial class SettingsPageViewModel : ViewModelBase
     public RecipeSettingsViewModel RecipeSettings { get; }
 
     public SeasonalitySettingsViewModel SeasonalitySettings { get; }
+
+    public GroceriesSettingsViewModel GroceriesSettings { get; }
 }

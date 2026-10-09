@@ -49,6 +49,12 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         _pantryService = pantryService;
         _ingredientSearchService = ingredientSearchService;
 
+        ScoringMonthOptions = Enumerable.Range(1, 12)
+            .Select(m => new ScoringMonthOption(m, System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(m)))
+            .ToList();
+        _selectedScoringMonth = ScoringMonthOptions[DateTime.Today.Month - 1];
+        RefreshSeasonalityMenuTitle();
+
         WeakReferenceMessenger.Default.Register<CardSettingsChangedMessage>(this, (_, _) => _ = ReloadAsync());
     }
 
@@ -91,27 +97,35 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     public partial bool IsIngredientSearchEnabled { get; set; } = true;
 
     /// <summary>
-    /// The date seasonality is scored against (defaults to today). Picking a future date previews
-    /// which recipes will be seasonal for that week, so meal planning can look ahead.
+    /// The month (1-12) seasonality is scored against, chosen from the "Seasonality" dropdown.
+    /// Defaults to the current month so the list reflects what's in season right now.
     /// </summary>
     [ObservableProperty]
-    public partial DateTime? AsOfDate { get; set; } = DateTime.Today;
+    private ScoringMonthOption? _selectedScoringMonth;
 
-    /// <summary>Which seasonality band to show (All = no filtering).</summary>
+    /// <summary>True shows every band; mutually exclusive with the individual band checkboxes.</summary>
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsAllFilterActive))]
-    [NotifyPropertyChangedFor(nameof(IsGreenFilterActive))]
-    [NotifyPropertyChangedFor(nameof(IsYellowFilterActive))]
-    [NotifyPropertyChangedFor(nameof(IsRedFilterActive))]
-    private SeasonalityFilter _seasonalityFilter = SeasonalityFilter.All;
+    private bool _isAllFilterActive = true;
 
-    public bool IsAllFilterActive => SeasonalityFilter == SeasonalityFilter.All;
+    [ObservableProperty]
+    private bool _isGreenFilterActive;
 
-    public bool IsGreenFilterActive => SeasonalityFilter == SeasonalityFilter.Green;
+    [ObservableProperty]
+    private bool _isYellowFilterActive;
 
-    public bool IsYellowFilterActive => SeasonalityFilter == SeasonalityFilter.Yellow;
+    [ObservableProperty]
+    private bool _isRedFilterActive;
 
-    public bool IsRedFilterActive => SeasonalityFilter == SeasonalityFilter.Red;
+    /// <summary>Button label for the Seasonality dropdown, e.g. "Feb · Green, Yellow".</summary>
+    [ObservableProperty]
+    private string _seasonalityMenuTitle = string.Empty;
+
+    /// <summary>The 12 month choices for the Seasonality dropdown (abbreviated names).</summary>
+    public IReadOnlyList<ScoringMonthOption> ScoringMonthOptions { get; }
+
+    private bool _suppressFilterSync;
+
+    public int ScoringMonth => SelectedScoringMonth?.Month ?? DateTime.Today.Month;
 
     /// <summary>True shows the compact list view (no images); false shows the image cards.</summary>
     [ObservableProperty]
@@ -372,7 +386,7 @@ internal partial class RecipeListPageViewModel : ViewModelBase
             .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        DateTime? asOf = AsOfDate ?? DateTime.Today;
+        DateTime? asOf = new DateTime(2000, ScoringMonth, 1);
         SeasonalityThresholds? thresholds = _macroService is null
             ? null
             : SeasonalityThresholds.FromSettings(_macroService.GetSettings());
@@ -477,12 +491,131 @@ internal partial class RecipeListPageViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
 
-    partial void OnAsOfDateChanged(DateTime? value) => _ = ReloadAsync();
+    partial void OnSelectedScoringMonthChanged(ScoringMonthOption? value)
+    {
+        RefreshSeasonalityMenuTitle();
+        _ = ReloadAsync();
+    }
 
-    partial void OnSeasonalityFilterChanged(SeasonalityFilter value) => ApplyFilter();
+    /// <summary>
+    /// Checking "All" unchecks every band; checking any band unchecks "All". At least one of the
+    /// four stays selected, so there is never an empty (ambiguous) filter state.
+    /// </summary>
+    partial void OnIsAllFilterActiveChanged(bool value)
+    {
+        if (_suppressFilterSync)
+        {
+            return;
+        }
 
-    [RelayCommand]
-    private void SetSeasonalityFilter(SeasonalityFilter filter) => SeasonalityFilter = filter;
+        if (value)
+        {
+            _suppressFilterSync = true;
+            IsGreenFilterActive = false;
+            IsYellowFilterActive = false;
+            IsRedFilterActive = false;
+            _suppressFilterSync = false;
+        }
+
+        RefreshSeasonalityMenuTitle();
+        ApplyFilter();
+    }
+
+    partial void OnIsGreenFilterActiveChanged(bool value)
+    {
+        if (_suppressFilterSync)
+        {
+            return;
+        }
+
+        if (value)
+        {
+            _suppressFilterSync = true;
+            IsAllFilterActive = false;
+            _suppressFilterSync = false;
+        }
+        else if (!IsAllFilterActive && !IsYellowFilterActive && !IsRedFilterActive)
+        {
+            IsAllFilterActive = true;
+            return;
+        }
+
+        RefreshSeasonalityMenuTitle();
+        ApplyFilter();
+    }
+
+    partial void OnIsYellowFilterActiveChanged(bool value)
+    {
+        if (_suppressFilterSync)
+        {
+            return;
+        }
+
+        if (value)
+        {
+            _suppressFilterSync = true;
+            IsAllFilterActive = false;
+            _suppressFilterSync = false;
+        }
+        else if (!IsAllFilterActive && !IsGreenFilterActive && !IsRedFilterActive)
+        {
+            IsAllFilterActive = true;
+            return;
+        }
+
+        RefreshSeasonalityMenuTitle();
+        ApplyFilter();
+    }
+
+    partial void OnIsRedFilterActiveChanged(bool value)
+    {
+        if (_suppressFilterSync)
+        {
+            return;
+        }
+
+        if (value)
+        {
+            _suppressFilterSync = true;
+            IsAllFilterActive = false;
+            _suppressFilterSync = false;
+        }
+        else if (!IsAllFilterActive && !IsGreenFilterActive && !IsYellowFilterActive)
+        {
+            IsAllFilterActive = true;
+            return;
+        }
+
+        RefreshSeasonalityMenuTitle();
+        ApplyFilter();
+    }
+
+    private void RefreshSeasonalityMenuTitle()
+    {
+        string month = SelectedScoringMonth?.Name ?? string.Empty;
+        string filter = IsAllFilterActive || (!IsGreenFilterActive && !IsYellowFilterActive && !IsRedFilterActive)
+            ? "All"
+            : string.Join(", ", ActiveBandLabels());
+        SeasonalityMenuTitle = $"{month} · {filter}";
+    }
+
+    private IEnumerable<string> ActiveBandLabels()
+    {
+        if (IsGreenFilterActive)
+        {
+            yield return "Green";
+        }
+
+        if (IsYellowFilterActive)
+        {
+            yield return "Yellow";
+        }
+
+        if (IsRedFilterActive)
+        {
+            yield return "Red";
+        }
+    }
 
     partial void OnIsTitleSearchEnabledChanged(bool value) => ApplyFilter();
 
@@ -494,13 +627,26 @@ internal partial class RecipeListPageViewModel : ViewModelBase
     {
         IEnumerable<RecipeCardViewModel> query = _allCards;
 
-        if (SeasonalityFilter != SeasonalityFilter.All)
+        bool showAll = IsAllFilterActive || (!IsGreenFilterActive && !IsYellowFilterActive && !IsRedFilterActive);
+        if (!showAll)
         {
-            SeasonalityBand? band = BandForFilter(SeasonalityFilter);
-            if (band is not null)
+            var bands = new List<SeasonalityBand>(3);
+            if (IsGreenFilterActive)
             {
-                query = query.Where(card => card.SeasonBand == band.Value);
+                bands.Add(SeasonalityBand.Green);
             }
+
+            if (IsYellowFilterActive)
+            {
+                bands.Add(SeasonalityBand.Yellow);
+            }
+
+            if (IsRedFilterActive)
+            {
+                bands.Add(SeasonalityBand.Red);
+            }
+
+            query = query.Where(card => bands.Contains(card.SeasonBand));
         }
 
         if (!string.IsNullOrEmpty(SearchText))
@@ -545,14 +691,6 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         RebuildSortedList();
     }
 
-    private static SeasonalityBand? BandForFilter(SeasonalityFilter filter) => filter switch
-    {
-        SeasonalityFilter.Green => SeasonalityBand.Green,
-        SeasonalityFilter.Yellow => SeasonalityBand.Yellow,
-        SeasonalityFilter.Red => SeasonalityBand.Red,
-        _ => null,
-    };
-
     [RelayCommand]
     private void AddRecipe() => AddRecipeRequested?.Invoke();
 
@@ -585,3 +723,6 @@ internal partial class RecipeListPageViewModel : ViewModelBase
         dialog.Show();
     }
 }
+
+/// <summary>One month choice for the Seasonality dropdown.</summary>
+public sealed record ScoringMonthOption(int Month, string Name);

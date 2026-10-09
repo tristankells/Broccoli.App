@@ -253,6 +253,10 @@ namespace Broccoli.Avalonia.Storage.Migrations
                         .HasColumnType("REAL")
                         .HasJsonPropertyName("fatPercent");
 
+                    b.Property<int>("GroceryUnitNormalization")
+                        .HasColumnType("INTEGER")
+                        .HasJsonPropertyName("groceryUnitNormalization");
+
                     b.Property<string>("PartitionKey")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -335,6 +339,10 @@ namespace Broccoli.Avalonia.Storage.Migrations
                     b.Property<bool>("ShowCardTags")
                         .HasColumnType("INTEGER")
                         .HasJsonPropertyName("showCardTags");
+
+                    b.Property<bool>("ShowRecipeEditorSeasonality")
+                        .HasColumnType("INTEGER")
+                        .HasJsonPropertyName("showRecipeEditorSeasonality");
 
                     b.Property<bool>("ShowRecipesAsList")
                         .HasColumnType("INTEGER")

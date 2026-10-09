@@ -31,5 +31,10 @@
                 <ContentControl Content="{Binding SeasonalitySettings}" />
             </ScrollViewer>
         </TabItem>
+        <TabItem Header="Groceries">
+            <ScrollViewer>
+                <ContentControl Content="{Binding GroceriesSettings}" />
+            </ScrollViewer>
+        </TabItem>
     </TabControl>
 </UserControl>

@@ -23,6 +23,9 @@ public interface ISeasonalityDataStore
     /// <summary>Deletes a produce item by id.</summary>
     void Delete(string id);
 
+    /// <summary>Replaces the entire dataset with the given items (used by import).</summary>
+    void ReplaceAll(IReadOnlyList<ProduceItem> items);
+
     /// <summary>Restores the dataset to the embedded seed data, discarding edits and additions.</summary>
     void Reset();
 }

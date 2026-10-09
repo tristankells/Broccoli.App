@@ -34,7 +34,11 @@ public static class SeasonHelper
     /// </summary>
     public static double GetScarcityWeight(ProduceItem item) => GetScarcityWeight(item, SeasonalityInfluenceMode.Gentle);
 
-    public static double GetScarcityWeight(ProduceItem item, SeasonalityInfluenceMode mode)
+    /// <summary>
+    /// Number of effective in-season months the item has across the year (a partially-in-season
+    /// month counts as half).
+    /// </summary>
+    public static double GetEffectiveMonths(ProduceItem item)
     {
         double effectiveMonths = 0;
         for (int month = 1; month <= 12; month++)
@@ -47,7 +51,12 @@ public static class SeasonHelper
             };
         }
 
-        effectiveMonths = Math.Max(effectiveMonths, 1.0);
+        return effectiveMonths;
+    }
+
+    public static double GetScarcityWeight(ProduceItem item, SeasonalityInfluenceMode mode)
+    {
+        double effectiveMonths = Math.Max(GetEffectiveMonths(item), 1.0);
 
         return mode switch
         {

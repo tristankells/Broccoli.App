@@ -121,6 +121,28 @@ public class SeasonalityService : ISeasonalityService
         return produce.GetStateForMonth((asOf ?? DateTime.Now).Month);
     }
 
+    /// <inheritdoc />
+    public IngredientSeasonalityDetail? GetProduceDetailForFood(
+        string foodName,
+        DateTime? asOf = null,
+        SeasonalityInfluenceMode influenceMode = SeasonalityInfluenceMode.Gentle)
+    {
+        Dictionary<string, ProduceItem> lookup = GetLookup();
+        ProduceItem? produce = LookupProduce(foodName, lookup);
+        if (produce is null)
+        {
+            return null;
+        }
+
+        return new IngredientSeasonalityDetail
+        {
+            Name = produce.Name,
+            State = produce.GetStateForMonth((asOf ?? DateTime.Now).Month),
+            ScarcityWeight = SeasonHelper.GetScarcityWeight(produce, influenceMode),
+            EffectiveMonths = SeasonHelper.GetEffectiveMonths(produce),
+        };
+    }
+
     private SeasonalityResult ScoreCore(IEnumerable<ParsedIngredientMatch> matches, DateTime? asOf, SeasonalityInfluenceMode influenceMode)
     {
         int month = (asOf ?? DateTime.Now).Month;
@@ -288,7 +310,7 @@ public class SeasonalityService : ISeasonalityService
             double scarcity = SeasonHelper.GetScarcityWeight(produce, influenceMode);
             double possible = scarcity * grams;
             double contribution = factor * possible;
-            breakdown.Add(new IngredientSeasonalityDetail { Name = produce.Name, State = state, ScarcityWeight = scarcity, WeightInGrams = grams });
+            breakdown.Add(new IngredientSeasonalityDetail { Name = produce.Name, State = state, ScarcityWeight = scarcity, EffectiveMonths = SeasonHelper.GetEffectiveMonths(produce), WeightInGrams = grams });
             totalWeighted += contribution;
             totalPossible += possible;
         }

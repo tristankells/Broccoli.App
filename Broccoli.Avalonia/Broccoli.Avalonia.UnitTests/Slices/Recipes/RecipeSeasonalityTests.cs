@@ -11,7 +11,7 @@ namespace Broccoli.Avalonia.Tests.Slices.Recipes;
 public class RecipeSeasonalityTests
 {
     [TestMethod]
-    public void Card_ExposesBandLabelScoreAndCoverage()
+    public void Card_ExposesBandLabelAndScore()
     {
         RecipeCardViewModel card = RecipeCardViewModel.FromRecipe(
             new Recipe { Name = "Curry" },
@@ -24,8 +24,6 @@ public class RecipeSeasonalityTests
             {
                 Score = 90,
                 Band = SeasonalityBand.Green,
-                MatchedProduceCount = 2,
-                TotalIngredientCount = 5,
             });
 
         Assert.AreEqual(SeasonalityBand.Green, card.SeasonBand);
@@ -33,7 +31,6 @@ public class RecipeSeasonalityTests
         Assert.AreEqual("#2ECC71", card.SeasonColor);
         Assert.AreEqual(90, card.SeasonScoreValue);
         Assert.AreEqual("90", card.SeasonScore);
-        Assert.AreEqual("2 of 5 ingredients matched", card.SeasonCoverageText);
         Assert.AreEqual("Green", card.ColumnText(RecipeListColumn.Seasonality));
         Assert.IsTrue(card.HasSeasonality);
     }
@@ -50,7 +47,6 @@ public class RecipeSeasonalityTests
         Assert.IsFalse(card.HasSeasonality);
         Assert.AreEqual(string.Empty, card.SeasonBandLabel);
         Assert.AreEqual("Gray", card.SeasonColor);
-        Assert.AreEqual(string.Empty, card.SeasonCoverageText);
     }
 
     [TestMethod]
@@ -62,7 +58,7 @@ public class RecipeSeasonalityTests
             ("Yellow Soup", SeasonalityBand.Yellow, 50));
         viewModel.Reload();
 
-        viewModel.SeasonalityFilter = SeasonalityFilter.Green;
+        viewModel.IsGreenFilterActive = true;
 
         Assert.HasCount(1, viewModel.FilteredRecipes);
         Assert.AreEqual("Green Stew", viewModel.FilteredRecipes.First().Name);
@@ -77,10 +73,77 @@ public class RecipeSeasonalityTests
             ("Yellow Soup", SeasonalityBand.Yellow, 50));
         viewModel.Reload();
 
-        viewModel.SeasonalityFilter = SeasonalityFilter.Red;
+        viewModel.IsRedFilterActive = true;
 
         Assert.HasCount(1, viewModel.FilteredRecipes);
         Assert.AreEqual("Red Salad", viewModel.FilteredRecipes.First().Name);
+    }
+
+    [TestMethod]
+    public void Filter_ByGreenAndYellow_KeepsBothBands()
+    {
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            ("Green Stew", SeasonalityBand.Green, 90),
+            ("Red Salad", SeasonalityBand.Red, 10),
+            ("Yellow Soup", SeasonalityBand.Yellow, 50));
+        viewModel.Reload();
+
+        viewModel.IsGreenFilterActive = true;
+        viewModel.IsYellowFilterActive = true;
+
+        Assert.HasCount(2, viewModel.FilteredRecipes);
+        Assert.IsTrue(viewModel.FilteredRecipes.Any(c => c.Name == "Green Stew"));
+        Assert.IsTrue(viewModel.FilteredRecipes.Any(c => c.Name == "Yellow Soup"));
+    }
+
+    [TestMethod]
+    public void Filter_CheckingABand_UnchecksAll()
+    {
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            ("Green Stew", SeasonalityBand.Green, 90),
+            ("Yellow Soup", SeasonalityBand.Yellow, 50));
+        viewModel.Reload();
+
+        Assert.IsTrue(viewModel.IsAllFilterActive);
+
+        viewModel.IsGreenFilterActive = true;
+
+        Assert.IsFalse(viewModel.IsAllFilterActive);
+        Assert.IsTrue(viewModel.IsGreenFilterActive);
+    }
+
+    [TestMethod]
+    public void Filter_CheckingAll_UnchecksTheBands()
+    {
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            ("Green Stew", SeasonalityBand.Green, 90),
+            ("Yellow Soup", SeasonalityBand.Yellow, 50));
+        viewModel.Reload();
+
+        viewModel.IsGreenFilterActive = true;
+        viewModel.IsYellowFilterActive = true;
+        Assert.IsFalse(viewModel.IsAllFilterActive);
+
+        viewModel.IsAllFilterActive = true;
+
+        Assert.IsTrue(viewModel.IsAllFilterActive);
+        Assert.IsFalse(viewModel.IsGreenFilterActive);
+        Assert.IsFalse(viewModel.IsYellowFilterActive);
+    }
+
+    [TestMethod]
+    public void Filter_UncheckingLastBand_RestoresAll()
+    {
+        RecipeListPageViewModel viewModel = CreateViewModel(
+            ("Green Stew", SeasonalityBand.Green, 90));
+        viewModel.Reload();
+
+        viewModel.IsGreenFilterActive = true;
+        Assert.IsFalse(viewModel.IsAllFilterActive);
+
+        viewModel.IsGreenFilterActive = false;
+
+        Assert.IsTrue(viewModel.IsAllFilterActive);
     }
 
     [TestMethod]
@@ -102,20 +165,20 @@ public class RecipeSeasonalityTests
     }
 
     [TestMethod]
-    public void AsOfDate_ScopesSeasonalityToChosenMonth()
+    public void ScoringMonth_ScopesSeasonalityToChosenMonth()
     {
         IngredientParserService parser = CreateFeijoaParser();
         ISeasonalityService seasonality = CreateFeijoaSeasonality();
 
         // January: feijoa is in season -> Green.
         RecipeListPageViewModel january = CreateRealViewModel(parser, seasonality);
-        january.AsOfDate = new DateTime(2000, 1, 15);
+        january.SelectedScoringMonth = january.ScoringMonthOptions[0];
         january.Reload();
         Assert.AreEqual(SeasonalityBand.Green, january.FilteredRecipes.First().SeasonBand);
 
         // July: feijoa is out of season -> Red.
         RecipeListPageViewModel july = CreateRealViewModel(parser, seasonality);
-        july.AsOfDate = new DateTime(2000, 7, 15);
+        july.SelectedScoringMonth = july.ScoringMonthOptions[6];
         july.Reload();
         Assert.AreEqual(SeasonalityBand.Red, july.FilteredRecipes.First().SeasonBand);
     }

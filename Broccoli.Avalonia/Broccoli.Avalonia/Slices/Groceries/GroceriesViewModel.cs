@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
 using Broccoli.Avalonia.Shared;
+using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -14,6 +15,7 @@ public partial class GroceriesViewModel : ViewModelBase
 {
     private readonly IGroceryListService _groceryListService;
     private readonly IngredientParserService? _parser;
+    private readonly IMacroTargetService? _macroTargetService;
 
     [ObservableProperty]
     private string _newItemText = string.Empty;
@@ -27,14 +29,15 @@ public partial class GroceriesViewModel : ViewModelBase
     private bool _isHandlingCheckChanged;
 
     public GroceriesViewModel()
-        : this(new GroceryListService(), null!)
+        : this(new GroceryListService(), null!, null)
     {
     }
 
-    public GroceriesViewModel(IGroceryListService groceryListService, IngredientParserService? parser = null)
+    public GroceriesViewModel(IGroceryListService groceryListService, IngredientParserService? parser = null, IMacroTargetService? macroTargetService = null)
     {
         _groceryListService = groceryListService;
         _parser = parser;
+        _macroTargetService = macroTargetService;
         WeakReferenceMessenger.Default.Register<GroceryListChangedMessage>(this, (_, _) => LoadItems());
         LoadItems();
     }
@@ -94,15 +97,32 @@ public partial class GroceriesViewModel : ViewModelBase
 
         try
         {
-            ParsedIngredientMatch? match = FindQuantityHintMatch(name);
-            string? hint = match?.GetQuantityHint();
+            GroceryUnitNormalization mode = GetNormalizationMode();
+            string itemName = name;
+            string? hint = null;
+            ParsedIngredientMatch? match = null;
+
+            if (mode != GroceryUnitNormalization.Off && _parser is not null)
+            {
+                match = _parser.ParseAndMatchIngredients(name).FirstOrDefault(candidate => candidate.IsMatched);
+                if (match is not null)
+                {
+                    (itemName, hint) = GroceryUnitNormalizer.Normalize(match, mode);
+                }
+            }
+
+            if (hint is null)
+            {
+                match = FindQuantityHintMatch(itemName);
+                hint = match?.GetQuantityHint();
+            }
 
             var item = new GroceryListItem
             {
-                Name = name,
+                Name = itemName,
                 IsChecked = false,
                 QuantityHint = hint ?? string.Empty,
-                MatchedFoodInfo = hint is not null ? FormatMatchInfo(match!) : null,
+                MatchedFoodInfo = hint is not null && match is not null ? FormatMatchInfo(match) : null,
             };
 
             GroceryListItem created = _groceryListService.Add(item);
@@ -192,13 +212,30 @@ public partial class GroceriesViewModel : ViewModelBase
             return;
         }
 
-        item.Name = newName;
-        item.IsEditing = false;
+        GroceryUnitNormalization mode = GetNormalizationMode();
+        string itemName = newName;
+        string? hint = null;
+        ParsedIngredientMatch? match = null;
 
-        ParsedIngredientMatch? match = FindQuantityHintMatch(item.Name);
-        string? hint = match?.GetQuantityHint();
+        if (mode != GroceryUnitNormalization.Off && _parser is not null)
+        {
+            match = _parser.ParseAndMatchIngredients(newName).FirstOrDefault(candidate => candidate.IsMatched);
+            if (match is not null)
+            {
+                (itemName, hint) = GroceryUnitNormalizer.Normalize(match, mode);
+            }
+        }
+
+        if (hint is null)
+        {
+            match = FindQuantityHintMatch(itemName);
+            hint = match?.GetQuantityHint();
+        }
+
+        item.Name = itemName;
+        item.IsEditing = false;
         item.QuantityHint = hint ?? string.Empty;
-        item.MatchedFoodInfo = hint is not null ? FormatMatchInfo(match!) : null;
+        item.MatchedFoodInfo = hint is not null && match is not null ? FormatMatchInfo(match) : null;
 
         try
         {
@@ -283,6 +320,9 @@ public partial class GroceriesViewModel : ViewModelBase
         int targetIndex = Items.Count(candidate => !candidate.IsChecked) - (item.IsChecked ? 0 : 1);
         Items.Move(oldIndex, targetIndex);
     }
+
+    private GroceryUnitNormalization GetNormalizationMode() =>
+        _macroTargetService?.GetSettings().GroceryUnitNormalization ?? GroceryUnitNormalization.Off;
 
     private ParsedIngredientMatch? FindQuantityHintMatch(string itemName)
     {

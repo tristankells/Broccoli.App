@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Broccoli.Avalonia.IngredientParsing;
 using Broccoli.Avalonia.Models;
+using Broccoli.Avalonia.Seasonality;
 using Broccoli.Avalonia.Shared;
 using Broccoli.Avalonia.Slices.Planning;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,6 +15,7 @@ public partial class RecipeEditViewModel : ViewModelBase
     private readonly IngredientParserService? _parser;
     private readonly IFoodService? _foodService;
     private readonly IMacroTargetService? _macroService;
+    private readonly ISeasonalityService? _seasonalityService;
     private readonly bool _wasExistingOnOpen;
 
     private Recipe _recipe;
@@ -74,12 +76,14 @@ public partial class RecipeEditViewModel : ViewModelBase
         Recipe? existingRecipe,
         IngredientParserService? parser,
         IFoodService? foodService,
-        IMacroTargetService? macroService)
+        IMacroTargetService? macroService,
+        ISeasonalityService? seasonalityService = null)
     {
         _recipeService = recipeService;
         _parser = parser;
         _foodService = foodService;
         _macroService = macroService;
+        _seasonalityService = seasonalityService;
         _wasExistingOnOpen = existingRecipe is not null;
         _persisted = _wasExistingOnOpen;
         _recipe = existingRecipe ?? new Recipe();
@@ -101,6 +105,7 @@ public partial class RecipeEditViewModel : ViewModelBase
         }
 
         LoadMacroComparison();
+        LoadSeasonalitySettings();
     }
 
     public bool IsNew => !_wasExistingOnOpen;
@@ -118,6 +123,27 @@ public partial class RecipeEditViewModel : ViewModelBase
     public string RecipeIdForImages => _recipe.Id;
 
     public ObservableCollection<ParsedIngredientRow> ParsedMatches { get; } = new();
+
+    /// <summary>True when seasonality hints are shown in the editor (enabled in settings and a seasonality service is available).</summary>
+    public bool ShowSeasonality { get; private set; }
+
+    /// <summary>Label such as "Seasonality for March" shown above the ingredient list.</summary>
+    public string SeasonalityMonthLabel { get; private set; } = string.Empty;
+
+    /// <summary>Overall seasonality result for the current ingredients.</summary>
+    public SeasonalityResult? Seasonality { get; private set; }
+
+    /// <summary>True when the current ingredients produced a seasonality score.</summary>
+    public bool HasSeasonality => ShowSeasonality && Seasonality?.Breakdown.Count > 0;
+
+    /// <summary>Band label ("Green"/"Yellow"/"Red") for the recipe's seasonality.</summary>
+    public string SeasonalityBandLabel => Seasonality is { Score: not null } && Seasonality.Band != SeasonalityBand.Unavailable
+        ? SeasonalityBandVisuals.Label(Seasonality.Band)
+        : string.Empty;
+
+    public string SeasonScoreText => Seasonality?.Score is double s ? $"{s:0} / 100" : string.Empty;
+
+    public string SeasonScoreColor => SeasonalityBandVisuals.Color(Seasonality?.Band ?? SeasonalityBand.Unavailable);
 
     public double TotalCalories { get; private set; }
 
@@ -304,8 +330,85 @@ public partial class RecipeEditViewModel : ViewModelBase
             ParsedMatches[topFatIdx].IsTopFat = true;
         }
 
+        RefreshSeasonality(matches);
         RefreshNutrition();
         RefreshComparison();
+    }
+
+    private void LoadSeasonalitySettings()
+    {
+        bool enabledInSettings = _macroService?.GetSettings().ShowRecipeEditorSeasonality ?? true;
+        ShowSeasonality = _seasonalityService is not null && enabledInSettings;
+        SeasonalityMonthLabel = $"Seasonality for {System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(DateTime.Today.Month)}";
+    }
+
+    /// <summary>
+    /// Annotates each parsed ingredient with its seasonality detail for the current month: the
+    /// produce it matched, its state, and how many points it adds to / costs the overall score.
+    /// </summary>
+    private void RefreshSeasonality(List<ParsedIngredientMatch> matches)
+    {
+        foreach (ParsedIngredientRow row in ParsedMatches)
+        {
+            row.ApplySeasonality(null, null);
+        }
+
+        Seasonality = null;
+        if (!ShowSeasonality || _seasonalityService is null)
+        {
+            RaiseSeasonalityChanged();
+            return;
+        }
+
+        SeasonalityThresholds thresholds = _macroService is null
+            ? SeasonalityThresholds.Default
+            : SeasonalityThresholds.FromSettings(_macroService.GetSettings());
+        DateTime asOf = new(DateTime.Today.Year, DateTime.Today.Month, 1);
+        SeasonalityResult result = _seasonalityService.Score(matches, asOf, thresholds);
+        Seasonality = result;
+        double totalPossible = result.Breakdown.Sum(b => b.ScarcityWeight * b.WeightInGrams);
+
+        for (int i = 0; i < ParsedMatches.Count && i < matches.Count; i++)
+        {
+            ParsedIngredientRow row = ParsedMatches[i];
+            ParsedIngredientMatch match = matches[i];
+            if (!row.IsMatched || match.MatchedFood is null)
+            {
+                continue;
+            }
+
+            IngredientSeasonalityDetail? detail = _seasonalityService.GetProduceDetailForFood(
+                match.MatchedFood.Name, asOf, thresholds.InfluenceMode);
+            if (detail is null)
+            {
+                continue;
+            }
+
+            double possible = detail.ScarcityWeight * row.WeightInGrams;
+            double factor = detail.State switch
+            {
+                SeasonalityState.InSeason => 1.0,
+                SeasonalityState.PartiallyInSeason => 0.5,
+                _ => 0.0,
+            };
+            double? impact = totalPossible > 0
+                ? detail.State == SeasonalityState.OutOfSeason
+                    ? -possible / totalPossible * 100.0
+                    : factor * possible / totalPossible * 100.0
+                : null;
+            row.ApplySeasonality(detail, impact);
+        }
+
+        RaiseSeasonalityChanged();
+    }
+
+    private void RaiseSeasonalityChanged()
+    {
+        OnPropertyChanged(nameof(Seasonality));
+        OnPropertyChanged(nameof(HasSeasonality));
+        OnPropertyChanged(nameof(SeasonalityBandLabel));
+        OnPropertyChanged(nameof(SeasonScoreText));
+        OnPropertyChanged(nameof(SeasonScoreColor));
     }
 
     private void RefreshNutrition()

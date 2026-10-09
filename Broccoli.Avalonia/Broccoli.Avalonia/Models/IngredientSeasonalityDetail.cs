@@ -17,6 +17,9 @@ public class IngredientSeasonalityDetail
     /// </summary>
     public double ScarcityWeight { get; init; }
 
+    /// <summary>Number of effective in-season months per year (a partially-in-season month counts as half).</summary>
+    public double EffectiveMonths { get; init; }
+
     /// <summary>Weight in grams used for this ingredient's contribution.</summary>
     public double WeightInGrams { get; init; }
 

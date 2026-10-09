@@ -26,4 +26,14 @@ public interface ISeasonalityService
     /// food doesn't map to a produce dataset entry. Used to flag out-of-season groceries.
     /// </summary>
     SeasonalityState? GetProduceStateForFood(string foodName, DateTime? asOf = null);
+
+    /// <summary>
+    /// Returns the seasonality detail (produce name, state for the date, scarcity weight, effective
+    /// months) for a single food name, or null when it doesn't map to a produce dataset entry.
+    /// Used by the recipe editor to annotate each ingredient.
+    /// </summary>
+    IngredientSeasonalityDetail? GetProduceDetailForFood(
+        string foodName,
+        DateTime? asOf = null,
+        SeasonalityInfluenceMode influenceMode = SeasonalityInfluenceMode.Gentle);
 }

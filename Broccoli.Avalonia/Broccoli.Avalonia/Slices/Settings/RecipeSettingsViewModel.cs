@@ -27,6 +27,8 @@ public partial class RecipeSettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showCardSeasonality = true;
     [ObservableProperty]
+    private bool _showEditorSeasonality = true;
+    [ObservableProperty]
     private bool _showCardNutrition = true;
 
     [ObservableProperty]
@@ -108,6 +110,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         ShowCardImage = settings.ShowCardImage;
         ShowCardTags = settings.ShowCardTags;
         ShowCardSeasonality = settings.ShowCardSeasonality;
+        ShowEditorSeasonality = settings.ShowRecipeEditorSeasonality;
         ShowCardNutrition = settings.ShowCardNutrition;
         ShowCardCalorieMatch = settings.ShowCardCalorieMatch;
         CalorieMatchTolerancePercent = settings.CalorieMatchTolerancePercent;
@@ -196,6 +199,7 @@ public partial class RecipeSettingsViewModel : ViewModelBase
         settings.ShowCardImage = ShowCardImage;
         settings.ShowCardTags = ShowCardTags;
         settings.ShowCardSeasonality = ShowCardSeasonality;
+        settings.ShowRecipeEditorSeasonality = ShowEditorSeasonality;
         settings.ShowCardNutrition = ShowCardNutrition;
         settings.ShowCardCalorieMatch = ShowCardCalorieMatch;
         settings.CalorieMatchTolerancePercent = CalorieMatchTolerancePercent;

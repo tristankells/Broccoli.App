@@ -72,6 +72,22 @@ public enum SeasonalityInfluenceMode
     Strong = 3,
 }
 
+/// <summary>
+/// How grocery items are normalized to a single weight unit at the moment they are added to the
+/// shopping list, so the list reads consistently regardless of the original recipe's units.
+/// </summary>
+public enum GroceryUnitNormalization
+{
+    /// <summary>Keep items exactly as the recipe specifies.</summary>
+    Off = 0,
+
+    /// <summary>Convert countable items to grams when a food match with a known weight exists.</summary>
+    Grams = 1,
+
+    /// <summary>Convert countable items to pounds when a food match with a known weight exists.</summary>
+    Pounds = 2,
+}
+
 public class MacroTargetSettings
 {
     [JsonPropertyName("id")]
@@ -108,6 +124,13 @@ public class MacroTargetSettings
     [JsonPropertyName("unitSystem")]
     public UnitSystem UnitSystem { get; set; } = UnitSystem.Metric;
 
+    /// <summary>
+    /// When not Off, grocery items that can be matched to a food with a known weight are converted
+    /// to a pure weight line (grams or pounds) the moment they are added to the shopping list.
+    /// </summary>
+    [JsonPropertyName("groceryUnitNormalization")]
+    public GroceryUnitNormalization GroceryUnitNormalization { get; set; } = GroceryUnitNormalization.Off;
+
     /// <summary>When true, the Recipe Detail page shows a meal macro comparison panel.</summary>
     [JsonPropertyName("recipeMealComparisonEnabled")]
     public bool RecipeMealComparisonEnabled { get; set; } = false;
@@ -128,6 +151,10 @@ public class MacroTargetSettings
 
     [JsonPropertyName("showCardSeasonality")]
     public bool ShowCardSeasonality { get; set; } = true;
+
+    /// <summary>When true, the recipe editor annotates each ingredient with its seasonality detail.</summary>
+    [JsonPropertyName("showRecipeEditorSeasonality")]
+    public bool ShowRecipeEditorSeasonality { get; set; } = true;
 
     [JsonPropertyName("showCardNutrition")]
     public bool ShowCardNutrition { get; set; } = true;

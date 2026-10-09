@@ -10,12 +10,48 @@
              x:DataType="vm:RecipeListPageViewModel">
 
     <DockPanel Margin="16">
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,16">
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,200,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,16">
             <TextBlock Grid.Column="0" Text="Recipes" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
             <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Search recipes..."
                      VerticalAlignment="Center" Margin="8,0" />
+            <!-- Seasonality: pick the scoring month and filter by band. -->
+            <DropDownButton Grid.Column="2" VerticalAlignment="Center" Margin="4,0,8,0"
+                            AutomationProperties.Name="Seasonality filters"
+                            AutomationProperties.AutomationId="seasonalityDropdown">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"
+                              Width="16" Height="16" />
+                    <TextBlock Text="{Binding SeasonalityMenuTitle}" VerticalAlignment="Center" />
+                </StackPanel>
+                <DropDownButton.Flyout>
+                    <Flyout>
+                        <StackPanel Spacing="10" Margin="8" Width="220">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Scoring month" FontWeight="SemiBold" FontSize="12" />
+                                <ComboBox ItemsSource="{Binding ScoringMonthOptions}"
+                                          SelectedItem="{Binding SelectedScoringMonth}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ScoringMonthOption">
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <Separator />
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Filter by band" FontWeight="SemiBold" FontSize="12" />
+                                <CheckBox IsChecked="{Binding IsAllFilterActive}" Content="All" />
+                                <CheckBox IsChecked="{Binding IsGreenFilterActive}" Content="Green" />
+                                <CheckBox IsChecked="{Binding IsYellowFilterActive}" Content="Yellow" />
+                                <CheckBox IsChecked="{Binding IsRedFilterActive}" Content="Red" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Flyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
             <!-- Toggle between image cards and a compact no-image list. Persisted in settings. -->
-            <ToggleButton Grid.Column="2" VerticalAlignment="Center" Margin="4,0,8,0"
+            <ToggleButton Grid.Column="3" VerticalAlignment="Center" Margin="4,0,8,0"
                           IsChecked="{Binding IsListView}"
                           ToolTip.Tip="Switch between cards and list view"
                           AutomationProperties.Name="Toggle recipe view"
@@ -29,7 +65,7 @@
                               Width="16" Height="16" />
                 </StackPanel>
             </ToggleButton>
-            <Button Grid.Column="3" VerticalAlignment="Center" Margin="4,0,8,0">
+            <Button Grid.Column="4" VerticalAlignment="Center" Margin="4,0,8,0">
                 <Button.Flyout>
                     <Flyout>
                         <StackPanel Spacing="6" Margin="8">
@@ -41,9 +77,9 @@
                 </Button.Flyout>
                 <PathIcon Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" Width="16" Height="16" />
             </Button>
-            <Button Grid.Column="4" Content="Import" Command="{Binding ImportRecipeCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="5" Content="Use up" Command="{Binding UseUpIngredientsCommand}" Margin="0,0,8,0" />
-            <Button Grid.Column="6" Command="{Binding AddRecipeCommand}"
+            <Button Grid.Column="5" Content="Import" Command="{Binding ImportRecipeCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="6" Content="Use up" Command="{Binding UseUpIngredientsCommand}" Margin="0,0,8,0" />
+            <Button Grid.Column="7" Command="{Binding AddRecipeCommand}"
                     AutomationProperties.Name="Add Recipe"
                     AutomationProperties.AutomationId="addRecipeButton">
                 <StackPanel Orientation="Horizontal" Spacing="6">
@@ -52,32 +88,6 @@
                 </StackPanel>
             </Button>
         </Grid>
-
-        <!-- Seasonality filter chips: dim the inactive ones so the active band is obvious.
-             The date picker rescopes seasonality to a chosen week for look-ahead planning. -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" Margin="0,0,0,12"
-                    IsVisible="{Binding ShowSeasonality}">
-            <TextBlock Text="Score for:" FontSize="12" Foreground="Gray" VerticalAlignment="Center" />
-            <DatePicker SelectedDate="{Binding AsOfDate, Converter={x:Static conv:DateTimeOffsetConverter.Instance}}"
-                        Width="130" VerticalAlignment="Center" Margin="0,0,12,0"
-                        AutomationProperties.Name="Seasonality score date" />
-            <Button Content="All" Command="{Binding SetSeasonalityFilterCommand}"
-                    CommandParameter="{x:Static vm:SeasonalityFilter.All}"
-                    Opacity="{Binding IsAllFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
-                    Padding="12,4" />
-            <Button Content="Green" Command="{Binding SetSeasonalityFilterCommand}"
-                    CommandParameter="{x:Static vm:SeasonalityFilter.Green}"
-                    Opacity="{Binding IsGreenFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
-                    Padding="12,4" />
-            <Button Content="Yellow" Command="{Binding SetSeasonalityFilterCommand}"
-                    CommandParameter="{x:Static vm:SeasonalityFilter.Yellow}"
-                    Opacity="{Binding IsYellowFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
-                    Padding="12,4" />
-            <Button Content="Red" Command="{Binding SetSeasonalityFilterCommand}"
-                    CommandParameter="{x:Static vm:SeasonalityFilter.Red}"
-                    Opacity="{Binding IsRedFilterActive, Converter={x:Static conv:BoolToOpacityConverter.Instance}}"
-                    Padding="12,4" />
-        </StackPanel>
 
         <!-- Load failure banner: shown instead of an endless spinner when the recipe list
              can't load (e.g. the local database can't be read). -->
@@ -189,11 +199,6 @@
                                         <TextBlock Text="{Binding Tags}" Foreground="Gray" FontSize="10"
                                                    TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                                    IsVisible="{Binding HasTags}" />
-
-                                        <!-- Seasonality coverage, e.g. "3 of 12 ingredients matched" -->
-                                        <TextBlock Text="{Binding SeasonCoverageText}" Foreground="Gray"
-                                                   FontSize="9" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                                   IsVisible="{Binding HasSeasonality}" />
 
                                         <!-- Nutrition row -->
                                         <StackPanel Orientation="Horizontal" Spacing="4"
